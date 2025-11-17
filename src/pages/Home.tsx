@@ -6,12 +6,9 @@ import { BarChart3, Users, Trophy } from "lucide-react";
 import { teams } from "@/data/teamData";
 import { matches } from "@/data/matchData";
 import { MatchCard } from "@/components/MatchCard";
-
 export default function Home() {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Navbar />
       
       <main className="container mx-auto px-4 py-12">
@@ -24,43 +21,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
-                <Users className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-xl mb-2">Player Profiles</h3>
-              <p className="text-sm text-muted-foreground">
-                Detailed statistics for every player
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
-                <BarChart3 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-xl mb-2">Team Analytics</h3>
-              <p className="text-sm text-muted-foreground">
-                Aggregated team performance data
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
-                <Trophy className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold text-xl mb-2">Match Stats</h3>
-              <p className="text-sm text-muted-foreground">
-                Complete match performance breakdown
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        
 
         {/* Recent Matches */}
         <div className="mb-12">
@@ -71,9 +32,7 @@ export default function Home() {
             </Button>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            {matches.slice(0, 2).map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))}
+            {matches.slice(0, 2).map(match => <MatchCard key={match.id} match={match} />)}
           </div>
         </div>
 
@@ -82,12 +41,7 @@ export default function Home() {
             Select a Team
           </h2>
           <div className="grid gap-4">
-            {teams.map((team) => (
-              <Card 
-                key={team.id}
-                className="cursor-pointer hover:shadow-lg transition-all hover:border-primary"
-                onClick={() => navigate(`/team/${team.id}`)}
-              >
+            {teams.map(team => <Card key={team.id} className="cursor-pointer hover:shadow-lg transition-all hover:border-primary" onClick={() => navigate(`/team/${team.id}`)}>
                 <CardHeader>
                   <CardTitle className="text-xl">{team.name}</CardTitle>
                   <CardDescription>
@@ -99,11 +53,9 @@ export default function Home() {
                     View Team Stats
                   </Button>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 }
