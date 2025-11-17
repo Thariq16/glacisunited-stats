@@ -29,18 +29,18 @@ export function Navbar() {
               Home
             </NavLink>
             <NavLink 
-              to="/team/europa-point" 
+              to="/matches" 
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               activeClassName="text-foreground"
             >
-              Europa Point FC
+              Matches
             </NavLink>
             <NavLink 
-              to="/team/glacis-united" 
+              to="/players" 
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               activeClassName="text-foreground"
             >
-              Glacis United
+              Players
             </NavLink>
           </div>
 
@@ -61,18 +61,18 @@ export function Navbar() {
                   Home
                 </NavLink>
                 <NavLink 
-                  to="/team/europa-point" 
+                  to="/matches" 
                   className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   activeClassName="text-foreground"
                 >
-                  Europa Point FC
+                  Matches
                 </NavLink>
                 <NavLink 
-                  to="/team/glacis-united" 
+                  to="/players" 
                   className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                   activeClassName="text-foreground"
                 >
-                  Glacis United
+                  Players
                 </NavLink>
               </div>
             </SheetContent>
