@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { StatCard } from "@/components/StatCard";
 import { getPlayerByName, getTeamById } from "@/data/teamData";
+import { getMatchesByTeam } from "@/data/matchData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ export default function PlayerProfile() {
   
   const team = teamId ? getTeamById(teamId) : undefined;
   const player = teamId && playerName ? getPlayerByName(teamId, decodeURIComponent(playerName)) : undefined;
+  const teamMatches = teamId ? getMatchesByTeam(teamId) : [];
 
   if (!team || !player) {
     return (
@@ -67,11 +69,16 @@ export default function PlayerProfile() {
         {/* Key Stats */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Key Statistics</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <StatCard
               title="Goals"
               value={player.goals}
               icon={Target}
+            />
+            <StatCard
+              title="Total Passes"
+              value={player.passCount}
+              icon={Users}
             />
             <StatCard
               title="Pass Accuracy"
@@ -331,41 +338,39 @@ export default function PlayerProfile() {
           <h2 className="text-2xl font-bold text-foreground mb-6">Match-by-Match Performance</h2>
           <Card>
             <CardContent className="p-6">
-              <div className="space-y-4">
-                {[
-                  { date: '2024-03-22', opponent: 'Europa Point FC', result: 'L 1-3', goals: player.goals > 1 ? 1 : 0, passes: Math.floor(player.successfulPass / 2), rating: '7.2' },
-                  { date: '2024-03-15', opponent: 'Glacis United', result: 'W 2-1', goals: player.goals > 0 ? 1 : 0, passes: Math.floor(player.successfulPass / 2), rating: '7.8' },
-                ].map((match, index) => (
-                  <div 
-                    key={index}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground">{match.date}</span>
-                        <Badge variant={match.result.startsWith('W') ? 'default' : match.result.startsWith('D') ? 'secondary' : 'outline'}>
-                          {match.result}
-                        </Badge>
+              {teamMatches.length > 0 ? (
+                <div className="space-y-4">
+                  {teamMatches.map((match) => {
+                    const isHome = match.homeTeamId === teamId;
+                    const opponent = isHome ? match.awayTeam : match.homeTeam;
+                    const teamScore = isHome ? match.score.home : match.score.away;
+                    const opponentScore = isHome ? match.score.away : match.score.home;
+                    const result = teamScore > opponentScore ? 'W' : teamScore < opponentScore ? 'L' : 'D';
+                    const resultText = `${result} ${teamScore}-${opponentScore}`;
+                    
+                    return (
+                      <div 
+                        key={match.id}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-muted-foreground">{match.date}</span>
+                            <Badge variant={result === 'W' ? 'default' : result === 'D' ? 'secondary' : 'outline'}>
+                              {resultText}
+                            </Badge>
+                            <Badge variant="outline">{match.competition}</Badge>
+                          </div>
+                          <p className="font-semibold mt-1">vs {opponent}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{match.venue}</p>
+                        </div>
                       </div>
-                      <p className="font-semibold mt-1">vs {match.opponent}</p>
-                    </div>
-                    <div className="flex items-center gap-8">
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">Goals</p>
-                        <p className="font-bold text-lg">{match.goals}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">Passes</p>
-                        <p className="font-bold text-lg">{match.passes}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">Rating</p>
-                        <p className="font-bold text-lg text-primary">{match.rating}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">No match data available</p>
+              )}
             </CardContent>
           </Card>
         </div>
