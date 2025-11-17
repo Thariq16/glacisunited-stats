@@ -29,7 +29,7 @@ export function Footer() {
           </Link>
         </div>
         <div className="text-center mt-4 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Football Stats Dashboard
+          © {new Date().getFullYear()} Analysis by Thariq Hamad
         </div>
       </div>
     </footer>
