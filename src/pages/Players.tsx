@@ -18,44 +18,33 @@ export default function Players() {
           <p className="text-muted-foreground">View all players with season aggregate statistics</p>
         </div>
 
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="all">All Players</TabsTrigger>
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold text-foreground mb-4">Opposition Players</h2>
+          
+          <Tabs defaultValue="europa-point" className="w-full">
+            <TabsList className="mb-6">
+              {teams.map((team) => (
+                <TabsTrigger key={team.id} value={team.id}>
+                  {team.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
             {teams.map((team) => (
-              <TabsTrigger key={team.id} value={team.id}>
-                {team.name}
-              </TabsTrigger>
+              <TabsContent key={team.id} value={team.id}>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {team.players.map(player => (
+                    <PlayerCard 
+                      key={`${player.jerseyNumber}-${player.playerName}`}
+                      player={player}
+                      teamId={team.id}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
             ))}
-          </TabsList>
-
-          <TabsContent value="all">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {teams.flatMap(team => 
-                team.players.map(player => (
-                  <PlayerCard 
-                    key={`${team.id}-${player.jerseyNumber}-${player.playerName}`}
-                    player={player}
-                    teamId={team.id}
-                  />
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          {teams.map((team) => (
-            <TabsContent key={team.id} value={team.id}>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {team.players.map(player => (
-                  <PlayerCard 
-                    key={`${player.jerseyNumber}-${player.playerName}`}
-                    player={player}
-                    teamId={team.id}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-          ))}
-        </Tabs>
+          </Tabs>
+        </div>
       </main>
     </div>
   );
