@@ -1,11 +1,12 @@
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { MatchCard } from "@/components/MatchCard";
 import { matches } from "@/data/matchData";
 import { Trophy } from "lucide-react";
 
 export default function Matches() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
       <main className="container mx-auto px-4 py-8">
@@ -23,6 +24,7 @@ export default function Matches() {
           ))}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

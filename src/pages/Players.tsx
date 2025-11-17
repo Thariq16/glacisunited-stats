@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { PlayerCard } from "@/components/PlayerCard";
 import { teams } from "@/data/teamData";
 import { Users } from "lucide-react";
@@ -6,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Players() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
       <main className="container mx-auto px-4 py-8">
@@ -46,6 +47,7 @@ export default function Players() {
           </Tabs>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
