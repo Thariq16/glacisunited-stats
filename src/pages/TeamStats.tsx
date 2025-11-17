@@ -25,6 +25,7 @@ export default function TeamStats() {
 
     return {
       totalGoals,
+      totalPasses,
       passAccuracy,
       totalTackles,
       totalShots,
@@ -74,6 +75,11 @@ export default function TeamStats() {
             title="Total Goals"
             value={teamStats.totalGoals}
             icon={Target}
+          />
+          <StatCard
+            title="Total Passes"
+            value={teamStats.totalPasses}
+            icon={TrendingUp}
           />
           <StatCard
             title="Pass Accuracy"
