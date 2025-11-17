@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PlayerCard } from "@/components/PlayerCard";
+import { MatchStatsTable } from "@/components/MatchStatsTable";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -131,45 +132,12 @@ export default function MatchDetail() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-6">Overall Match Statistics</h2>
           
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Home Team Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{match.homeTeam}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <StatCard title="Goals" value={homeTeamStats.totalGoals} icon={Target} />
-                  <StatCard 
-                    title="Pass Accuracy" 
-                    value={`${((homeTeamStats.totalSuccessfulPasses / homeTeamStats.totalPasses) * 100).toFixed(1)}%`} 
-                    icon={TrendingUp} 
-                  />
-                  <StatCard title="Tackles" value={homeTeamStats.totalTackles} icon={Shield} />
-                  <StatCard title="Shots" value={homeTeamStats.totalShots} icon={Activity} />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Away Team Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{match.awayTeam}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <StatCard title="Goals" value={awayTeamStats.totalGoals} icon={Target} />
-                  <StatCard 
-                    title="Pass Accuracy" 
-                    value={`${((awayTeamStats.totalSuccessfulPasses / awayTeamStats.totalPasses) * 100).toFixed(1)}%`} 
-                    icon={TrendingUp} 
-                  />
-                  <StatCard title="Tackles" value={awayTeamStats.totalTackles} icon={Shield} />
-                  <StatCard title="Shots" value={awayTeamStats.totalShots} icon={Activity} />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <MatchStatsTable 
+            homeTeam={match.homeTeam}
+            awayTeam={match.awayTeam}
+            homePlayers={homeTeam.players}
+            awayPlayers={awayTeam.players}
+          />
         </div>
 
         {/* Player Performance Modal */}
