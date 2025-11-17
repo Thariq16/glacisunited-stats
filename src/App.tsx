@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Matches from "./pages/Matches";
 import MatchDetail from "./pages/MatchDetail";
 import Players from "./pages/Players";
+import OppositionPlayers from "./pages/OppositionPlayers";
 import TeamStats from "./pages/TeamStats";
 import PlayerProfile from "./pages/PlayerProfile";
 import NotFound from "./pages/NotFound";
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/matches" element={<Matches />} />
           <Route path="/match/:matchId" element={<MatchDetail />} />
           <Route path="/players" element={<Players />} />
+          <Route path="/opposition-players" element={<OppositionPlayers />} />
           <Route path="/team/:teamId" element={<TeamStats />} />
           <Route path="/team/:teamId/player/:playerName" element={<PlayerProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

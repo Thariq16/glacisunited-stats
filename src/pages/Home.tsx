@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,10 +9,10 @@ import { matches } from "@/data/matchData";
 import { MatchCard } from "@/components/MatchCard";
 export default function Home() {
   const navigate = useNavigate();
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 flex-1">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Football Statistics Dashboard
@@ -38,5 +39,6 @@ export default function Home() {
 
         
       </main>
+      <Footer />
     </div>;
 }
