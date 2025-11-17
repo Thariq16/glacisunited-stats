@@ -5,6 +5,8 @@ import { Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function OppositionPlayers() {
+  const oppositionTeams = teams.filter(team => team.id !== 'glacis-united');
+  
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -21,7 +23,7 @@ export default function OppositionPlayers() {
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="all">All Players</TabsTrigger>
-            {teams.map((team) => (
+            {oppositionTeams.map((team) => (
               <TabsTrigger key={team.id} value={team.id}>
                 {team.name}
               </TabsTrigger>
@@ -30,7 +32,7 @@ export default function OppositionPlayers() {
 
           <TabsContent value="all">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {teams.flatMap(team => 
+              {oppositionTeams.flatMap(team => 
                 team.players.map(player => (
                   <PlayerCard 
                     key={`${team.id}-${player.jerseyNumber}-${player.playerName}`}
@@ -42,7 +44,7 @@ export default function OppositionPlayers() {
             </div>
           </TabsContent>
 
-          {teams.map((team) => (
+          {oppositionTeams.map((team) => (
             <TabsContent key={team.id} value={team.id}>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {team.players.map(player => (
