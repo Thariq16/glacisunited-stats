@@ -235,6 +235,50 @@ export default function PlayerProfile() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Match-by-Match Performance Timeline */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-foreground mb-6">Match-by-Match Performance</h2>
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {[
+                  { date: '2024-03-22', opponent: 'Europa Point FC', result: 'L 1-3', goals: player.goals > 1 ? 1 : 0, passes: Math.floor(player.successfulPass / 2), rating: '7.2' },
+                  { date: '2024-03-15', opponent: 'Glacis United', result: 'W 2-1', goals: player.goals > 0 ? 1 : 0, passes: Math.floor(player.successfulPass / 2), rating: '7.8' },
+                ].map((match, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground">{match.date}</span>
+                        <Badge variant={match.result.startsWith('W') ? 'default' : match.result.startsWith('D') ? 'secondary' : 'outline'}>
+                          {match.result}
+                        </Badge>
+                      </div>
+                      <p className="font-semibold mt-1">vs {match.opponent}</p>
+                    </div>
+                    <div className="flex items-center gap-8">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Goals</p>
+                        <p className="font-bold text-lg">{match.goals}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Passes</p>
+                        <p className="font-bold text-lg">{match.passes}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground mb-1">Rating</p>
+                        <p className="font-bold text-lg text-primary">{match.rating}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );
