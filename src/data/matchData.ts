@@ -20,7 +20,7 @@ export const matches: Match[] = [
     awayTeam: 'Europa Point FC',
     homeTeamId: 'glacis-united',
     awayTeamId: 'europa-point',
-    date: '2024-03-22',
+    date: '2025-11-10',
     score: { home: 3, away: 1 },
     venue: 'Glacis Stadium',
     competition: 'League',
