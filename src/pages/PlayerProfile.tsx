@@ -138,12 +138,50 @@ export default function PlayerProfile() {
                 <p className="text-2xl font-bold">{player.shotsOnTarget}</p>
               </div>
               <div>
+                <p className="text-sm text-muted-foreground mb-1">Shot Accuracy</p>
+                <p className="text-2xl font-bold text-primary">
+                  {player.shotsAttempted > 0 ? ((player.shotsOnTarget / player.shotsAttempted) * 100).toFixed(1) : 0}%
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Conversion Rate</p>
+                <p className="text-2xl font-bold text-primary">
+                  {player.shotsAttempted > 0 ? ((player.goals / player.shotsAttempted) * 100).toFixed(1) : 0}%
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Clinical Finishing</p>
+                <p className="text-2xl font-bold text-primary">
+                  {player.shotsOnTarget > 0 ? ((player.goals / player.shotsOnTarget) * 100).toFixed(1) : 0}%
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Penalty Area Pass</p>
+                <p className="text-2xl font-bold">{player.penaltyAreaPass}</p>
+              </div>
+              <div>
                 <p className="text-sm text-muted-foreground mb-1">Penalty Area Entry</p>
                 <p className="text-2xl font-bold">{player.penaltyAreaEntry}</p>
               </div>
               <div>
+                <p className="text-sm text-muted-foreground mb-1">PA Entry Efficiency</p>
+                <p className="text-2xl font-bold text-primary">
+                  {player.penaltyAreaPass > 0 ? ((player.penaltyAreaEntry / player.penaltyAreaPass) * 100).toFixed(1) : 0}%
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Pass to Goal Threat</p>
+                <p className="text-2xl font-bold text-primary">
+                  {player.passCount > 0 ? ((player.penaltyAreaPass / player.passCount) * 100).toFixed(1) : 0}%
+                </p>
+              </div>
+              <div>
                 <p className="text-sm text-muted-foreground mb-1">Crosses</p>
                 <p className="text-2xl font-bold">{player.crosses}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Cut Backs</p>
+                <p className="text-2xl font-bold">{player.cutBacks}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Offside</p>
@@ -184,7 +222,7 @@ export default function PlayerProfile() {
         </Card>
 
         {/* Discipline & Set Pieces */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 mb-8">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -194,15 +232,39 @@ export default function PlayerProfile() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Total Fouls</span>
                   <span className="font-bold">{player.fouls}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Final Third</span>
+                  <span className="font-semibold">{player.foulsInFinalThird}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Middle Third</span>
+                  <span className="font-semibold">{player.foulsInMiddleThird}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Defensive Third</span>
+                  <span className="font-semibold">{player.foulsInDefensiveThird}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-muted-foreground">Fouls Won</span>
                   <span className="font-bold text-primary">{player.foulWon}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center pl-4 border-l-2 border-primary/30">
+                  <span className="text-sm text-muted-foreground">Final Third</span>
+                  <span className="font-semibold text-primary">{player.fwFinalThird}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-primary/30">
+                  <span className="text-sm text-muted-foreground">Middle Third</span>
+                  <span className="font-semibold text-primary">{player.fwMiddleThird}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-primary/30">
+                  <span className="text-sm text-muted-foreground">Defensive Third</span>
+                  <span className="font-semibold text-primary">{player.fwDefensiveThird}</span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-muted-foreground">Defensive Errors</span>
                   <span className="font-bold">{player.defensiveErrors}</span>
                 </div>
@@ -219,17 +281,45 @@ export default function PlayerProfile() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Corners</span>
                   <span className="font-bold">{player.corners}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Free Kicks</span>
-                  <span className="font-bold">{player.freeKicks}</span>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Successful</span>
+                  <span className="font-semibold text-primary">{player.cornerSuccess}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Failed</span>
+                  <span className="font-semibold">{player.cornerFailed}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Success Rate</span>
+                  <span className="font-semibold text-primary">
+                    {player.corners > 0 ? ((player.cornerSuccess / player.corners) * 100).toFixed(1) : 0}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-muted-foreground">Throw Ins</span>
                   <span className="font-bold">{player.throwIns}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Successful</span>
+                  <span className="font-semibold text-primary">{player.tiSuccess}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Failed</span>
+                  <span className="font-semibold">{player.tiFailed}</span>
+                </div>
+                <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
+                  <span className="text-sm text-muted-foreground">Success Rate</span>
+                  <span className="font-semibold text-primary">
+                    {player.throwIns > 0 ? ((player.tiSuccess / player.throwIns) * 100).toFixed(1) : 0}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="text-muted-foreground">Free Kicks</span>
+                  <span className="font-bold">{player.freeKicks}</span>
                 </div>
               </div>
             </CardContent>
