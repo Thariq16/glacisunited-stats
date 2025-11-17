@@ -36,26 +36,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-foreground mb-6 text-center">
-            Select a Team
-          </h2>
-          <div className="grid gap-4">
-            {teams.map(team => <Card key={team.id} className="cursor-pointer hover:shadow-lg transition-all hover:border-primary" onClick={() => navigate(`/team/${team.id}`)}>
-                <CardHeader>
-                  <CardTitle className="text-xl">{team.name}</CardTitle>
-                  <CardDescription>
-                    {team.players.length} players | View complete team statistics
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button variant="secondary" className="w-full">
-                    View Team Stats
-                  </Button>
-                </CardContent>
-              </Card>)}
-          </div>
-        </div>
+        
       </main>
     </div>;
 }
