@@ -10,6 +10,7 @@ import Players from "./pages/Players";
 import OppositionPlayers from "./pages/OppositionPlayers";
 import TeamStats from "./pages/TeamStats";
 import PlayerProfile from "./pages/PlayerProfile";
+import DataImport from "./pages/DataImport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/opposition-players" element={<OppositionPlayers />} />
           <Route path="/team/:teamId" element={<TeamStats />} />
           <Route path="/team/:teamId/player/:playerName" element={<PlayerProfile />} />
+          <Route path="/import" element={<DataImport />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

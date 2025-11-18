@@ -14,7 +14,254 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      matches: {
+        Row: {
+          away_score: number
+          away_team_id: string
+          competition: string | null
+          created_at: string | null
+          home_score: number
+          home_team_id: string
+          id: string
+          match_date: string
+          venue: string | null
+        }
+        Insert: {
+          away_score?: number
+          away_team_id: string
+          competition?: string | null
+          created_at?: string | null
+          home_score?: number
+          home_team_id: string
+          id?: string
+          match_date: string
+          venue?: string | null
+        }
+        Update: {
+          away_score?: number
+          away_team_id?: string
+          competition?: string | null
+          created_at?: string | null
+          home_score?: number
+          home_team_id?: string
+          id?: string
+          match_date?: string
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_away_team_id_fkey"
+            columns: ["away_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_home_team_id_fkey"
+            columns: ["home_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_match_stats: {
+        Row: {
+          aerial_duels_lost: number | null
+          aerial_duels_won: number | null
+          backward_pass: number | null
+          clearance: number | null
+          corner_failed: number | null
+          corner_success: number | null
+          corners: number | null
+          created_at: string | null
+          crosses: number | null
+          cut_backs: number | null
+          defensive_errors: number | null
+          forward_pass: number | null
+          foul_won: number | null
+          fouls: number | null
+          fouls_defensive_third: number | null
+          fouls_final_third: number | null
+          fouls_middle_third: number | null
+          free_kicks: number | null
+          fw_defensive_3rd: number | null
+          fw_final_3rd: number | null
+          fw_middle_3rd: number | null
+          goals: number | null
+          half: number
+          id: string
+          match_id: string
+          miss_pass: number | null
+          offside: number | null
+          pass_count: number | null
+          penalty_area_entry: number | null
+          penalty_area_pass: number | null
+          player_id: string
+          saves: number | null
+          shots_attempted: number | null
+          shots_on_target: number | null
+          successful_pass: number | null
+          tackles: number | null
+          throw_ins: number | null
+          ti_failed: number | null
+          ti_success: number | null
+        }
+        Insert: {
+          aerial_duels_lost?: number | null
+          aerial_duels_won?: number | null
+          backward_pass?: number | null
+          clearance?: number | null
+          corner_failed?: number | null
+          corner_success?: number | null
+          corners?: number | null
+          created_at?: string | null
+          crosses?: number | null
+          cut_backs?: number | null
+          defensive_errors?: number | null
+          forward_pass?: number | null
+          foul_won?: number | null
+          fouls?: number | null
+          fouls_defensive_third?: number | null
+          fouls_final_third?: number | null
+          fouls_middle_third?: number | null
+          free_kicks?: number | null
+          fw_defensive_3rd?: number | null
+          fw_final_3rd?: number | null
+          fw_middle_3rd?: number | null
+          goals?: number | null
+          half: number
+          id?: string
+          match_id: string
+          miss_pass?: number | null
+          offside?: number | null
+          pass_count?: number | null
+          penalty_area_entry?: number | null
+          penalty_area_pass?: number | null
+          player_id: string
+          saves?: number | null
+          shots_attempted?: number | null
+          shots_on_target?: number | null
+          successful_pass?: number | null
+          tackles?: number | null
+          throw_ins?: number | null
+          ti_failed?: number | null
+          ti_success?: number | null
+        }
+        Update: {
+          aerial_duels_lost?: number | null
+          aerial_duels_won?: number | null
+          backward_pass?: number | null
+          clearance?: number | null
+          corner_failed?: number | null
+          corner_success?: number | null
+          corners?: number | null
+          created_at?: string | null
+          crosses?: number | null
+          cut_backs?: number | null
+          defensive_errors?: number | null
+          forward_pass?: number | null
+          foul_won?: number | null
+          fouls?: number | null
+          fouls_defensive_third?: number | null
+          fouls_final_third?: number | null
+          fouls_middle_third?: number | null
+          free_kicks?: number | null
+          fw_defensive_3rd?: number | null
+          fw_final_3rd?: number | null
+          fw_middle_3rd?: number | null
+          goals?: number | null
+          half?: number
+          id?: string
+          match_id?: string
+          miss_pass?: number | null
+          offside?: number | null
+          pass_count?: number | null
+          penalty_area_entry?: number | null
+          penalty_area_pass?: number | null
+          player_id?: string
+          saves?: number | null
+          shots_attempted?: number | null
+          shots_on_target?: number | null
+          successful_pass?: number | null
+          tackles?: number | null
+          throw_ins?: number | null
+          ti_failed?: number | null
+          ti_success?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_match_stats_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_match_stats_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      players: {
+        Row: {
+          created_at: string | null
+          id: string
+          jersey_number: number
+          name: string
+          role: string | null
+          team_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          jersey_number: number
+          name: string
+          role?: string | null
+          team_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          jersey_number?: number
+          name?: string
+          role?: string | null
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
