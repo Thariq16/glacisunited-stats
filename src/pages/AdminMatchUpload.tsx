@@ -10,11 +10,26 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+// Validation schema
+const matchFormSchema = z.object({
+  homeTeamName: z.string().trim().min(1, "Home team name is required").max(100, "Team name must be less than 100 characters"),
+  awayTeamName: z.string().trim().min(1, "Away team name is required").max(100, "Team name must be less than 100 characters"),
+  matchDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  homeScore: z.string().regex(/^\d*$/, "Score must be a number").transform((val) => val === "" ? "0" : val).pipe(z.string().transform(Number).pipe(z.number().int().min(0).max(99))),
+  awayScore: z.string().regex(/^\d*$/, "Score must be a number").transform((val) => val === "" ? "0" : val).pipe(z.string().transform(Number).pipe(z.number().int().min(0).max(99))),
+  venue: z.string().trim().max(200, "Venue must be less than 200 characters"),
+  competition: z.string().trim().max(100, "Competition name must be less than 100 characters"),
+});
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 function AdminMatchUploadContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
     homeTeamName: "",
@@ -34,27 +49,70 @@ function AdminMatchUploadContent() {
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const file = e.target.files?.[0] || null;
+    
+    // Validate file
+    if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          variant: "destructive",
+          title: "File Too Large",
+          description: `File exceeds maximum size of 5MB`,
+        });
+        return;
+      }
+      if (!file.name.endsWith('.csv')) {
+        toast({
+          variant: "destructive",
+          title: "Invalid File Type",
+          description: "Please upload a CSV file",
+        });
+        return;
+      }
+    }
+    
     setFiles({ ...files, [fieldName]: file });
+    // Clear error for this field
+    if (errors[fieldName]) {
+      setErrors({ ...errors, [fieldName]: "" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
-    // Validation
-    if (!formData.homeTeamName || !formData.awayTeamName || !formData.matchDate) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill in all required match details.",
-      });
-      return;
+    // Validate form data with zod
+    try {
+      matchFormSchema.parse(formData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast({
+          variant: "destructive",
+          title: "Validation Error",
+          description: "Please fix the errors in the form",
+        });
+        return;
+      }
     }
 
+    // Validate files
     if (!files.homeTeam1stCSV || !files.homeTeam2ndCSV || !files.awayTeam1stCSV || !files.awayTeam2ndCSV) {
       toast({
         variant: "destructive",
@@ -76,13 +134,13 @@ function AdminMatchUploadContent() {
 
       // Prepare form data
       const uploadFormData = new FormData();
-      uploadFormData.append('homeTeamName', formData.homeTeamName);
-      uploadFormData.append('awayTeamName', formData.awayTeamName);
+      uploadFormData.append('homeTeamName', formData.homeTeamName.trim());
+      uploadFormData.append('awayTeamName', formData.awayTeamName.trim());
       uploadFormData.append('matchDate', formData.matchDate);
       uploadFormData.append('homeScore', formData.homeScore || '0');
       uploadFormData.append('awayScore', formData.awayScore || '0');
-      uploadFormData.append('venue', formData.venue || '');
-      uploadFormData.append('competition', formData.competition || 'League');
+      uploadFormData.append('venue', formData.venue.trim() || '');
+      uploadFormData.append('competition', formData.competition.trim() || 'League');
       uploadFormData.append('homeTeam1stCSV', files.homeTeam1stCSV);
       uploadFormData.append('homeTeam2ndCSV', files.homeTeam2ndCSV);
       uploadFormData.append('awayTeam1stCSV', files.awayTeam1stCSV);
@@ -171,7 +229,11 @@ function AdminMatchUploadContent() {
                       onChange={handleInputChange}
                       placeholder="e.g., Glacis United"
                       required
+                      className={errors.homeTeamName ? "border-destructive" : ""}
                     />
+                    {errors.homeTeamName && (
+                      <p className="text-sm text-destructive">{errors.homeTeamName}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -183,7 +245,11 @@ function AdminMatchUploadContent() {
                       onChange={handleInputChange}
                       placeholder="e.g., Europa Point FC"
                       required
+                      className={errors.awayTeamName ? "border-destructive" : ""}
                     />
+                    {errors.awayTeamName && (
+                      <p className="text-sm text-destructive">{errors.awayTeamName}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">

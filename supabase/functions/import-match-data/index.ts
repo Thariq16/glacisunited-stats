@@ -1,9 +1,69 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.81.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation constants
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_NAME_LENGTH = 100;
+const MAX_VENUE_LENGTH = 200;
+const MAX_COMPETITION_LENGTH = 100;
+
+// Validation schemas
+const playerStatsSchema = z.object({
+  jerseyNumber: z.string().regex(/^\d+$/, 'Jersey number must be numeric').transform(Number).pipe(
+    z.number().int().min(1).max(99)
+  ),
+  playerName: z.string().trim().min(1).max(MAX_NAME_LENGTH),
+  role: z.string().trim().max(50),
+  passCount: z.number().int().min(0).max(10000),
+  successfulPass: z.number().int().min(0).max(10000),
+  missPass: z.number().int().min(0).max(10000),
+  forwardPass: z.number().int().min(0).max(10000),
+  backwardPass: z.number().int().min(0).max(10000),
+  goals: z.number().int().min(0).max(100),
+  penaltyAreaPass: z.number().int().min(0).max(10000),
+  penaltyAreaEntry: z.number().int().min(0).max(10000),
+  shotsAttempted: z.number().int().min(0).max(1000),
+  shotsOnTarget: z.number().int().min(0).max(1000),
+  saves: z.number().int().min(0).max(1000),
+  defensiveErrors: z.number().int().min(0).max(1000),
+  aerialDuelsWon: z.number().int().min(0).max(1000),
+  aerialDuelsLost: z.number().int().min(0).max(1000),
+  tackles: z.number().int().min(0).max(1000),
+  clearance: z.number().int().min(0).max(1000),
+  fouls: z.number().int().min(0).max(1000),
+  foulsInFinalThird: z.number().int().min(0).max(1000),
+  foulsInMiddleThird: z.number().int().min(0).max(1000),
+  foulsInDefensiveThird: z.number().int().min(0).max(1000),
+  foulWon: z.number().int().min(0).max(1000),
+  fwFinalThird: z.number().int().min(0).max(1000),
+  fwMiddleThird: z.number().int().min(0).max(1000),
+  fwDefensiveThird: z.number().int().min(0).max(1000),
+  cutBacks: z.number().int().min(0).max(1000),
+  crosses: z.number().int().min(0).max(1000),
+  freeKicks: z.number().int().min(0).max(1000),
+  corners: z.number().int().min(0).max(1000),
+  cornerFailed: z.number().int().min(0).max(1000),
+  cornerSuccess: z.number().int().min(0).max(1000),
+  throwIns: z.number().int().min(0).max(1000),
+  tiFailed: z.number().int().min(0).max(1000),
+  tiSuccess: z.number().int().min(0).max(1000),
+  offside: z.number().int().min(0).max(1000),
+});
+
+const matchDataSchema = z.object({
+  homeTeamName: z.string().trim().min(1).max(MAX_NAME_LENGTH),
+  awayTeamName: z.string().trim().min(1).max(MAX_NAME_LENGTH),
+  matchDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  homeScore: z.number().int().min(0).max(99),
+  awayScore: z.number().int().min(0).max(99),
+  venue: z.string().trim().max(MAX_VENUE_LENGTH).optional(),
+  competition: z.string().trim().max(MAX_COMPETITION_LENGTH).optional(),
+});
 
 interface PlayerStats {
   jerseyNumber: string;
@@ -47,6 +107,12 @@ interface PlayerStats {
 
 function parseCSV(csvText: string): PlayerStats[] {
   const lines = csvText.trim().split('\n');
+  
+  // Validate CSV structure
+  if (lines.length < 2) {
+    throw new Error('CSV file must have at least a header row and one data row');
+  }
+
   const players: PlayerStats[] = [];
 
   for (let i = 1; i < lines.length; i++) {
@@ -55,7 +121,11 @@ function parseCSV(csvText: string): PlayerStats[] {
 
     const values = line.split(',').map(v => v.trim());
     
-    players.push({
+    if (values.length < 37) {
+      throw new Error(`Invalid CSV format at line ${i + 1}: expected at least 37 columns, got ${values.length}`);
+    }
+
+    const rawPlayer = {
       jerseyNumber: values[0] || '0',
       playerName: values[1] || 'Unknown',
       role: values[2] || '',
@@ -93,7 +163,58 @@ function parseCSV(csvText: string): PlayerStats[] {
       tiFailed: parseInt(values[34]) || 0,
       tiSuccess: parseInt(values[35]) || 0,
       offside: parseInt(values[36]) || 0,
-    });
+    };
+
+    // Validate player data with zod schema
+    try {
+      const validatedPlayer = playerStatsSchema.parse(rawPlayer);
+      players.push({
+        jerseyNumber: validatedPlayer.jerseyNumber.toString(),
+        playerName: validatedPlayer.playerName,
+        role: validatedPlayer.role,
+        passCount: validatedPlayer.passCount,
+        successfulPass: validatedPlayer.successfulPass,
+        missPass: validatedPlayer.missPass,
+        forwardPass: validatedPlayer.forwardPass,
+        backwardPass: validatedPlayer.backwardPass,
+        goals: validatedPlayer.goals,
+        penaltyAreaPass: validatedPlayer.penaltyAreaPass,
+        penaltyAreaEntry: validatedPlayer.penaltyAreaEntry,
+        shotsAttempted: validatedPlayer.shotsAttempted,
+        shotsOnTarget: validatedPlayer.shotsOnTarget,
+        saves: validatedPlayer.saves,
+        defensiveErrors: validatedPlayer.defensiveErrors,
+        aerialDuelsWon: validatedPlayer.aerialDuelsWon,
+        aerialDuelsLost: validatedPlayer.aerialDuelsLost,
+        tackles: validatedPlayer.tackles,
+        clearance: validatedPlayer.clearance,
+        fouls: validatedPlayer.fouls,
+        foulsInFinalThird: validatedPlayer.foulsInFinalThird,
+        foulsInMiddleThird: validatedPlayer.foulsInMiddleThird,
+        foulsInDefensiveThird: validatedPlayer.foulsInDefensiveThird,
+        foulWon: validatedPlayer.foulWon,
+        fwFinalThird: validatedPlayer.fwFinalThird,
+        fwMiddleThird: validatedPlayer.fwMiddleThird,
+        fwDefensiveThird: validatedPlayer.fwDefensiveThird,
+        cutBacks: validatedPlayer.cutBacks,
+        crosses: validatedPlayer.crosses,
+        freeKicks: validatedPlayer.freeKicks,
+        corners: validatedPlayer.corners,
+        cornerFailed: validatedPlayer.cornerFailed,
+        cornerSuccess: validatedPlayer.cornerSuccess,
+        throwIns: validatedPlayer.throwIns,
+        tiFailed: validatedPlayer.tiFailed,
+        tiSuccess: validatedPlayer.tiSuccess,
+        offside: validatedPlayer.offside,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Validation error at line ${i + 1}: ${errorMessage}`);
+    }
+  }
+
+  if (players.length === 0) {
+    throw new Error('CSV file contains no valid player data');
   }
 
   return players;
@@ -149,19 +270,48 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Parse form data
     const formData = await req.formData();
-    const homeTeamName = formData.get('homeTeamName') as string;
-    const awayTeamName = formData.get('awayTeamName') as string;
-    const matchDate = formData.get('matchDate') as string;
-    const homeScore = parseInt(formData.get('homeScore') as string);
-    const awayScore = parseInt(formData.get('awayScore') as string);
-    const venue = formData.get('venue') as string;
-    const competition = formData.get('competition') as string;
     
+    // Validate match data
+    const rawMatchData = {
+      homeTeamName: formData.get('homeTeamName') as string,
+      awayTeamName: formData.get('awayTeamName') as string,
+      matchDate: formData.get('matchDate') as string,
+      homeScore: parseInt(formData.get('homeScore') as string) || 0,
+      awayScore: parseInt(formData.get('awayScore') as string) || 0,
+      venue: formData.get('venue') as string || '',
+      competition: formData.get('competition') as string || 'League',
+    };
+
+    const validatedMatchData = matchDataSchema.parse(rawMatchData);
+    const { homeTeamName, awayTeamName, matchDate, homeScore, awayScore, venue, competition } = validatedMatchData;
+    
+    // Get CSV files and validate size
     const homeTeam1stCSV = formData.get('homeTeam1stCSV') as File;
     const homeTeam2ndCSV = formData.get('homeTeam2ndCSV') as File;
     const awayTeam1stCSV = formData.get('awayTeam1stCSV') as File;
     const awayTeam2ndCSV = formData.get('awayTeam2ndCSV') as File;
+
+    // Validate file sizes
+    const files = [
+      { file: homeTeam1stCSV, name: 'Home Team 1st Half' },
+      { file: homeTeam2ndCSV, name: 'Home Team 2nd Half' },
+      { file: awayTeam1stCSV, name: 'Away Team 1st Half' },
+      { file: awayTeam2ndCSV, name: 'Away Team 2nd Half' },
+    ];
+
+    for (const { file, name } of files) {
+      if (!file) {
+        throw new Error(`Missing file: ${name}`);
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        throw new Error(`File ${name} exceeds maximum size of ${MAX_FILE_SIZE / 1024 / 1024}MB`);
+      }
+      if (!file.name.endsWith('.csv')) {
+        throw new Error(`File ${name} must be a CSV file`);
+      }
+    }
 
     console.log('Processing match:', { homeTeamName, awayTeamName, matchDate });
 
