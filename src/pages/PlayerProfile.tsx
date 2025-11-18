@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Target, TrendingUp, Shield, Activity, Users, AlertCircle, Wind, Flag } from "lucide-react";
+import { PlayerEfficiencyMetrics } from "@/components/PlayerEfficiencyMetrics";
+import { TacticalInsightsCard } from "@/components/TacticalInsightsCard";
+import { calculateAdvancedMetrics, calculateTacticalProfile, analyzePositioning } from "@/utils/playerMetrics";
+import { useMemo } from "react";
 
 export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
@@ -15,6 +19,14 @@ export default function PlayerProfile() {
   const team = teamId ? getTeamById(teamId) : undefined;
   const player = teamId && playerName ? getPlayerByName(teamId, decodeURIComponent(playerName)) : undefined;
   const teamMatches = teamId ? getMatchesByTeam(teamId) : [];
+
+  const { advancedMetrics, tacticalProfile, positioning } = useMemo(() => {
+    if (!player) return { advancedMetrics: null, tacticalProfile: null, positioning: null };
+    const metrics = calculateAdvancedMetrics(player);
+    const profile = calculateTacticalProfile(player, metrics);
+    const pos = analyzePositioning(player);
+    return { advancedMetrics: metrics, tacticalProfile: profile, positioning: pos };
+  }, [player]);
 
   if (!team || !player) {
     return (
@@ -97,6 +109,19 @@ export default function PlayerProfile() {
             />
           </div>
         </div>
+
+        {/* Efficiency Metrics & Tactical Insights */}
+        {advancedMetrics && tacticalProfile && positioning && (
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <PlayerEfficiencyMetrics metrics={advancedMetrics} />
+            <TacticalInsightsCard 
+              player={player} 
+              tacticalProfile={tacticalProfile}
+              positioning={positioning}
+              metrics={advancedMetrics}
+            />
+          </div>
+        )}
 
         {/* Passing Stats */}
         <Card className="mb-8">
