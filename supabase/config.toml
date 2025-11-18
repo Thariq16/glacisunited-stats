@@ -1,1 +1,4 @@
 project_id = "twkpikanixylbjhgoboo"
+
+[functions.import-match-data]
+verify_jwt = false

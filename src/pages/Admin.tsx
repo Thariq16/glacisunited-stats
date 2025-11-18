@@ -40,14 +40,14 @@ function AdminContent() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/upload')}>
+          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/match-upload')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="h-5 w-5" />
                 Upload Match Data
               </CardTitle>
               <CardDescription>
-                Import new match statistics from CSV files
+                Import new match statistics from CSV files for any teams
               </CardDescription>
             </CardHeader>
             <CardContent>

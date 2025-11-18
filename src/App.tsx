@@ -15,6 +15,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminPlayers from "./pages/AdminPlayers";
 import AdminUpload from "./pages/AdminUpload";
+import AdminMatchUpload from "./pages/AdminMatchUpload";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,9 +30,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/players" element={<AdminPlayers />} />
-          <Route path="/admin/upload" element={<AdminUpload />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/players" element={<AdminPlayers />} />
+            <Route path="/admin/upload" element={<AdminUpload />} />
+            <Route path="/admin/match-upload" element={<AdminMatchUpload />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/match/:matchId" element={<MatchDetail />} />
             <Route path="/players" element={<Players />} />
