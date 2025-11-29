@@ -8,7 +8,7 @@ import { Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Players() {
-  const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const { data: players, isLoading } = usePlayerStats('glacis-united-fc', matchFilter);
   
   return (

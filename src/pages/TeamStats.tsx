@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function TeamStats() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
-  const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const { data: team, isLoading, error } = useTeamWithPlayers(teamId, matchFilter);
 
   const teamStats = useMemo(() => {

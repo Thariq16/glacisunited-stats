@@ -10,7 +10,7 @@ import { Users, Award, TrendingUp, Shield, Target, Activity } from "lucide-react
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SquadAnalysis() {
-  const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const { data: players, isLoading } = usePlayerStats('glacis-united-fc', matchFilter);
 
   const squadStats = useMemo(() => {
