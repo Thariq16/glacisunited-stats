@@ -57,7 +57,7 @@ export function MatchCommentForm({ matchId, existingComment, onCancel }: MatchCo
       <Textarea
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Add a note about this match..."
+        placeholder="Add an analyst note about this match..."
         rows={3}
         disabled={isPending}
       />

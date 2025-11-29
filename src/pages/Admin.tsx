@@ -61,10 +61,10 @@ function AdminContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Coach Notes
+                Analyst Notes
               </CardTitle>
               <CardDescription>
-                Add and manage coach notes for matches that coaches can view
+                Add and manage analyst notes for matches that coaches can view
               </CardDescription>
             </CardHeader>
             <CardContent>

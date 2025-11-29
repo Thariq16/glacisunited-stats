@@ -143,8 +143,8 @@ export function AllMatchComments() {
       <Card>
         <CardContent className="py-12 text-center">
           <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No Coach Notes Yet</h3>
-          <p className="text-muted-foreground">Coach notes will appear here once they are added by administrators.</p>
+          <h3 className="text-lg font-medium text-foreground mb-2">No Analyst Notes Yet</h3>
+          <p className="text-muted-foreground">Analyst notes will appear here once they are added by administrators.</p>
         </CardContent>
       </Card>
     );

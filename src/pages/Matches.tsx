@@ -34,9 +34,9 @@ export default function Matches() {
                 <Trophy className="h-4 w-4" />
                 Matches
               </TabsTrigger>
-              <TabsTrigger value="comments" className="flex items-center gap-2">
+            <TabsTrigger value="comments" className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
-                Coach Notes
+                Analyst Notes
               </TabsTrigger>
             </TabsList>
 
