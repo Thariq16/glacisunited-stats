@@ -13,6 +13,15 @@ interface PlayerMatchStats {
   saves: number;
   crosses: number;
   corners: number;
+  cornerSuccess: number;
+  penaltyAreaEntry: number;
+  penaltyAreaPass: number;
+  aerialDuelsWon: number;
+  aerialDuelsLost: number;
+  freeKicks: number;
+  throwIns: number;
+  tiSuccess: number;
+  cutBacks: number;
 }
 
 interface ComparisonPlayer {
@@ -47,6 +56,15 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
           saves,
           crosses,
           corners,
+          corner_success,
+          penalty_area_entry,
+          penalty_area_pass,
+          aerial_duels_won,
+          aerial_duels_lost,
+          free_kicks,
+          throw_ins,
+          ti_success,
+          cut_backs,
           players!inner(
             id,
             name,
@@ -76,6 +94,15 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
           saves,
           crosses,
           corners,
+          corner_success,
+          penalty_area_entry,
+          penalty_area_pass,
+          aerial_duels_won,
+          aerial_duels_lost,
+          free_kicks,
+          throw_ins,
+          ti_success,
+          cut_backs,
           players!inner(
             id,
             name,
@@ -115,6 +142,15 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
             existing.stats.saves += stat.saves || 0;
             existing.stats.crosses += stat.crosses || 0;
             existing.stats.corners += stat.corners || 0;
+            existing.stats.cornerSuccess += stat.corner_success || 0;
+            existing.stats.penaltyAreaEntry += stat.penalty_area_entry || 0;
+            existing.stats.penaltyAreaPass += stat.penalty_area_pass || 0;
+            existing.stats.aerialDuelsWon += stat.aerial_duels_won || 0;
+            existing.stats.aerialDuelsLost += stat.aerial_duels_lost || 0;
+            existing.stats.freeKicks += stat.free_kicks || 0;
+            existing.stats.throwIns += stat.throw_ins || 0;
+            existing.stats.tiSuccess += stat.ti_success || 0;
+            existing.stats.cutBacks += stat.cut_backs || 0;
           } else {
             playerMap.set(playerId, {
               player: stat.players,
@@ -130,6 +166,15 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
                 saves: stat.saves || 0,
                 crosses: stat.crosses || 0,
                 corners: stat.corners || 0,
+                cornerSuccess: stat.corner_success || 0,
+                penaltyAreaEntry: stat.penalty_area_entry || 0,
+                penaltyAreaPass: stat.penalty_area_pass || 0,
+                aerialDuelsWon: stat.aerial_duels_won || 0,
+                aerialDuelsLost: stat.aerial_duels_lost || 0,
+                freeKicks: stat.free_kicks || 0,
+                throwIns: stat.throw_ins || 0,
+                tiSuccess: stat.ti_success || 0,
+                cutBacks: stat.cut_backs || 0,
               }
             });
           }
@@ -152,7 +197,9 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
       const comparisonPlayers: ComparisonPlayer[] = [];
       const emptyStats: PlayerMatchStats = {
         goals: 0, passCount: 0, successfulPass: 0, passAccuracy: 0,
-        shots: 0, shotsOnTarget: 0, tackles: 0, fouls: 0, saves: 0, crosses: 0, corners: 0
+        shots: 0, shotsOnTarget: 0, tackles: 0, fouls: 0, saves: 0, crosses: 0, corners: 0,
+        cornerSuccess: 0, penaltyAreaEntry: 0, penaltyAreaPass: 0, aerialDuelsWon: 0,
+        aerialDuelsLost: 0, freeKicks: 0, throwIns: 0, tiSuccess: 0, cutBacks: 0
       };
 
       // Get all unique player IDs from both matches
