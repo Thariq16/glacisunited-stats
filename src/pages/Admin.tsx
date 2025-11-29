@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, Users } from "lucide-react";
+import { Shield, Upload, Users, MessageSquare } from "lucide-react";
 
 function AdminContent() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ function AdminContent() {
           <p className="text-muted-foreground">Manage players, matches, and statistics</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl">
           <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/players')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -53,6 +53,23 @@ function AdminContent() {
             <CardContent>
               <Button variant="secondary" className="w-full">
                 Upload Data
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/comments')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Coach Notes
+              </CardTitle>
+              <CardDescription>
+                Add and manage coach notes for matches that coaches can view
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="secondary" className="w-full">
+                Manage Notes
               </Button>
             </CardContent>
           </Card>
