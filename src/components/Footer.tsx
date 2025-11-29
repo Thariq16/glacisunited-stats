@@ -1,9 +1,16 @@
-import { Link } from "react-router-dom";
-import { Users, Home, Calendar, Shield, UserCog, Upload, FileUp } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Users, Home, Calendar, Shield, UserCog, Upload, FileUp, LogOut, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export function Footer() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <footer className="border-t border-border bg-card mt-auto">
@@ -67,6 +74,32 @@ export function Footer() {
             </div>
           </>
         )}
+
+        <div className="w-full border-t border-border my-4" />
+        
+        <div className="flex flex-wrap justify-center items-center gap-4">
+          {user ? (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Log Out
+            </Button>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/auth')}
+              className="flex items-center gap-2"
+            >
+              <LogIn className="h-4 w-4" />
+              Log In
+            </Button>
+          )}
+        </div>
 
         <div className="text-center mt-4 text-xs text-muted-foreground">
           © {new Date().getFullYear()} Analysis by Thariq Hamad
