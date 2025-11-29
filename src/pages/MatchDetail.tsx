@@ -15,6 +15,7 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { MatchStatsTable } from "@/components/MatchStatsTable";
 import { useMatchDetail } from "@/hooks/useMatchDetail";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MatchComments } from "@/components/MatchComments";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -134,6 +135,11 @@ export default function MatchDetail() {
             homePlayers={match.homePlayers}
             awayPlayers={match.awayPlayers}
           />
+        </div>
+
+        {/* Coach Notes - visible to admins and coaches only */}
+        <div className="mb-8">
+          <MatchComments matchId={matchId!} />
         </div>
 
         {/* Player Performance Modal */}
