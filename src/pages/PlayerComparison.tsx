@@ -4,11 +4,10 @@ import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAllMatches } from "@/hooks/usePlayerStats";
 import { useComparisonStats } from "@/hooks/useComparisonStats";
-import { GitCompare, Calendar, ArrowUp, ArrowDown, Minus
-
- } from "lucide-react";
+import { GitCompare, Calendar, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
 
@@ -44,12 +43,38 @@ export default function PlayerComparison() {
   const match1 = matches?.find(m => m.id === match1Id);
   const match2 = matches?.find(m => m.id === match2Id);
 
+  // Render diff where higher is better (goals, passes, etc.)
   const renderDiff = (val1: number, val2: number) => {
     const diff = val1 - val2;
     if (diff > 0) return <span className="text-green-500 flex items-center gap-1"><ArrowUp className="h-3 w-3" />+{diff}</span>;
     if (diff < 0) return <span className="text-red-500 flex items-center gap-1"><ArrowDown className="h-3 w-3" />{diff}</span>;
     return <span className="text-muted-foreground flex items-center gap-1"><Minus className="h-3 w-3" />0</span>;
   };
+
+  // Render diff where lower is better (fouls, aerial duels lost)
+  const renderDiffInverse = (val1: number, val2: number) => {
+    const diff = val1 - val2;
+    if (diff < 0) return <span className="text-green-500 flex items-center gap-1"><ArrowDown className="h-3 w-3" />{diff}</span>;
+    if (diff > 0) return <span className="text-red-500 flex items-center gap-1"><ArrowUp className="h-3 w-3" />+{diff}</span>;
+    return <span className="text-muted-foreground flex items-center gap-1"><Minus className="h-3 w-3" />0</span>;
+  };
+
+  const StatBox = ({ label, val1, val2, inverse = false }: { label: string; val1: number | string; val2: number | string; inverse?: boolean }) => (
+    <div className="p-3 bg-muted/50 rounded-lg">
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+      <div className="flex items-center justify-between">
+        <span className="font-bold">{val1}</span>
+        <span className="text-muted-foreground text-xs">vs</span>
+        <span className="font-bold">{val2}</span>
+      </div>
+      <div className="text-xs mt-1 flex justify-center">
+        {inverse 
+          ? renderDiffInverse(Number(val1), Number(val2))
+          : renderDiff(Number(val1), Number(val2))
+        }
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -202,85 +227,56 @@ export default function PlayerComparison() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {/* Goals */}
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Goals</p>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold">{player.match1Stats.goals}</span>
-                        <span className="text-muted-foreground">vs</span>
-                        <span className="font-bold">{player.match2Stats.goals}</span>
+                  <Tabs defaultValue="general" className="w-full">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="general">General</TabsTrigger>
+                      <TabsTrigger value="attacking">Attacking</TabsTrigger>
+                      <TabsTrigger value="defensive">Defensive</TabsTrigger>
+                      <TabsTrigger value="setpieces">Set Pieces</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="general">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <StatBox label="Goals" val1={player.match1Stats.goals} val2={player.match2Stats.goals} />
+                        <StatBox label="Passes" val1={player.match1Stats.passCount} val2={player.match2Stats.passCount} />
+                        <StatBox label="Pass Accuracy" val1={`${player.match1Stats.passAccuracy}%`} val2={`${player.match2Stats.passAccuracy}%`} />
+                        <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
+                        <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
+                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} inverse />
                       </div>
-                      <div className="text-xs mt-1 flex justify-center">
-                        {renderDiff(player.match1Stats.goals, player.match2Stats.goals)}
+                    </TabsContent>
+                    
+                    <TabsContent value="attacking">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <StatBox label="Pen. Area Entry" val1={player.match1Stats.penaltyAreaEntry} val2={player.match2Stats.penaltyAreaEntry} />
+                        <StatBox label="Pen. Area Pass" val1={player.match1Stats.penaltyAreaPass} val2={player.match2Stats.penaltyAreaPass} />
+                        <StatBox label="Crosses" val1={player.match1Stats.crosses} val2={player.match2Stats.crosses} />
+                        <StatBox label="Cut Backs" val1={player.match1Stats.cutBacks} val2={player.match2Stats.cutBacks} />
+                        <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
+                        <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
                       </div>
-                    </div>
-
-                    {/* Passes */}
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Passes</p>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold">{player.match1Stats.passCount}</span>
-                        <span className="text-muted-foreground">vs</span>
-                        <span className="font-bold">{player.match2Stats.passCount}</span>
+                    </TabsContent>
+                    
+                    <TabsContent value="defensive">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <StatBox label="Tackles" val1={player.match1Stats.tackles} val2={player.match2Stats.tackles} />
+                        <StatBox label="Saves" val1={player.match1Stats.saves} val2={player.match2Stats.saves} />
+                        <StatBox label="Aerial Won" val1={player.match1Stats.aerialDuelsWon} val2={player.match2Stats.aerialDuelsWon} />
+                        <StatBox label="Aerial Lost" val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} inverse />
+                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} inverse />
                       </div>
-                      <div className="text-xs mt-1 flex justify-center">
-                        {renderDiff(player.match1Stats.passCount, player.match2Stats.passCount)}
+                    </TabsContent>
+                    
+                    <TabsContent value="setpieces">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <StatBox label="Corners" val1={player.match1Stats.corners} val2={player.match2Stats.corners} />
+                        <StatBox label="Corner Success" val1={player.match1Stats.cornerSuccess} val2={player.match2Stats.cornerSuccess} />
+                        <StatBox label="Free Kicks" val1={player.match1Stats.freeKicks} val2={player.match2Stats.freeKicks} />
+                        <StatBox label="Throw-ins" val1={player.match1Stats.throwIns} val2={player.match2Stats.throwIns} />
+                        <StatBox label="Throw-in Success" val1={player.match1Stats.tiSuccess} val2={player.match2Stats.tiSuccess} />
                       </div>
-                    </div>
-
-                    {/* Pass Accuracy */}
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Pass Accuracy</p>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold">{player.match1Stats.passAccuracy}%</span>
-                        <span className="text-muted-foreground">vs</span>
-                        <span className="font-bold">{player.match2Stats.passAccuracy}%</span>
-                      </div>
-                      <div className="text-xs mt-1 flex justify-center">
-                        {renderDiff(player.match1Stats.passAccuracy, player.match2Stats.passAccuracy)}
-                      </div>
-                    </div>
-
-                    {/* Shots */}
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Shots</p>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold">{player.match1Stats.shots}</span>
-                        <span className="text-muted-foreground">vs</span>
-                        <span className="font-bold">{player.match2Stats.shots}</span>
-                      </div>
-                      <div className="text-xs mt-1 flex justify-center">
-                        {renderDiff(player.match1Stats.shots, player.match2Stats.shots)}
-                      </div>
-                    </div>
-
-                    {/* Tackles */}
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Tackles</p>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold">{player.match1Stats.tackles}</span>
-                        <span className="text-muted-foreground">vs</span>
-                        <span className="font-bold">{player.match2Stats.tackles}</span>
-                      </div>
-                      <div className="text-xs mt-1 flex justify-center">
-                        {renderDiff(player.match1Stats.tackles, player.match2Stats.tackles)}
-                      </div>
-                    </div>
-
-                    {/* Fouls */}
-                    <div className="p-3 bg-muted/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Fouls</p>
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold">{player.match1Stats.fouls}</span>
-                        <span className="text-muted-foreground">vs</span>
-                        <span className="font-bold">{player.match2Stats.fouls}</span>
-                      </div>
-                      <div className="text-xs mt-1 flex justify-center">
-                        {renderDiff(player.match2Stats.fouls, player.match1Stats.fouls)}
-                      </div>
-                    </div>
-                  </div>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             ))}
