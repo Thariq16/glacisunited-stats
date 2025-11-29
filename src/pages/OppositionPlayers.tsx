@@ -1,11 +1,13 @@
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { PlayerCard } from "@/components/PlayerCard";
-import { teams } from "@/data/teamData";
+import { useOppositionTeams } from "@/hooks/useTeams";
 import { Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OppositionPlayers() {
-  const oppositionTeams = teams.filter(team => team.id !== 'glacis-united');
+  const { data: oppositionTeams, isLoading } = useOppositionTeams();
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -20,45 +22,58 @@ export default function OppositionPlayers() {
           <p className="text-muted-foreground">Browse all opposition players with detailed statistics</p>
         </div>
 
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="all">All Players</TabsTrigger>
-            {oppositionTeams.map((team) => (
-              <TabsTrigger key={team.id} value={team.id}>
-                {team.name}
-              </TabsTrigger>
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full" />
             ))}
-          </TabsList>
+          </div>
+        ) : oppositionTeams && oppositionTeams.length > 0 ? (
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="all">All Players</TabsTrigger>
+              {oppositionTeams.map((team) => (
+                <TabsTrigger key={team.slug} value={team.slug}>
+                  {team.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-          <TabsContent value="all">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {oppositionTeams.flatMap(team => 
-                team.players.map(player => (
-                  <PlayerCard 
-                    key={`${team.id}-${player.jerseyNumber}-${player.playerName}`}
-                    player={player}
-                    teamId={team.id}
-                  />
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          {oppositionTeams.map((team) => (
-            <TabsContent key={team.id} value={team.id}>
+            <TabsContent value="all">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {team.players.map(player => (
-                  <PlayerCard 
-                    key={`${player.jerseyNumber}-${player.playerName}`}
-                    player={player}
-                    teamId={team.id}
-                  />
-                ))}
+                {oppositionTeams.flatMap(team => 
+                  team.players.map(player => (
+                    <PlayerCard 
+                      key={`${team.slug}-${player.jerseyNumber}-${player.playerName}`}
+                      player={player}
+                      teamId={team.slug}
+                    />
+                  ))
+                )}
               </div>
             </TabsContent>
-          ))}
-        </Tabs>
+
+            {oppositionTeams.map((team) => (
+              <TabsContent key={team.slug} value={team.slug}>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {team.players.map(player => (
+                    <PlayerCard 
+                      key={`${player.jerseyNumber}-${player.playerName}`}
+                      player={player}
+                      teamId={team.slug}
+                    />
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No opposition player data available yet.</p>
+          </div>
+        )}
       </main>
+      <Footer />
     </div>
   );
 }
