@@ -27,7 +27,7 @@ export default function SquadAnalysis() {
       positionCounts[pos] = (positionCounts[pos] || 0) + 1;
     });
 
-    // Calculate team averages
+    // Calculate team totals and averages
     const totalPlayers = activePlayers.length;
     const avgGoals = activePlayers.reduce((sum, p) => sum + p.goals, 0) / totalPlayers;
     const avgPassAccuracy = activePlayers.reduce((sum, p) => {
@@ -35,6 +35,9 @@ export default function SquadAnalysis() {
       return sum + acc;
     }, 0) / totalPlayers;
     const avgTackles = activePlayers.reduce((sum, p) => sum + p.tackles, 0) / totalPlayers;
+    const totalMinutes = activePlayers.reduce((sum, p) => sum + p.minutesPlayed, 0);
+    const totalRunInBehind = activePlayers.reduce((sum, p) => sum + p.runInBehind, 0);
+    const totalOverlaps = activePlayers.reduce((sum, p) => sum + p.overlaps, 0);
 
     // Top performers by category
     const topScorer = [...activePlayers].sort((a, b) => b.goals - a.goals)[0];
@@ -67,6 +70,9 @@ export default function SquadAnalysis() {
       avgGoals: avgGoals.toFixed(1),
       avgPassAccuracy: avgPassAccuracy.toFixed(1),
       avgTackles: avgTackles.toFixed(1),
+      totalMinutes,
+      totalRunInBehind,
+      totalOverlaps,
       topScorer,
       topPasser,
       topDefender,
@@ -110,10 +116,14 @@ export default function SquadAnalysis() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-4 gap-6">
+                <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-6">
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Active Players</p>
                     <p className="text-3xl font-bold">{squadStats.totalPlayers}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Total Minutes</p>
+                    <p className="text-3xl font-bold">{squadStats.totalMinutes}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Avg Goals</p>
@@ -124,8 +134,12 @@ export default function SquadAnalysis() {
                     <p className="text-3xl font-bold">{squadStats.avgPassAccuracy}%</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Avg Tackles</p>
-                    <p className="text-3xl font-bold">{squadStats.avgTackles}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Total Run in Behind</p>
+                    <p className="text-3xl font-bold">{squadStats.totalRunInBehind}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Total Overlaps</p>
+                    <p className="text-3xl font-bold">{squadStats.totalOverlaps}</p>
                   </div>
                 </div>
               </CardContent>

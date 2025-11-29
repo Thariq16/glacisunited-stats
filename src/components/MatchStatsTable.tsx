@@ -24,6 +24,8 @@ interface TeamStats {
   penaltyAreaPass: number;
   penaltyAreaEntry: number;
   paEntryEfficiency: string;
+  runInBehind: number;
+  overlaps: number;
   shotsAttempted: number;
   shotsOnTarget: number;
   shotAccuracy: string;
@@ -37,6 +39,7 @@ interface TeamStats {
   freekicks: number;
   throwIns: number;
   offside: number;
+  minutesPlayed: number;
 }
 
 function calculateTeamStats(players: PlayerStats[]): TeamStats {
@@ -48,6 +51,8 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
   const backwardPasses = players.reduce((sum, p) => sum + p.backwardPass, 0);
   const penaltyAreaPass = players.reduce((sum, p) => sum + p.penaltyAreaPass, 0);
   const penaltyAreaEntry = players.reduce((sum, p) => sum + p.penaltyAreaEntry, 0);
+  const runInBehind = players.reduce((sum, p) => sum + p.runInBehind, 0);
+  const overlaps = players.reduce((sum, p) => sum + p.overlaps, 0);
   const shotsAttempted = players.reduce((sum, p) => sum + p.shotsAttempted, 0);
   const shotsOnTarget = players.reduce((sum, p) => sum + p.shotsOnTarget, 0);
   const saves = players.reduce((sum, p) => sum + p.saves, 0);
@@ -58,6 +63,7 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
   const freekicks = players.reduce((sum, p) => sum + p.freeKicks, 0);
   const throwIns = players.reduce((sum, p) => sum + p.throwIns, 0);
   const offside = players.reduce((sum, p) => sum + p.offside, 0);
+  const minutesPlayed = players.reduce((sum, p) => sum + p.minutesPlayed, 0);
 
   const cpPercent = totalPasses > 0 ? ((completedPass / totalPasses) * 100).toFixed(2) : "0.00";
   const mpPercent = totalPasses > 0 ? ((missedPass / totalPasses) * 100).toFixed(2) : "0.00";
@@ -84,6 +90,8 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
     penaltyAreaPass,
     penaltyAreaEntry,
     paEntryEfficiency: `${paEntryEfficiency}%`,
+    runInBehind,
+    overlaps,
     shotsAttempted,
     shotsOnTarget,
     shotAccuracy: `${shotAccuracy}%`,
@@ -97,6 +105,7 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
     freekicks,
     throwIns,
     offside,
+    minutesPlayed,
   };
 }
 
@@ -106,6 +115,7 @@ export function MatchStatsTable({ homeTeam, awayTeam, homePlayers, awayPlayers }
 
   const statsRows = [
     { label: "Goals", home: homeStats.goals, away: awayStats.goals },
+    { label: "Total Minutes", home: homeStats.minutesPlayed, away: awayStats.minutesPlayed },
     { label: "Total Passes", home: homeStats.totalPasses, away: awayStats.totalPasses },
     { label: "Completed Pass", home: homeStats.completedPass, away: awayStats.completedPass },
     { label: "CP %", home: homeStats.cpPercent, away: awayStats.cpPercent },
@@ -119,6 +129,8 @@ export function MatchStatsTable({ homeTeam, awayTeam, homePlayers, awayPlayers }
     { label: "Penalty Area Pass", home: homeStats.penaltyAreaPass, away: awayStats.penaltyAreaPass },
     { label: "Penalty Area Entry", home: homeStats.penaltyAreaEntry, away: awayStats.penaltyAreaEntry },
     { label: "PA Entry Efficiency", home: homeStats.paEntryEfficiency, away: awayStats.paEntryEfficiency },
+    { label: "Run in Behind", home: homeStats.runInBehind, away: awayStats.runInBehind },
+    { label: "Overlaps", home: homeStats.overlaps, away: awayStats.overlaps },
     { label: "Shots Attempted", home: homeStats.shotsAttempted, away: awayStats.shotsAttempted },
     { label: "Shots on Target", home: homeStats.shotsOnTarget, away: awayStats.shotsOnTarget },
     { label: "Shot Accuracy", home: homeStats.shotAccuracy, away: awayStats.shotAccuracy },

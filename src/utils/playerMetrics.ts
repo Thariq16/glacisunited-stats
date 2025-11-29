@@ -46,6 +46,8 @@ export function calculateAdvancedMetrics(player: PlayerStats): AdvancedMetrics {
     player.penaltyAreaEntry + 
     player.cutBacks + 
     player.crosses +
+    player.runInBehind * 2 +
+    player.overlaps * 2 +
     player.goals * 3 +
     player.shotsOnTarget * 2;
 
@@ -119,7 +121,7 @@ function calculatePerformanceRating(player: PlayerStats, passAccuracy: number): 
       (player.shotsOnTarget * 1.5) -
       (player.fouls * 0.3)
     ) / 7;
-  } else if (role.includes('FW') || role.includes('LW') || role.includes('RW') || role === 'FORWARD') {
+  } else if (role.includes('FW') || role.includes('LW') || role.includes('RW') || role === 'FORWARD' || role.includes('CF')) {
     // Forward/Winger rating
     return (
       (player.goals * 8) +
@@ -127,9 +129,11 @@ function calculatePerformanceRating(player: PlayerStats, passAccuracy: number): 
       (player.penaltyAreaEntry * 2) +
       (player.cutBacks * 1.5) +
       (player.crosses * 1) +
+      (player.runInBehind * 2) +
+      (player.overlaps * 1.5) +
       (passAccuracy * 0.3) -
       (player.offside * 0.5)
-    ) / 8;
+    ) / 10;
   } else {
     // General player rating
     return (
@@ -161,8 +165,10 @@ export function calculateTacticalProfile(player: PlayerStats, metrics: AdvancedM
     player.shotsOnTarget * 3 +
     player.penaltyAreaEntry * 2 +
     player.cutBacks * 2 +
-    player.crosses
-  ) / 2);
+    player.crosses +
+    player.runInBehind * 3 +
+    player.overlaps * 2
+  ) / 2.5);
 
   const defensiveStrength = Math.min(100, (
     player.tackles * 4 +
