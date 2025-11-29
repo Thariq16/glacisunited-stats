@@ -1,12 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Target, TrendingUp, Shield, Activity, Calendar, MapPin } from "lucide-react";
-import { getMatchById } from "@/data/matchData";
-import { getTeamById } from "@/data/teamData";
+import { ArrowLeft, Calendar, MapPin } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -16,17 +13,29 @@ import {
 } from "@/components/ui/dialog";
 import { PlayerCard } from "@/components/PlayerCard";
 import { MatchStatsTable } from "@/components/MatchStatsTable";
+import { useMatchDetail } from "@/hooks/useMatchDetail";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
-  const match = matchId ? getMatchById(matchId) : undefined;
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const { data: match, isLoading, error } = useMatchDetail(matchId);
+  const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null);
 
-  const homeTeam = match ? getTeamById(match.homeTeamId) : undefined;
-  const awayTeam = match ? getTeamById(match.awayTeamId) : undefined;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-10 w-40 mb-6" />
+          <Skeleton className="h-64 w-full mb-8" />
+          <Skeleton className="h-96 w-full" />
+        </div>
+      </div>
+    );
+  }
 
-  if (!match || !homeTeam || !awayTeam) {
+  if (error || !match) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -43,21 +52,8 @@ export default function MatchDetail() {
     );
   }
 
-  const homeTeamStats = {
-    totalGoals: homeTeam.players.reduce((sum, p) => sum + p.goals, 0),
-    totalPasses: homeTeam.players.reduce((sum, p) => sum + p.passCount, 0),
-    totalSuccessfulPasses: homeTeam.players.reduce((sum, p) => sum + p.successfulPass, 0),
-    totalTackles: homeTeam.players.reduce((sum, p) => sum + p.tackles, 0),
-    totalShots: homeTeam.players.reduce((sum, p) => sum + p.shotsAttempted, 0),
-  };
-
-  const awayTeamStats = {
-    totalGoals: awayTeam.players.reduce((sum, p) => sum + p.goals, 0),
-    totalPasses: awayTeam.players.reduce((sum, p) => sum + p.passCount, 0),
-    totalSuccessfulPasses: awayTeam.players.reduce((sum, p) => sum + p.successfulPass, 0),
-    totalTackles: awayTeam.players.reduce((sum, p) => sum + p.tackles, 0),
-    totalShots: awayTeam.players.reduce((sum, p) => sum + p.shotsAttempted, 0),
-  };
+  const homeTeam = match.home_team;
+  const awayTeam = match.away_team;
 
   return (
     <div className="min-h-screen bg-background">
@@ -77,10 +73,10 @@ export default function MatchDetail() {
         <Card className="mb-8">
           <CardContent className="p-8">
             <div className="flex justify-between items-center mb-6">
-              <Badge variant="outline" className="text-lg py-1 px-3">{match.competition}</Badge>
+              <Badge variant="outline" className="text-lg py-1 px-3">{match.competition || 'Match'}</Badge>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                {new Date(match.date).toLocaleDateString('en-US', { 
+                {new Date(match.match_date).toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   year: 'numeric', 
                   month: 'long', 
@@ -91,11 +87,11 @@ export default function MatchDetail() {
 
             <div className="grid grid-cols-3 items-center gap-4 mb-6">
               <div className="text-right">
-                <h2 className="text-2xl font-bold text-foreground mb-2">{match.homeTeam}</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-2">{homeTeam?.name || 'Home Team'}</h2>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setSelectedTeamId(match.homeTeamId)}
+                  onClick={() => setSelectedTeam('home')}
                 >
                   View Players
                 </Button>
@@ -103,18 +99,18 @@ export default function MatchDetail() {
               
               <div className="text-center">
                 <div className="flex items-center justify-center gap-4">
-                  <span className="text-5xl font-bold text-foreground">{match.score.home}</span>
+                  <span className="text-5xl font-bold text-foreground">{match.home_score}</span>
                   <span className="text-3xl text-muted-foreground">-</span>
-                  <span className="text-5xl font-bold text-foreground">{match.score.away}</span>
+                  <span className="text-5xl font-bold text-foreground">{match.away_score}</span>
                 </div>
               </div>
               
               <div className="text-left">
-                <h2 className="text-2xl font-bold text-foreground mb-2">{match.awayTeam}</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-2">{awayTeam?.name || 'Away Team'}</h2>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setSelectedTeamId(match.awayTeamId)}
+                  onClick={() => setSelectedTeam('away')}
                 >
                   View Players
                 </Button>
@@ -123,7 +119,7 @@ export default function MatchDetail() {
 
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <MapPin className="h-4 w-4" />
-              {match.venue}
+              {match.venue || 'TBD'}
             </div>
           </CardContent>
         </Card>
@@ -133,27 +129,27 @@ export default function MatchDetail() {
           <h2 className="text-2xl font-bold text-foreground mb-6">Overall Match Statistics</h2>
           
           <MatchStatsTable 
-            homeTeam={match.homeTeam}
-            awayTeam={match.awayTeam}
-            homePlayers={homeTeam.players}
-            awayPlayers={awayTeam.players}
+            homeTeam={homeTeam?.name || 'Home Team'}
+            awayTeam={awayTeam?.name || 'Away Team'}
+            homePlayers={match.homePlayers}
+            awayPlayers={match.awayPlayers}
           />
         </div>
 
         {/* Player Performance Modal */}
-        <Dialog open={!!selectedTeamId} onOpenChange={() => setSelectedTeamId(null)}>
+        <Dialog open={!!selectedTeam} onOpenChange={() => setSelectedTeam(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {selectedTeamId === match.homeTeamId ? match.homeTeam : match.awayTeam} - Player Performances
+                {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name} - Player Performances
               </DialogTitle>
             </DialogHeader>
             <div className="grid md:grid-cols-2 gap-4 mt-4">
-              {(selectedTeamId === match.homeTeamId ? homeTeam : awayTeam).players.map((player) => (
+              {(selectedTeam === 'home' ? match.homePlayers : match.awayPlayers).map((player) => (
                 <PlayerCard 
                   key={`${player.jerseyNumber}-${player.playerName}`}
                   player={player}
-                  teamId={selectedTeamId}
+                  teamId={selectedTeam === 'home' ? homeTeam?.slug : awayTeam?.slug}
                 />
               ))}
             </div>
