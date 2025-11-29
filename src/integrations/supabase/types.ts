@@ -92,12 +92,15 @@ export type Database = {
           half: number
           id: string
           match_id: string
+          minutes_played: number | null
           miss_pass: number | null
           offside: number | null
+          overlaps: number | null
           pass_count: number | null
           penalty_area_entry: number | null
           penalty_area_pass: number | null
           player_id: string
+          run_in_behind: number | null
           saves: number | null
           shots_attempted: number | null
           shots_on_target: number | null
@@ -133,12 +136,15 @@ export type Database = {
           half: number
           id?: string
           match_id: string
+          minutes_played?: number | null
           miss_pass?: number | null
           offside?: number | null
+          overlaps?: number | null
           pass_count?: number | null
           penalty_area_entry?: number | null
           penalty_area_pass?: number | null
           player_id: string
+          run_in_behind?: number | null
           saves?: number | null
           shots_attempted?: number | null
           shots_on_target?: number | null
@@ -174,12 +180,15 @@ export type Database = {
           half?: number
           id?: string
           match_id?: string
+          minutes_played?: number | null
           miss_pass?: number | null
           offside?: number | null
+          overlaps?: number | null
           pass_count?: number | null
           penalty_area_entry?: number | null
           penalty_area_pass?: number | null
           player_id?: string
+          run_in_behind?: number | null
           saves?: number | null
           shots_attempted?: number | null
           shots_on_target?: number | null
