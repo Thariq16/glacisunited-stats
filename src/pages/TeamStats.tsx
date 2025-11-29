@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { StatCard } from "@/components/StatCard";
 import { PlayerCard } from "@/components/PlayerCard";
+import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { useTeamWithPlayers } from "@/hooks/useTeams";
+import { MatchFilter } from "@/hooks/usePlayerStats";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Target, TrendingUp, Shield, Users, Activity } from "lucide-react";
 import { useMemo } from "react";
@@ -12,7 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function TeamStats() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
-  const { data: team, isLoading, error } = useTeamWithPlayers(teamId);
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
+  const { data: team, isLoading, error } = useTeamWithPlayers(teamId, matchFilter);
 
   const teamStats = useMemo(() => {
     if (!team || !team.players) return null;
@@ -91,7 +95,13 @@ export default function TeamStats() {
 
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">{team.name}</h1>
-          <p className="text-muted-foreground">Complete team performance overview</p>
+          <p className="text-muted-foreground mb-6">Complete team performance overview</p>
+          
+          <MatchFilterSelect 
+            value={matchFilter} 
+            onValueChange={setMatchFilter}
+            teamSlug={teamId}
+          />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
@@ -134,15 +144,23 @@ export default function TeamStats() {
 
         <div>
           <h2 className="text-2xl font-bold text-foreground mb-6">Players</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {team.players.map((player) => (
-              <PlayerCard 
-                key={`${player.jerseyNumber}-${player.playerName}`}
-                player={player}
-                teamId={team.slug}
-              />
-            ))}
-          </div>
+          {team.players.some(p => p.passCount > 0 || p.goals > 0 || p.tackles > 0) ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {team.players
+                .filter(player => player.passCount > 0 || player.goals > 0 || player.tackles > 0)
+                .map((player) => (
+                  <PlayerCard 
+                    key={`${player.jerseyNumber}-${player.playerName}`}
+                    player={player}
+                    teamId={team.slug}
+                  />
+                ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No player data available for the selected filter.</p>
+            </div>
+          )}
         </div>
       </main>
       <Footer />

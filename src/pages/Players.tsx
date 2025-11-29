@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PlayerCard } from "@/components/PlayerCard";
-import { MatchFilterTabs } from "@/components/MatchFilterTabs";
+import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { usePlayerStats, MatchFilter } from "@/hooks/usePlayerStats";
 import { Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +23,11 @@ export default function Players() {
           </div>
           <p className="text-muted-foreground mb-6">View all Glacis United FC players with aggregate statistics</p>
           
-          <MatchFilterTabs value={matchFilter} onValueChange={setMatchFilter} />
+          <MatchFilterSelect 
+            value={matchFilter} 
+            onValueChange={setMatchFilter}
+            teamSlug="glacis-united-fc"
+          />
         </div>
 
         {isLoading ? (
@@ -32,15 +36,19 @@ export default function Players() {
               <Skeleton key={i} className="h-48 w-full" />
             ))}
           </div>
-        ) : (
+        ) : players && players.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {players?.map(player => (
+            {players.map(player => (
               <PlayerCard 
                 key={`${player.jerseyNumber}-${player.playerName}`}
                 player={player}
                 teamId="glacis-united-fc"
               />
             ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No player data available for the selected filter.</p>
           </div>
         )}
       </main>

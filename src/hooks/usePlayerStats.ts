@@ -2,9 +2,16 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PlayerStats } from '@/utils/parseCSV';
 
-export type MatchFilter = 'all' | 'last1' | 'last3';
+export type MatchFilter = 'all' | 'last1' | 'last3' | string; // string for specific match IDs
+
+export interface MatchFilterOptions {
+  filter: MatchFilter;
+  matchId?: string;
+}
 
 export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all') {
+  const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
+  
   return useQuery({
     queryKey: ['player-stats', teamSlug, matchFilter],
     queryFn: async () => {
@@ -17,23 +24,30 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
 
       if (!team) throw new Error('Team not found');
 
-      // Get matches for the team
-      const matchesQuery = supabase
-        .from('matches')
-        .select('id, match_date')
-        .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-        .order('match_date', { ascending: false });
+      let matchIds: string[] = [];
 
-      if (matchFilter === 'last1') {
-        matchesQuery.limit(1);
-      } else if (matchFilter === 'last3') {
-        matchesQuery.limit(3);
+      if (isSpecificMatch) {
+        // Specific match ID provided
+        matchIds = [matchFilter];
+      } else {
+        // Get matches for the team based on filter
+        const matchesQuery = supabase
+          .from('matches')
+          .select('id, match_date')
+          .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
+          .order('match_date', { ascending: false });
+
+        if (matchFilter === 'last1') {
+          matchesQuery.limit(1);
+        } else if (matchFilter === 'last3') {
+          matchesQuery.limit(3);
+        }
+
+        const { data: matches } = await matchesQuery;
+        if (!matches || matches.length === 0) return [];
+
+        matchIds = matches.map(m => m.id);
       }
-
-      const { data: matches } = await matchesQuery;
-      if (!matches || matches.length === 0) return [];
-
-      const matchIds = matches.map(m => m.id);
 
       // Get all players and their aggregated stats
       const { data: playersData } = await supabase
@@ -196,6 +210,30 @@ export function useMatches(teamSlug?: string) {
       }
 
       const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
+
+export function useAllMatches() {
+  return useQuery({
+    queryKey: ['all-matches'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          match_date,
+          home_score,
+          away_score,
+          venue,
+          competition,
+          home_team:teams!matches_home_team_id_fkey(id, name, slug),
+          away_team:teams!matches_away_team_id_fkey(id, name, slug)
+        `)
+        .order('match_date', { ascending: false });
+
       if (error) throw error;
       return data || [];
     },

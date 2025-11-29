@@ -4,46 +4,49 @@ import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { usePlayerStats, MatchFilter } from "@/hooks/usePlayerStats";
-import { calculateAdvancedMetrics, calculateTacticalProfile, TacticalProfile } from "@/utils/playerMetrics";
-import { MatchFilterTabs } from "@/components/MatchFilterTabs";
+import { calculateAdvancedMetrics } from "@/utils/playerMetrics";
+import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { Users, Award, TrendingUp, Shield, Target, Activity } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PlayerStats } from "@/utils/parseCSV";
 
 export default function SquadAnalysis() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
-  const { data: players, isLoading } = usePlayerStats('glacis-united', matchFilter);
+  const { data: players, isLoading } = usePlayerStats('glacis-united-fc', matchFilter);
 
   const squadStats = useMemo(() => {
     if (!players || players.length === 0) return null;
 
+    // Filter out players with no stats for the selected filter
+    const activePlayers = players.filter(p => p.passCount > 0 || p.goals > 0 || p.tackles > 0);
+    if (activePlayers.length === 0) return null;
+
     // Position distribution
     const positionCounts: Record<string, number> = {};
-    players.forEach(player => {
+    activePlayers.forEach(player => {
       const pos = player.role || 'Unknown';
       positionCounts[pos] = (positionCounts[pos] || 0) + 1;
     });
 
     // Calculate team averages
-    const totalPlayers = players.length;
-    const avgGoals = players.reduce((sum, p) => sum + p.goals, 0) / totalPlayers;
-    const avgPassAccuracy = players.reduce((sum, p) => {
+    const totalPlayers = activePlayers.length;
+    const avgGoals = activePlayers.reduce((sum, p) => sum + p.goals, 0) / totalPlayers;
+    const avgPassAccuracy = activePlayers.reduce((sum, p) => {
       const acc = p.passCount > 0 ? (p.successfulPass / p.passCount) * 100 : 0;
       return sum + acc;
     }, 0) / totalPlayers;
-    const avgTackles = players.reduce((sum, p) => sum + p.tackles, 0) / totalPlayers;
+    const avgTackles = activePlayers.reduce((sum, p) => sum + p.tackles, 0) / totalPlayers;
 
     // Top performers by category
-    const topScorer = [...players].sort((a, b) => b.goals - a.goals)[0];
-    const topPasser = [...players].sort((a, b) => {
+    const topScorer = [...activePlayers].sort((a, b) => b.goals - a.goals)[0];
+    const topPasser = [...activePlayers].sort((a, b) => {
       const accA = a.passCount > 0 ? (a.successfulPass / a.passCount) : 0;
       const accB = b.passCount > 0 ? (b.successfulPass / b.passCount) : 0;
       return accB - accA;
     })[0];
-    const topDefender = [...players].sort((a, b) => b.tackles - a.tackles)[0];
+    const topDefender = [...activePlayers].sort((a, b) => b.tackles - a.tackles)[0];
 
     // Calculate best XI based on performance ratings
-    const playersWithRatings = players.map(player => {
+    const playersWithRatings = activePlayers.map(player => {
       const metrics = calculateAdvancedMetrics(player);
       return { player, rating: metrics.performanceRating };
     }).sort((a, b) => b.rating - a.rating);
@@ -83,7 +86,11 @@ export default function SquadAnalysis() {
           </div>
           <p className="text-muted-foreground mb-6">Comprehensive team intelligence and composition analysis</p>
           
-          <MatchFilterTabs value={matchFilter} onValueChange={setMatchFilter} />
+          <MatchFilterSelect 
+            value={matchFilter} 
+            onValueChange={setMatchFilter}
+            teamSlug="glacis-united-fc"
+          />
         </div>
 
         {isLoading ? (
@@ -105,7 +112,7 @@ export default function SquadAnalysis() {
               <CardContent>
                 <div className="grid md:grid-cols-4 gap-6">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Total Players</p>
+                    <p className="text-sm text-muted-foreground mb-1">Active Players</p>
                     <p className="text-3xl font-bold">{squadStats.totalPlayers}</p>
                   </div>
                   <div>
@@ -228,7 +235,7 @@ export default function SquadAnalysis() {
         ) : (
           <Card>
             <CardContent className="py-12">
-              <p className="text-center text-muted-foreground">No player data available</p>
+              <p className="text-center text-muted-foreground">No player data available for the selected filter</p>
             </CardContent>
           </Card>
         )}
