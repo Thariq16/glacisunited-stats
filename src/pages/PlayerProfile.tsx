@@ -135,7 +135,8 @@ export default function PlayerProfile() {
             {/* Key Stats */}
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-foreground mb-4">Key Statistics</h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                <StatCard title="Minutes Played" value={player.minutesPlayed} icon={Activity} />
                 <StatCard title="Goals" value={player.goals} icon={Target} />
                 <StatCard title="Total Passes" value={player.passCount} icon={Users} />
                 <StatCard title="Pass Accuracy" value={player.successPassPercent} icon={TrendingUp} />
@@ -199,6 +200,14 @@ export default function PlayerProfile() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Run in Behind</p>
+                    <p className="text-2xl font-bold text-primary">{player.runInBehind}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Overlaps</p>
+                    <p className="text-2xl font-bold text-primary">{player.overlaps}</p>
+                  </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Shots on Target</p>
                     <p className="text-2xl font-bold">{player.shotsOnTarget}</p>

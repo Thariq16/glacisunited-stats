@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlayerStats } from "@/utils/parseCSV";
 import { useNavigate } from "react-router-dom";
-import { Target, TrendingUp, Shield } from "lucide-react";
+import { Target, TrendingUp, Shield, Clock } from "lucide-react";
 
 interface PlayerCardProps {
   player: PlayerStats;
@@ -36,6 +36,13 @@ export function PlayerCard({ player, teamId }: PlayerCardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <span className="text-muted-foreground">Minutes</span>
+            </div>
+            <span className="font-semibold">{player.minutesPlayed}</span>
+          </div>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />

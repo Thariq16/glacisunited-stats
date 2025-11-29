@@ -8,7 +8,7 @@ import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { useTeamWithPlayers } from "@/hooks/useTeams";
 import { MatchFilter } from "@/hooks/usePlayerStats";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Target, TrendingUp, Shield, Users, Activity } from "lucide-react";
+import { ArrowLeft, Target, TrendingUp, Shield, Users, Activity, Clock, Zap, ArrowRightLeft } from "lucide-react";
 import { useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -28,6 +28,9 @@ export default function TeamStats() {
     const totalTackles = team.players.reduce((sum, p) => sum + p.tackles, 0);
     const totalShots = team.players.reduce((sum, p) => sum + p.shotsAttempted, 0);
     const totalShotsOnTarget = team.players.reduce((sum, p) => sum + p.shotsOnTarget, 0);
+    const totalRunInBehind = team.players.reduce((sum, p) => sum + p.runInBehind, 0);
+    const totalOverlaps = team.players.reduce((sum, p) => sum + p.overlaps, 0);
+    const totalMinutes = team.players.reduce((sum, p) => sum + p.minutesPlayed, 0);
 
     return {
       totalGoals,
@@ -36,6 +39,9 @@ export default function TeamStats() {
       totalTackles,
       totalShots,
       totalShotsOnTarget,
+      totalRunInBehind,
+      totalOverlaps,
+      totalMinutes,
       playerCount: team.players.length,
     };
   }, [team]);
@@ -104,7 +110,12 @@ export default function TeamStats() {
           />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-12">
+          <StatCard
+            title="Total Minutes"
+            value={teamStats.totalMinutes}
+            icon={Clock}
+          />
           <StatCard
             title="Total Goals"
             value={teamStats.totalGoals}
@@ -134,6 +145,16 @@ export default function TeamStats() {
             title="On Target"
             value={teamStats.totalShotsOnTarget}
             icon={Target}
+          />
+          <StatCard
+            title="Run in Behind"
+            value={teamStats.totalRunInBehind}
+            icon={Zap}
+          />
+          <StatCard
+            title="Overlaps"
+            value={teamStats.totalOverlaps}
+            icon={ArrowRightLeft}
           />
           <StatCard
             title="Players"
