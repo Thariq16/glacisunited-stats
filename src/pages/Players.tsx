@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Players() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
-  const { data: players, isLoading } = usePlayerStats('glacis-united', matchFilter);
+  const { data: players, isLoading } = usePlayerStats('glacis-united-fc', matchFilter);
   
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -19,9 +19,9 @@ export default function Players() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Glacis United Players</h1>
+            <h1 className="text-4xl font-bold text-foreground">Glacis United FC Players</h1>
           </div>
-          <p className="text-muted-foreground mb-6">View all Glacis United players with aggregate statistics</p>
+          <p className="text-muted-foreground mb-6">View all Glacis United FC players with aggregate statistics</p>
           
           <MatchFilterTabs value={matchFilter} onValueChange={setMatchFilter} />
         </div>
@@ -38,7 +38,7 @@ export default function Players() {
               <PlayerCard 
                 key={`${player.jerseyNumber}-${player.playerName}`}
                 player={player}
-                teamId="glacis-united"
+                teamId="glacis-united-fc"
               />
             ))}
           </div>

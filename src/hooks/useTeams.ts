@@ -175,7 +175,6 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc') {
         .from('teams')
         .select('id, name, slug')
         .neq('slug', excludeSlug)
-        .neq('slug', 'glacis-united')
         .order('name');
 
       if (teamsError) throw teamsError;
