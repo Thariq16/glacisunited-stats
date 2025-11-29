@@ -251,7 +251,7 @@ function AdminCommentsContent() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <MessageSquare className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Manage Coach Notes</h1>
+            <h1 className="text-4xl font-bold text-foreground">Manage Analyst Notes</h1>
           </div>
           <p className="text-muted-foreground">Add notes and comments for matches that coaches can view</p>
         </div>
