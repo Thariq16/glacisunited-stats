@@ -60,12 +60,14 @@ export function useMatchDetail(matchId: string | undefined) {
           missPass: 0, missPassPercent: '0%',
           forwardPass: 0, forwardPassPercent: '0%',
           backwardPass: 0, backwardPassPercent: '0%',
-          goals: 0, penaltyAreaPass: 0, penaltyAreaEntry: 0, shotsAttempted: 0, shotsOnTarget: 0,
+          goals: 0, penaltyAreaPass: 0, penaltyAreaEntry: 0, 
+          runInBehind: 0, overlaps: 0,
+          shotsAttempted: 0, shotsOnTarget: 0,
           saves: 0, defensiveErrors: 0, aerialDuelsWon: 0, aerialDuelsLost: 0, tackles: 0,
           clearance: 0, fouls: 0, foulsInFinalThird: 0, foulsInMiddleThird: 0, foulsInDefensiveThird: 0,
           foulWon: 0, fwFinalThird: 0, fwMiddleThird: 0, fwDefensiveThird: 0, cutBacks: 0,
           crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
-          throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0,
+          throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0, minutesPlayed: 0,
         };
 
         const updated: PlayerStats = {
@@ -78,6 +80,8 @@ export function useMatchDetail(matchId: string | undefined) {
           goals: existing.goals + (stat.goals || 0),
           penaltyAreaPass: existing.penaltyAreaPass + (stat.penalty_area_pass || 0),
           penaltyAreaEntry: existing.penaltyAreaEntry + (stat.penalty_area_entry || 0),
+          runInBehind: existing.runInBehind + (stat.run_in_behind || 0),
+          overlaps: existing.overlaps + (stat.overlaps || 0),
           shotsAttempted: existing.shotsAttempted + (stat.shots_attempted || 0),
           shotsOnTarget: existing.shotsOnTarget + (stat.shots_on_target || 0),
           saves: existing.saves + (stat.saves || 0),
@@ -104,6 +108,7 @@ export function useMatchDetail(matchId: string | undefined) {
           tiFailed: existing.tiFailed + (stat.ti_failed || 0),
           tiSuccess: existing.tiSuccess + (stat.ti_success || 0),
           offside: existing.offside + (stat.offside || 0),
+          minutesPlayed: existing.minutesPlayed + (stat.minutes_played || 0),
         };
 
         // Recalculate percentages
