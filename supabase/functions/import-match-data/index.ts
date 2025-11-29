@@ -12,11 +12,9 @@ const MAX_NAME_LENGTH = 100;
 const MAX_VENUE_LENGTH = 200;
 const MAX_COMPETITION_LENGTH = 100;
 
-// Validation schemas
+// Validation schemas - more lenient for edge cases
 const playerStatsSchema = z.object({
-  jerseyNumber: z.string().regex(/^\d+$/, 'Jersey number must be numeric').transform(Number).pipe(
-    z.number().int().min(1).max(99)
-  ),
+  jerseyNumber: z.number().int().min(1).max(99),
   playerName: z.string().trim().min(1).max(MAX_NAME_LENGTH),
   role: z.string().trim().max(50),
   passCount: z.number().int().min(0).max(10000),
@@ -66,7 +64,7 @@ const matchDataSchema = z.object({
 });
 
 interface PlayerStats {
-  jerseyNumber: string;
+  jerseyNumber: number;
   playerName: string;
   role: string;
   passCount: number;
@@ -105,6 +103,20 @@ interface PlayerStats {
   offside: number;
 }
 
+// Helper to safely parse integer, returning 0 for invalid values
+function safeInt(value: string | undefined): number {
+  if (!value || value.trim() === '') return 0;
+  // Remove percentage signs and parse
+  const cleaned = value.replace('%', '').trim();
+  const num = parseInt(cleaned, 10);
+  return isNaN(num) ? 0 : num;
+}
+
+// Check if a value looks like a percentage (contains % or is a decimal string)
+function isPercentageColumn(value: string): boolean {
+  return value.includes('%') || /^\d+\.\d+%?$/.test(value.trim());
+}
+
 function parseCSV(csvText: string): PlayerStats[] {
   const lines = csvText.trim().split('\n');
   
@@ -113,103 +125,113 @@ function parseCSV(csvText: string): PlayerStats[] {
     throw new Error('CSV file must have at least a header row and one data row');
   }
 
+  // Parse header to understand column structure
+  const header = lines[0].split(',').map(h => h.trim().toLowerCase());
+  console.log('CSV Header columns:', header.length, 'headers:', header.slice(0, 15).join(', '));
+
   const players: PlayerStats[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (!line || line.toLowerCase().includes('total')) continue;
-
+    
+    // Skip empty lines, total rows, or rows without valid jersey numbers
+    if (!line) continue;
+    if (line.toLowerCase().includes('total')) continue;
+    
     const values = line.split(',').map(v => v.trim());
     
-    if (values.length < 37) {
-      throw new Error(`Invalid CSV format at line ${i + 1}: expected at least 37 columns, got ${values.length}`);
+    // Skip if first column (jersey number) is empty or not a valid number
+    const jerseyNum = safeInt(values[0]);
+    if (jerseyNum < 1 || jerseyNum > 99) {
+      console.log(`Skipping line ${i + 1}: Invalid or empty jersey number "${values[0]}"`);
+      continue;
+    }
+    
+    // Skip if player name is empty
+    if (!values[1] || values[1].trim() === '') {
+      console.log(`Skipping line ${i + 1}: Empty player name`);
+      continue;
     }
 
+    // Filter out percentage columns - keep only non-percentage values
+    // The CSV format has: Jersey#, Name, Role, then stat pairs of (value, percentage)
+    // We need to extract just the value columns
+    
+    // First 3 columns are always: Jersey#, Player Name, Role
+    const baseValues = [values[0], values[1], values[2] || ''];
+    
+    // For remaining columns, skip percentage columns
+    const statValues: string[] = [];
+    for (let j = 3; j < values.length; j++) {
+      const val = values[j];
+      // Skip if it looks like a percentage
+      if (!isPercentageColumn(val)) {
+        statValues.push(val);
+      }
+    }
+
+    console.log(`Line ${i + 1}: Jersey=${jerseyNum}, Player=${values[1]}, Stats count=${statValues.length}`);
+
+    // Map to expected structure
+    // Expected order after filtering percentages:
+    // 0: Pass Count, 1: Successful Pass, 2: Miss Pass, 3: Forward Pass, 4: Backward Pass,
+    // 5: Goals, 6: Penalty Area Pass, 7: Penalty Area Entry, 8: Shots Attempted, 9: Shots on Target,
+    // 10: Saves, 11: Defensive Errors, 12: Aerial Duels Won, 13: Aerial Duels Lost,
+    // 14: Tackles, 15: Clearance, 16: Fouls, 17: Fouls Final Third, 18: Fouls Middle Third,
+    // 19: Fouls Defensive Third, 20: Foul Won, 21: FW Final 3rd, 22: FW Middle 3rd, 23: FW Defensive 3rd,
+    // 24: Cut Backs, 25: Crosses, 26: Free Kicks, 27: Corners, 28: Corner Failed, 29: Corner Success,
+    // 30: Throw Ins, 31: TI Failed, 32: TI Success, 33: Offside
+
     const rawPlayer = {
-      jerseyNumber: values[0] || '0',
-      playerName: values[1] || 'Unknown',
-      role: values[2] || '',
-      passCount: parseInt(values[3]) || 0,
-      successfulPass: parseInt(values[4]) || 0,
-      missPass: parseInt(values[5]) || 0,
-      forwardPass: parseInt(values[6]) || 0,
-      backwardPass: parseInt(values[7]) || 0,
-      goals: parseInt(values[8]) || 0,
-      penaltyAreaPass: parseInt(values[9]) || 0,
-      penaltyAreaEntry: parseInt(values[10]) || 0,
-      shotsAttempted: parseInt(values[11]) || 0,
-      shotsOnTarget: parseInt(values[12]) || 0,
-      saves: parseInt(values[13]) || 0,
-      defensiveErrors: parseInt(values[14]) || 0,
-      aerialDuelsWon: parseInt(values[15]) || 0,
-      aerialDuelsLost: parseInt(values[16]) || 0,
-      tackles: parseInt(values[17]) || 0,
-      clearance: parseInt(values[18]) || 0,
-      fouls: parseInt(values[19]) || 0,
-      foulsInFinalThird: parseInt(values[20]) || 0,
-      foulsInMiddleThird: parseInt(values[21]) || 0,
-      foulsInDefensiveThird: parseInt(values[22]) || 0,
-      foulWon: parseInt(values[23]) || 0,
-      fwFinalThird: parseInt(values[24]) || 0,
-      fwMiddleThird: parseInt(values[25]) || 0,
-      fwDefensiveThird: parseInt(values[26]) || 0,
-      cutBacks: parseInt(values[27]) || 0,
-      crosses: parseInt(values[28]) || 0,
-      freeKicks: parseInt(values[29]) || 0,
-      corners: parseInt(values[30]) || 0,
-      cornerFailed: parseInt(values[31]) || 0,
-      cornerSuccess: parseInt(values[32]) || 0,
-      throwIns: parseInt(values[33]) || 0,
-      tiFailed: parseInt(values[34]) || 0,
-      tiSuccess: parseInt(values[35]) || 0,
-      offside: parseInt(values[36]) || 0,
+      jerseyNumber: jerseyNum,
+      playerName: values[1].trim(),
+      role: (values[2] || '').trim(),
+      passCount: safeInt(statValues[0]),
+      successfulPass: safeInt(statValues[1]),
+      missPass: safeInt(statValues[2]),
+      forwardPass: safeInt(statValues[3]),
+      backwardPass: safeInt(statValues[4]),
+      goals: safeInt(statValues[5]),
+      penaltyAreaPass: safeInt(statValues[6]),
+      penaltyAreaEntry: safeInt(statValues[7]),
+      shotsAttempted: safeInt(statValues[8]),
+      shotsOnTarget: safeInt(statValues[9]),
+      saves: safeInt(statValues[10]),
+      defensiveErrors: safeInt(statValues[11]),
+      aerialDuelsWon: safeInt(statValues[12]),
+      aerialDuelsLost: safeInt(statValues[13]),
+      tackles: safeInt(statValues[14]),
+      clearance: safeInt(statValues[15]),
+      fouls: safeInt(statValues[16]),
+      foulsInFinalThird: safeInt(statValues[17]),
+      foulsInMiddleThird: safeInt(statValues[18]),
+      foulsInDefensiveThird: safeInt(statValues[19]),
+      foulWon: safeInt(statValues[20]),
+      fwFinalThird: safeInt(statValues[21]),
+      fwMiddleThird: safeInt(statValues[22]),
+      fwDefensiveThird: safeInt(statValues[23]),
+      cutBacks: safeInt(statValues[24]),
+      crosses: safeInt(statValues[25]),
+      freeKicks: safeInt(statValues[26]),
+      corners: safeInt(statValues[27]),
+      cornerFailed: safeInt(statValues[28]),
+      cornerSuccess: safeInt(statValues[29]),
+      throwIns: safeInt(statValues[30]),
+      tiFailed: safeInt(statValues[31]),
+      tiSuccess: safeInt(statValues[32]),
+      offside: safeInt(statValues[33]),
     };
 
     // Validate player data with zod schema
     try {
       const validatedPlayer = playerStatsSchema.parse(rawPlayer);
-      players.push({
-        jerseyNumber: validatedPlayer.jerseyNumber.toString(),
-        playerName: validatedPlayer.playerName,
-        role: validatedPlayer.role,
-        passCount: validatedPlayer.passCount,
-        successfulPass: validatedPlayer.successfulPass,
-        missPass: validatedPlayer.missPass,
-        forwardPass: validatedPlayer.forwardPass,
-        backwardPass: validatedPlayer.backwardPass,
-        goals: validatedPlayer.goals,
-        penaltyAreaPass: validatedPlayer.penaltyAreaPass,
-        penaltyAreaEntry: validatedPlayer.penaltyAreaEntry,
-        shotsAttempted: validatedPlayer.shotsAttempted,
-        shotsOnTarget: validatedPlayer.shotsOnTarget,
-        saves: validatedPlayer.saves,
-        defensiveErrors: validatedPlayer.defensiveErrors,
-        aerialDuelsWon: validatedPlayer.aerialDuelsWon,
-        aerialDuelsLost: validatedPlayer.aerialDuelsLost,
-        tackles: validatedPlayer.tackles,
-        clearance: validatedPlayer.clearance,
-        fouls: validatedPlayer.fouls,
-        foulsInFinalThird: validatedPlayer.foulsInFinalThird,
-        foulsInMiddleThird: validatedPlayer.foulsInMiddleThird,
-        foulsInDefensiveThird: validatedPlayer.foulsInDefensiveThird,
-        foulWon: validatedPlayer.foulWon,
-        fwFinalThird: validatedPlayer.fwFinalThird,
-        fwMiddleThird: validatedPlayer.fwMiddleThird,
-        fwDefensiveThird: validatedPlayer.fwDefensiveThird,
-        cutBacks: validatedPlayer.cutBacks,
-        crosses: validatedPlayer.crosses,
-        freeKicks: validatedPlayer.freeKicks,
-        corners: validatedPlayer.corners,
-        cornerFailed: validatedPlayer.cornerFailed,
-        cornerSuccess: validatedPlayer.cornerSuccess,
-        throwIns: validatedPlayer.throwIns,
-        tiFailed: validatedPlayer.tiFailed,
-        tiSuccess: validatedPlayer.tiSuccess,
-        offside: validatedPlayer.offside,
-      });
+      players.push(validatedPlayer);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      throw new Error(`Validation error at line ${i + 1}: ${errorMessage}`);
+      if (error instanceof z.ZodError) {
+        console.error(`Validation error at line ${i + 1}:`, JSON.stringify(error.errors, null, 2));
+        throw new Error(`Validation error at line ${i + 1}: ${JSON.stringify(error.errors)}`);
+      }
+      throw error;
     }
   }
 
@@ -217,6 +239,7 @@ function parseCSV(csvText: string): PlayerStats[] {
     throw new Error('CSV file contains no valid player data');
   }
 
+  console.log(`Successfully parsed ${players.length} players`);
   return players;
 }
 
@@ -359,7 +382,10 @@ Deno.serve(async (req) => {
     // Process home team stats
     const homeTeam1stText = await homeTeam1stCSV.text();
     const homeTeam2ndText = await homeTeam2ndCSV.text();
+    
+    console.log('Parsing home team 1st half CSV...');
     const homeStats1st = parseCSV(homeTeam1stText);
+    console.log('Parsing home team 2nd half CSV...');
     const homeStats2nd = parseCSV(homeTeam2ndText);
 
     console.log('Parsed home team stats:', { half1: homeStats1st.length, half2: homeStats2nd.length });
@@ -370,7 +396,7 @@ Deno.serve(async (req) => {
         .upsert(
           {
             team_id: homeTeam.id,
-            jersey_number: parseInt(stat.jerseyNumber) || 0,
+            jersey_number: stat.jerseyNumber,
             name: stat.playerName,
             role: stat.role,
           },
@@ -427,7 +453,7 @@ Deno.serve(async (req) => {
         .from('players')
         .select('id')
         .eq('team_id', homeTeam.id)
-        .eq('jersey_number', parseInt(stat.jerseyNumber) || 0)
+        .eq('jersey_number', stat.jerseyNumber)
         .eq('name', stat.playerName)
         .single();
 
@@ -477,7 +503,10 @@ Deno.serve(async (req) => {
     // Process away team stats
     const awayTeam1stText = await awayTeam1stCSV.text();
     const awayTeam2ndText = await awayTeam2ndCSV.text();
+    
+    console.log('Parsing away team 1st half CSV...');
     const awayStats1st = parseCSV(awayTeam1stText);
+    console.log('Parsing away team 2nd half CSV...');
     const awayStats2nd = parseCSV(awayTeam2ndText);
 
     console.log('Parsed away team stats:', { half1: awayStats1st.length, half2: awayStats2nd.length });
@@ -488,7 +517,7 @@ Deno.serve(async (req) => {
         .upsert(
           {
             team_id: awayTeam.id,
-            jersey_number: parseInt(stat.jerseyNumber) || 0,
+            jersey_number: stat.jerseyNumber,
             name: stat.playerName,
             role: stat.role,
           },
@@ -545,7 +574,7 @@ Deno.serve(async (req) => {
         .from('players')
         .select('id')
         .eq('team_id', awayTeam.id)
-        .eq('jersey_number', parseInt(stat.jerseyNumber) || 0)
+        .eq('jersey_number', stat.jerseyNumber)
         .eq('name', stat.playerName)
         .single();
 
@@ -592,7 +621,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log('Match data imported successfully');
+    console.log('Match data import completed successfully');
 
     return new Response(
       JSON.stringify({ success: true, matchId: match.id }),
@@ -600,9 +629,11 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error importing match data:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'An error occurred',
+        details: error instanceof Error ? error.stack : undefined
+      }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
