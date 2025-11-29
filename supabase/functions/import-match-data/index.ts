@@ -25,6 +25,8 @@ const playerStatsSchema = z.object({
   goals: z.number().int().min(0).max(100),
   penaltyAreaPass: z.number().int().min(0).max(10000),
   penaltyAreaEntry: z.number().int().min(0).max(10000),
+  runInBehind: z.number().int().min(0).max(1000),
+  overlaps: z.number().int().min(0).max(1000),
   shotsAttempted: z.number().int().min(0).max(1000),
   shotsOnTarget: z.number().int().min(0).max(1000),
   saves: z.number().int().min(0).max(1000),
@@ -51,6 +53,7 @@ const playerStatsSchema = z.object({
   tiFailed: z.number().int().min(0).max(1000),
   tiSuccess: z.number().int().min(0).max(1000),
   offside: z.number().int().min(0).max(1000),
+  minutesPlayed: z.number().int().min(0).max(200),
 });
 
 const matchDataSchema = z.object({
@@ -75,6 +78,8 @@ interface PlayerStats {
   goals: number;
   penaltyAreaPass: number;
   penaltyAreaEntry: number;
+  runInBehind: number;
+  overlaps: number;
   shotsAttempted: number;
   shotsOnTarget: number;
   saves: number;
@@ -101,6 +106,7 @@ interface PlayerStats {
   tiFailed: number;
   tiSuccess: number;
   offside: number;
+  minutesPlayed: number;
 }
 
 // Helper to safely parse integer, returning 0 for invalid values
@@ -127,7 +133,7 @@ function parseCSV(csvText: string): PlayerStats[] {
 
   // Parse header to understand column structure
   const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-  console.log('CSV Header columns:', header.length, 'headers:', header.slice(0, 15).join(', '));
+  console.log('CSV Header columns:', header.length, 'headers:', header.slice(0, 20).join(', '));
 
   const players: PlayerStats[] = [];
 
@@ -173,14 +179,15 @@ function parseCSV(csvText: string): PlayerStats[] {
     console.log(`Line ${i + 1}: Jersey=${jerseyNum}, Player=${values[1]}, Stats count=${statValues.length}`);
 
     // Map to expected structure
-    // Expected order after filtering percentages:
+    // Expected order after filtering percentages (NEW CSV FORMAT with Run in Behind, Overlaps, Minutes Played):
     // 0: Pass Count, 1: Successful Pass, 2: Miss Pass, 3: Forward Pass, 4: Backward Pass,
-    // 5: Goals, 6: Penalty Area Pass, 7: Penalty Area Entry, 8: Shots Attempted, 9: Shots on Target,
-    // 10: Saves, 11: Defensive Errors, 12: Aerial Duels Won, 13: Aerial Duels Lost,
-    // 14: Tackles, 15: Clearance, 16: Fouls, 17: Fouls Final Third, 18: Fouls Middle Third,
-    // 19: Fouls Defensive Third, 20: Foul Won, 21: FW Final 3rd, 22: FW Middle 3rd, 23: FW Defensive 3rd,
-    // 24: Cut Backs, 25: Crosses, 26: Free Kicks, 27: Corners, 28: Corner Failed, 29: Corner Success,
-    // 30: Throw Ins, 31: TI Failed, 32: TI Success, 33: Offside
+    // 5: Goals, 6: Penalty Area Pass, 7: Penalty Area Entry, 8: Run in Behind (NEW), 9: Overlaps (NEW),
+    // 10: Shots Attempted, 11: Shots on Target, 12: Saves, 13: Defensive Errors, 
+    // 14: Aerial Duels Won, 15: Aerial Duels Lost, 16: Tackles, 17: Clearance, 
+    // 18: Fouls, 19: Fouls Final Third, 20: Fouls Middle Third, 21: Fouls Defensive Third, 
+    // 22: Foul Won, 23: FW Final 3rd, 24: FW Middle 3rd, 25: FW Defensive 3rd,
+    // 26: Cut Backs, 27: Crosses, 28: Free Kicks, 29: Corners, 30: Corner Failed, 31: Corner Success,
+    // 32: Throw Ins, 33: TI Failed, 34: TI Success, 35: Offside, 36: Minutes Played (NEW)
 
     const rawPlayer = {
       jerseyNumber: jerseyNum,
@@ -194,32 +201,35 @@ function parseCSV(csvText: string): PlayerStats[] {
       goals: safeInt(statValues[5]),
       penaltyAreaPass: safeInt(statValues[6]),
       penaltyAreaEntry: safeInt(statValues[7]),
-      shotsAttempted: safeInt(statValues[8]),
-      shotsOnTarget: safeInt(statValues[9]),
-      saves: safeInt(statValues[10]),
-      defensiveErrors: safeInt(statValues[11]),
-      aerialDuelsWon: safeInt(statValues[12]),
-      aerialDuelsLost: safeInt(statValues[13]),
-      tackles: safeInt(statValues[14]),
-      clearance: safeInt(statValues[15]),
-      fouls: safeInt(statValues[16]),
-      foulsInFinalThird: safeInt(statValues[17]),
-      foulsInMiddleThird: safeInt(statValues[18]),
-      foulsInDefensiveThird: safeInt(statValues[19]),
-      foulWon: safeInt(statValues[20]),
-      fwFinalThird: safeInt(statValues[21]),
-      fwMiddleThird: safeInt(statValues[22]),
-      fwDefensiveThird: safeInt(statValues[23]),
-      cutBacks: safeInt(statValues[24]),
-      crosses: safeInt(statValues[25]),
-      freeKicks: safeInt(statValues[26]),
-      corners: safeInt(statValues[27]),
-      cornerFailed: safeInt(statValues[28]),
-      cornerSuccess: safeInt(statValues[29]),
-      throwIns: safeInt(statValues[30]),
-      tiFailed: safeInt(statValues[31]),
-      tiSuccess: safeInt(statValues[32]),
-      offside: safeInt(statValues[33]),
+      runInBehind: safeInt(statValues[8]),
+      overlaps: safeInt(statValues[9]),
+      shotsAttempted: safeInt(statValues[10]),
+      shotsOnTarget: safeInt(statValues[11]),
+      saves: safeInt(statValues[12]),
+      defensiveErrors: safeInt(statValues[13]),
+      aerialDuelsWon: safeInt(statValues[14]),
+      aerialDuelsLost: safeInt(statValues[15]),
+      tackles: safeInt(statValues[16]),
+      clearance: safeInt(statValues[17]),
+      fouls: safeInt(statValues[18]),
+      foulsInFinalThird: safeInt(statValues[19]),
+      foulsInMiddleThird: safeInt(statValues[20]),
+      foulsInDefensiveThird: safeInt(statValues[21]),
+      foulWon: safeInt(statValues[22]),
+      fwFinalThird: safeInt(statValues[23]),
+      fwMiddleThird: safeInt(statValues[24]),
+      fwDefensiveThird: safeInt(statValues[25]),
+      cutBacks: safeInt(statValues[26]),
+      crosses: safeInt(statValues[27]),
+      freeKicks: safeInt(statValues[28]),
+      corners: safeInt(statValues[29]),
+      cornerFailed: safeInt(statValues[30]),
+      cornerSuccess: safeInt(statValues[31]),
+      throwIns: safeInt(statValues[32]),
+      tiFailed: safeInt(statValues[33]),
+      tiSuccess: safeInt(statValues[34]),
+      offside: safeInt(statValues[35]),
+      minutesPlayed: safeInt(statValues[36]),
     };
 
     // Validate player data with zod schema
@@ -419,6 +429,8 @@ Deno.serve(async (req) => {
         goals: stat.goals,
         penalty_area_pass: stat.penaltyAreaPass,
         penalty_area_entry: stat.penaltyAreaEntry,
+        run_in_behind: stat.runInBehind,
+        "overlaps": stat.overlaps,
         shots_attempted: stat.shotsAttempted,
         shots_on_target: stat.shotsOnTarget,
         saves: stat.saves,
@@ -445,6 +457,7 @@ Deno.serve(async (req) => {
         ti_failed: stat.tiFailed,
         ti_success: stat.tiSuccess,
         offside: stat.offside,
+        minutes_played: stat.minutesPlayed,
       });
     }
 
@@ -471,6 +484,8 @@ Deno.serve(async (req) => {
         goals: stat.goals,
         penalty_area_pass: stat.penaltyAreaPass,
         penalty_area_entry: stat.penaltyAreaEntry,
+        run_in_behind: stat.runInBehind,
+        "overlaps": stat.overlaps,
         shots_attempted: stat.shotsAttempted,
         shots_on_target: stat.shotsOnTarget,
         saves: stat.saves,
@@ -497,6 +512,7 @@ Deno.serve(async (req) => {
         ti_failed: stat.tiFailed,
         ti_success: stat.tiSuccess,
         offside: stat.offside,
+        minutes_played: stat.minutesPlayed,
       });
     }
 
@@ -540,6 +556,8 @@ Deno.serve(async (req) => {
         goals: stat.goals,
         penalty_area_pass: stat.penaltyAreaPass,
         penalty_area_entry: stat.penaltyAreaEntry,
+        run_in_behind: stat.runInBehind,
+        "overlaps": stat.overlaps,
         shots_attempted: stat.shotsAttempted,
         shots_on_target: stat.shotsOnTarget,
         saves: stat.saves,
@@ -566,6 +584,7 @@ Deno.serve(async (req) => {
         ti_failed: stat.tiFailed,
         ti_success: stat.tiSuccess,
         offside: stat.offside,
+        minutes_played: stat.minutesPlayed,
       });
     }
 
@@ -592,6 +611,8 @@ Deno.serve(async (req) => {
         goals: stat.goals,
         penalty_area_pass: stat.penaltyAreaPass,
         penalty_area_entry: stat.penaltyAreaEntry,
+        run_in_behind: stat.runInBehind,
+        "overlaps": stat.overlaps,
         shots_attempted: stat.shotsAttempted,
         shots_on_target: stat.shotsOnTarget,
         saves: stat.saves,
@@ -618,6 +639,7 @@ Deno.serve(async (req) => {
         ti_failed: stat.tiFailed,
         ti_success: stat.tiSuccess,
         offside: stat.offside,
+        minutes_played: stat.minutesPlayed,
       });
     }
 

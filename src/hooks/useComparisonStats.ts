@@ -22,6 +22,9 @@ interface PlayerMatchStats {
   throwIns: number;
   tiSuccess: number;
   cutBacks: number;
+  runInBehind: number;
+  overlaps: number;
+  minutesPlayed: number;
 }
 
 interface ComparisonPlayer {
@@ -65,6 +68,9 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
           throw_ins,
           ti_success,
           cut_backs,
+          run_in_behind,
+          overlaps,
+          minutes_played,
           players!inner(
             id,
             name,
@@ -103,6 +109,9 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
           throw_ins,
           ti_success,
           cut_backs,
+          run_in_behind,
+          overlaps,
+          minutes_played,
           players!inner(
             id,
             name,
@@ -151,6 +160,9 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
             existing.stats.throwIns += stat.throw_ins || 0;
             existing.stats.tiSuccess += stat.ti_success || 0;
             existing.stats.cutBacks += stat.cut_backs || 0;
+            existing.stats.runInBehind += stat.run_in_behind || 0;
+            existing.stats.overlaps += stat.overlaps || 0;
+            existing.stats.minutesPlayed += stat.minutes_played || 0;
           } else {
             playerMap.set(playerId, {
               player: stat.players,
@@ -175,6 +187,9 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
                 throwIns: stat.throw_ins || 0,
                 tiSuccess: stat.ti_success || 0,
                 cutBacks: stat.cut_backs || 0,
+                runInBehind: stat.run_in_behind || 0,
+                overlaps: stat.overlaps || 0,
+                minutesPlayed: stat.minutes_played || 0,
               }
             });
           }
@@ -199,7 +214,8 @@ export function useComparisonStats(match1Id: string, match2Id: string, teamSlug?
         goals: 0, passCount: 0, successfulPass: 0, passAccuracy: 0,
         shots: 0, shotsOnTarget: 0, tackles: 0, fouls: 0, saves: 0, crosses: 0, corners: 0,
         cornerSuccess: 0, penaltyAreaEntry: 0, penaltyAreaPass: 0, aerialDuelsWon: 0,
-        aerialDuelsLost: 0, freeKicks: 0, throwIns: 0, tiSuccess: 0, cutBacks: 0
+        aerialDuelsLost: 0, freeKicks: 0, throwIns: 0, tiSuccess: 0, cutBacks: 0,
+        runInBehind: 0, overlaps: 0, minutesPlayed: 0
       };
 
       // Get all unique player IDs from both matches

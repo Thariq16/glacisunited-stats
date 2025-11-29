@@ -14,6 +14,8 @@ export interface PlayerStats {
   goals: number;
   penaltyAreaPass: number;
   penaltyAreaEntry: number;
+  runInBehind: number;
+  overlaps: number;
   shotsAttempted: number;
   shotsOnTarget: number;
   saves: number;
@@ -40,6 +42,7 @@ export interface PlayerStats {
   tiFailed: number;
   tiSuccess: number;
   offside: number;
+  minutesPlayed: number;
 }
 
 export function parseCSV(csvText: string): PlayerStats[] {
@@ -61,6 +64,7 @@ export function parseCSV(csvText: string): PlayerStats[] {
       return isNaN(num) ? 0 : num;
     };
 
+    // New CSV format with Run in Behind (col 13), Overlaps (col 14), Minutes Played (col 41)
     players.push({
       jerseyNumber: values[0]?.trim() || '',
       playerName: values[1]?.trim() || '',
@@ -77,32 +81,35 @@ export function parseCSV(csvText: string): PlayerStats[] {
       goals: parseNumber(values[12]),
       penaltyAreaPass: parseNumber(values[13]),
       penaltyAreaEntry: parseNumber(values[14]),
-      shotsAttempted: parseNumber(values[15]),
-      shotsOnTarget: parseNumber(values[16]),
-      saves: parseNumber(values[17]),
-      defensiveErrors: parseNumber(values[18]),
-      aerialDuelsWon: parseNumber(values[19]),
-      aerialDuelsLost: parseNumber(values[20]),
-      tackles: parseNumber(values[21]),
-      clearance: parseNumber(values[22]),
-      fouls: parseNumber(values[23]),
-      foulsInFinalThird: parseNumber(values[24]),
-      foulsInMiddleThird: parseNumber(values[25]),
-      foulsInDefensiveThird: parseNumber(values[26]),
-      foulWon: parseNumber(values[27]),
-      fwFinalThird: parseNumber(values[28]),
-      fwMiddleThird: parseNumber(values[29]),
-      fwDefensiveThird: parseNumber(values[30]),
-      cutBacks: parseNumber(values[31]),
-      crosses: parseNumber(values[32]),
-      freeKicks: parseNumber(values[33]),
-      corners: parseNumber(values[34]),
-      cornerFailed: parseNumber(values[35]),
-      cornerSuccess: parseNumber(values[36]),
-      throwIns: parseNumber(values[37]),
-      tiFailed: parseNumber(values[38]),
-      tiSuccess: parseNumber(values[39]),
-      offside: parseNumber(values[40]),
+      runInBehind: parseNumber(values[15]),
+      overlaps: parseNumber(values[16]),
+      shotsAttempted: parseNumber(values[17]),
+      shotsOnTarget: parseNumber(values[18]),
+      saves: parseNumber(values[19]),
+      defensiveErrors: parseNumber(values[20]),
+      aerialDuelsWon: parseNumber(values[21]),
+      aerialDuelsLost: parseNumber(values[22]),
+      tackles: parseNumber(values[23]),
+      clearance: parseNumber(values[24]),
+      fouls: parseNumber(values[25]),
+      foulsInFinalThird: parseNumber(values[26]),
+      foulsInMiddleThird: parseNumber(values[27]),
+      foulsInDefensiveThird: parseNumber(values[28]),
+      foulWon: parseNumber(values[29]),
+      fwFinalThird: parseNumber(values[30]),
+      fwMiddleThird: parseNumber(values[31]),
+      fwDefensiveThird: parseNumber(values[32]),
+      cutBacks: parseNumber(values[33]),
+      crosses: parseNumber(values[34]),
+      freeKicks: parseNumber(values[35]),
+      corners: parseNumber(values[36]),
+      cornerFailed: parseNumber(values[37]),
+      cornerSuccess: parseNumber(values[38]),
+      throwIns: parseNumber(values[39]),
+      tiFailed: parseNumber(values[40]),
+      tiSuccess: parseNumber(values[41]),
+      offside: parseNumber(values[42]),
+      minutesPlayed: parseNumber(values[43]),
     });
   }
 

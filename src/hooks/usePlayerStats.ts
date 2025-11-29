@@ -66,6 +66,8 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
             goals,
             penalty_area_pass,
             penalty_area_entry,
+            run_in_behind,
+            overlaps,
             shots_attempted,
             shots_on_target,
             saves,
@@ -91,7 +93,8 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
             throw_ins,
             ti_failed,
             ti_success,
-            offside
+            offside,
+            minutes_played
           )
         `)
         .eq('team_id', team.id)
@@ -112,6 +115,8 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           goals: acc.goals + (stat.goals || 0),
           penaltyAreaPass: acc.penaltyAreaPass + (stat.penalty_area_pass || 0),
           penaltyAreaEntry: acc.penaltyAreaEntry + (stat.penalty_area_entry || 0),
+          runInBehind: acc.runInBehind + (stat.run_in_behind || 0),
+          overlaps: acc.overlaps + (stat.overlaps || 0),
           shotsAttempted: acc.shotsAttempted + (stat.shots_attempted || 0),
           shotsOnTarget: acc.shotsOnTarget + (stat.shots_on_target || 0),
           saves: acc.saves + (stat.saves || 0),
@@ -138,14 +143,16 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           tiFailed: acc.tiFailed + (stat.ti_failed || 0),
           tiSuccess: acc.tiSuccess + (stat.ti_success || 0),
           offside: acc.offside + (stat.offside || 0),
+          minutesPlayed: acc.minutesPlayed + (stat.minutes_played || 0),
         }), {
           passCount: 0, successfulPass: 0, missPass: 0, forwardPass: 0, backwardPass: 0,
-          goals: 0, penaltyAreaPass: 0, penaltyAreaEntry: 0, shotsAttempted: 0, shotsOnTarget: 0,
-          saves: 0, defensiveErrors: 0, aerialDuelsWon: 0, aerialDuelsLost: 0, tackles: 0,
-          clearance: 0, fouls: 0, foulsInFinalThird: 0, foulsInMiddleThird: 0, foulsInDefensiveThird: 0,
+          goals: 0, penaltyAreaPass: 0, penaltyAreaEntry: 0, runInBehind: 0, overlaps: 0,
+          shotsAttempted: 0, shotsOnTarget: 0, saves: 0, defensiveErrors: 0, 
+          aerialDuelsWon: 0, aerialDuelsLost: 0, tackles: 0, clearance: 0, 
+          fouls: 0, foulsInFinalThird: 0, foulsInMiddleThird: 0, foulsInDefensiveThird: 0,
           foulWon: 0, fwFinalThird: 0, fwMiddleThird: 0, fwDefensiveThird: 0, cutBacks: 0,
           crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
-          throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0,
+          throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0, minutesPlayed: 0,
         });
 
         // Calculate percentages

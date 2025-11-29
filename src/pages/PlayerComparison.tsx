@@ -225,7 +225,8 @@ export default function PlayerComparison() {
                     </TabsList>
                     
                     <TabsContent value="general">
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                        <StatBox label="Minutes Played" val1={player.match1Stats.minutesPlayed} val2={player.match2Stats.minutesPlayed} />
                         <StatBox label="Goals" val1={player.match1Stats.goals} val2={player.match2Stats.goals} />
                         <StatBox label="Passes" val1={player.match1Stats.passCount} val2={player.match2Stats.passCount} />
                         <StatBox label="Pass Accuracy" val1={player.match1Stats.passAccuracy} val2={player.match2Stats.passAccuracy} suffix="%" />
@@ -236,7 +237,9 @@ export default function PlayerComparison() {
                     </TabsContent>
                     
                     <TabsContent value="attacking">
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+                        <StatBox label="Run in Behind" val1={player.match1Stats.runInBehind} val2={player.match2Stats.runInBehind} />
+                        <StatBox label="Overlaps" val1={player.match1Stats.overlaps} val2={player.match2Stats.overlaps} />
                         <StatBox label="Pen. Area Entry" val1={player.match1Stats.penaltyAreaEntry} val2={player.match2Stats.penaltyAreaEntry} />
                         <StatBox label="Pen. Area Pass" val1={player.match1Stats.penaltyAreaPass} val2={player.match2Stats.penaltyAreaPass} />
                         <StatBox label="Crosses" val1={player.match1Stats.crosses} val2={player.match2Stats.crosses} />
