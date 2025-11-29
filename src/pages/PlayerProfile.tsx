@@ -1,24 +1,37 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { StatCard } from "@/components/StatCard";
-import { getPlayerByName, getTeamById } from "@/data/teamData";
-import { getMatchesByTeam } from "@/data/matchData";
+import { useTeamWithPlayers } from "@/hooks/useTeams";
+import { useMatches } from "@/hooks/usePlayerStats";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Target, TrendingUp, Shield, Activity, Users, AlertCircle, Wind, Flag } from "lucide-react";
+import { ArrowLeft, Target, TrendingUp, Shield, Activity, Users, AlertCircle, Flag } from "lucide-react";
 import { PlayerEfficiencyMetrics } from "@/components/PlayerEfficiencyMetrics";
 import { TacticalInsightsCard } from "@/components/TacticalInsightsCard";
 import { calculateAdvancedMetrics, calculateTacticalProfile, analyzePositioning } from "@/utils/playerMetrics";
 import { useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
   const navigate = useNavigate();
   
-  const team = teamId ? getTeamById(teamId) : undefined;
-  const player = teamId && playerName ? getPlayerByName(teamId, decodeURIComponent(playerName)) : undefined;
-  const teamMatches = teamId ? getMatchesByTeam(teamId) : [];
+  const { data: team, isLoading: teamLoading } = useTeamWithPlayers(teamId);
+  const { data: matches } = useMatches(teamId);
+  
+  const player = useMemo(() => {
+    if (!team || !playerName) return null;
+    return team.players.find(p => p.playerName === decodeURIComponent(playerName));
+  }, [team, playerName]);
+
+  const teamMatches = useMemo(() => {
+    if (!matches || !team) return [];
+    return matches.filter(m => 
+      m.home_team?.slug === team.slug || m.away_team?.slug === team.slug
+    );
+  }, [matches, team]);
 
   const { advancedMetrics, tacticalProfile, positioning } = useMemo(() => {
     if (!player) return { advancedMetrics: null, tacticalProfile: null, positioning: null };
@@ -27,6 +40,23 @@ export default function PlayerProfile() {
     const pos = analyzePositioning(player);
     return { advancedMetrics: metrics, tacticalProfile: profile, positioning: pos };
   }, [player]);
+
+  if (teamLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-10 w-40 mb-6" />
+          <Skeleton className="h-32 w-full mb-8" />
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!team || !player) {
     return (
@@ -46,10 +76,10 @@ export default function PlayerProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <Button 
           variant="ghost" 
           onClick={() => navigate(`/team/${teamId}`)}
@@ -82,31 +112,11 @@ export default function PlayerProfile() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Key Statistics</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <StatCard
-              title="Goals"
-              value={player.goals}
-              icon={Target}
-            />
-            <StatCard
-              title="Total Passes"
-              value={player.passCount}
-              icon={Users}
-            />
-            <StatCard
-              title="Pass Accuracy"
-              value={player.successPassPercent}
-              icon={TrendingUp}
-            />
-            <StatCard
-              title="Tackles"
-              value={player.tackles}
-              icon={Shield}
-            />
-            <StatCard
-              title="Shots Attempted"
-              value={player.shotsAttempted}
-              icon={Activity}
-            />
+            <StatCard title="Goals" value={player.goals} icon={Target} />
+            <StatCard title="Total Passes" value={player.passCount} icon={Users} />
+            <StatCard title="Pass Accuracy" value={player.successPassPercent} icon={TrendingUp} />
+            <StatCard title="Tackles" value={player.tackles} icon={Shield} />
+            <StatCard title="Shots Attempted" value={player.shotsAttempted} icon={Activity} />
           </div>
         </div>
 
@@ -182,30 +192,12 @@ export default function PlayerProfile() {
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground mb-1">Clinical Finishing</p>
-                <p className="text-2xl font-bold text-primary">
-                  {player.shotsOnTarget > 0 ? ((player.goals / player.shotsOnTarget) * 100).toFixed(1) : 0}%
-                </p>
-              </div>
-              <div>
                 <p className="text-sm text-muted-foreground mb-1">Penalty Area Pass</p>
                 <p className="text-2xl font-bold">{player.penaltyAreaPass}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Penalty Area Entry</p>
                 <p className="text-2xl font-bold">{player.penaltyAreaEntry}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">PA Entry Efficiency</p>
-                <p className="text-2xl font-bold text-primary">
-                  {player.penaltyAreaPass > 0 ? ((player.penaltyAreaEntry / player.penaltyAreaPass) * 100).toFixed(1) : 0}%
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Pass to Goal Threat</p>
-                <p className="text-2xl font-bold text-primary">
-                  {player.passCount > 0 ? ((player.penaltyAreaPass / player.passCount) * 100).toFixed(1) : 0}%
-                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Crosses</p>
@@ -366,10 +358,10 @@ export default function PlayerProfile() {
               {teamMatches.length > 0 ? (
                 <div className="space-y-4">
                   {teamMatches.map((match) => {
-                    const isHome = match.homeTeamId === teamId;
-                    const opponent = isHome ? match.awayTeam : match.homeTeam;
-                    const teamScore = isHome ? match.score.home : match.score.away;
-                    const opponentScore = isHome ? match.score.away : match.score.home;
+                    const isHome = match.home_team?.slug === team.slug;
+                    const opponent = isHome ? match.away_team?.name : match.home_team?.name;
+                    const teamScore = isHome ? match.home_score : match.away_score;
+                    const opponentScore = isHome ? match.away_score : match.home_score;
                     const result = teamScore > opponentScore ? 'W' : teamScore < opponentScore ? 'L' : 'D';
                     const resultText = `${result} ${teamScore}-${opponentScore}`;
                     
@@ -380,26 +372,32 @@ export default function PlayerProfile() {
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
-                            <span className="text-sm text-muted-foreground">{match.date}</span>
-                            <Badge variant={result === 'W' ? 'default' : result === 'D' ? 'secondary' : 'outline'}>
+                            <Badge 
+                              variant={result === 'W' ? 'default' : result === 'L' ? 'destructive' : 'secondary'}
+                              className="w-16 justify-center"
+                            >
                               {resultText}
                             </Badge>
-                            <Badge variant="outline">{match.competition}</Badge>
+                            <span className="font-medium">vs {opponent}</span>
                           </div>
-                          <p className="font-semibold mt-1">vs {opponent}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{match.venue}</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {new Date(match.match_date).toLocaleDateString()} • {match.venue}
+                          </p>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <p className="text-center text-muted-foreground py-8">No match data available</p>
+                <p className="text-center text-muted-foreground py-8">
+                  No match data available for this player yet.
+                </p>
               )}
             </CardContent>
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

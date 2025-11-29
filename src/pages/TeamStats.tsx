@@ -1,19 +1,21 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { StatCard } from "@/components/StatCard";
 import { PlayerCard } from "@/components/PlayerCard";
-import { getTeamById } from "@/data/teamData";
+import { useTeamWithPlayers } from "@/hooks/useTeams";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Target, TrendingUp, Shield, Users, Activity } from "lucide-react";
 import { useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function TeamStats() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
-  const team = teamId ? getTeamById(teamId) : undefined;
+  const { data: team, isLoading, error } = useTeamWithPlayers(teamId);
 
   const teamStats = useMemo(() => {
-    if (!team) return null;
+    if (!team || !team.players) return null;
 
     const totalGoals = team.players.reduce((sum, p) => sum + p.goals, 0);
     const totalPasses = team.players.reduce((sum, p) => sum + p.passCount, 0);
@@ -34,7 +36,29 @@ export default function TeamStats() {
     };
   }, [team]);
 
-  if (!team || !teamStats) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <Skeleton className="h-10 w-40 mb-6" />
+          <Skeleton className="h-12 w-64 mb-8" />
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+            {[...Array(7)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !team || !teamStats) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -52,10 +76,10 @@ export default function TeamStats() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
@@ -115,12 +139,13 @@ export default function TeamStats() {
               <PlayerCard 
                 key={`${player.jerseyNumber}-${player.playerName}`}
                 player={player}
-                teamId={team.id}
+                teamId={team.slug}
               />
             ))}
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
