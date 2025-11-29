@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAllMatches } from "@/hooks/usePlayerStats";
 import { useComparisonStats } from "@/hooks/useComparisonStats";
-import { GitCompare, Calendar, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { GitCompare, Calendar, ArrowUp, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
 
@@ -43,23 +43,15 @@ export default function PlayerComparison() {
   const match1 = matches?.find(m => m.id === match1Id);
   const match2 = matches?.find(m => m.id === match2Id);
 
-  // Render diff where higher is better (goals, passes, etc.)
+  // Render diff showing which match has higher stat
   const renderDiff = (val1: number, val2: number) => {
     const diff = val1 - val2;
-    if (diff > 0) return <span className="text-green-500 flex items-center gap-1"><ArrowUp className="h-3 w-3" />+{diff}</span>;
-    if (diff < 0) return <span className="text-red-500 flex items-center gap-1"><ArrowDown className="h-3 w-3" />{diff}</span>;
-    return <span className="text-muted-foreground flex items-center gap-1"><Minus className="h-3 w-3" />0</span>;
+    if (diff > 0) return <span className="text-muted-foreground flex items-center gap-1 text-xs font-medium">M1 <ArrowUp className="h-3 w-3" /> {diff}</span>;
+    if (diff < 0) return <span className="text-muted-foreground flex items-center gap-1 text-xs font-medium">M2 <ArrowUp className="h-3 w-3" /> {Math.abs(diff)}</span>;
+    return <span className="text-muted-foreground flex items-center gap-1 text-xs"><Minus className="h-3 w-3" /> Same</span>;
   };
 
-  // Render diff where lower is better (fouls, aerial duels lost)
-  const renderDiffInverse = (val1: number, val2: number) => {
-    const diff = val1 - val2;
-    if (diff < 0) return <span className="text-green-500 flex items-center gap-1"><ArrowDown className="h-3 w-3" />{diff}</span>;
-    if (diff > 0) return <span className="text-red-500 flex items-center gap-1"><ArrowUp className="h-3 w-3" />+{diff}</span>;
-    return <span className="text-muted-foreground flex items-center gap-1"><Minus className="h-3 w-3" />0</span>;
-  };
-
-  const StatBox = ({ label, val1, val2, inverse = false }: { label: string; val1: number | string; val2: number | string; inverse?: boolean }) => (
+  const StatBox = ({ label, val1, val2 }: { label: string; val1: number | string; val2: number | string }) => (
     <div className="p-3 bg-muted/50 rounded-lg">
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <div className="flex items-center justify-between">
@@ -68,10 +60,7 @@ export default function PlayerComparison() {
         <span className="font-bold">{val2}</span>
       </div>
       <div className="text-xs mt-1 flex justify-center">
-        {inverse 
-          ? renderDiffInverse(Number(val1), Number(val2))
-          : renderDiff(Number(val1), Number(val2))
-        }
+        {renderDiff(Number(val1), Number(val2))}
       </div>
     </div>
   );
@@ -242,7 +231,7 @@ export default function PlayerComparison() {
                         <StatBox label="Pass Accuracy" val1={`${player.match1Stats.passAccuracy}%`} val2={`${player.match2Stats.passAccuracy}%`} />
                         <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
                         <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} inverse />
+                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
                       </div>
                     </TabsContent>
                     
@@ -262,8 +251,8 @@ export default function PlayerComparison() {
                         <StatBox label="Tackles" val1={player.match1Stats.tackles} val2={player.match2Stats.tackles} />
                         <StatBox label="Saves" val1={player.match1Stats.saves} val2={player.match2Stats.saves} />
                         <StatBox label="Aerial Won" val1={player.match1Stats.aerialDuelsWon} val2={player.match2Stats.aerialDuelsWon} />
-                        <StatBox label="Aerial Lost" val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} inverse />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} inverse />
+                        <StatBox label="Aerial Lost" val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} />
+                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
                       </div>
                     </TabsContent>
                     
