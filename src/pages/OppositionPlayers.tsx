@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OppositionPlayers() {
-  const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const { data: oppositionTeams, isLoading } = useOppositionTeams('glacis-united-fc', matchFilter);
   
   return (

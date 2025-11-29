@@ -19,7 +19,7 @@ import { format } from 'date-fns';
 export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
   const navigate = useNavigate();
-  const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
+  const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   
   const { data: team, isLoading: teamLoading } = useTeamWithPlayers(teamId, matchFilter);
   const { data: matches } = useMatches(teamId);
