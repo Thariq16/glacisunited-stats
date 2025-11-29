@@ -51,16 +51,16 @@ export default function PlayerComparison() {
     return <span className="text-muted-foreground flex items-center gap-1 text-xs"><Minus className="h-3 w-3" /> Same</span>;
   };
 
-  const StatBox = ({ label, val1, val2 }: { label: string; val1: number | string; val2: number | string }) => (
+  const StatBox = ({ label, val1, val2, suffix = '' }: { label: string; val1: number; val2: number; suffix?: string }) => (
     <div className="p-3 bg-muted/50 rounded-lg">
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <div className="flex items-center justify-between">
-        <span className="font-bold">{val1}</span>
+        <span className="font-bold">{val1}{suffix}</span>
         <span className="text-muted-foreground text-xs">vs</span>
-        <span className="font-bold">{val2}</span>
+        <span className="font-bold">{val2}{suffix}</span>
       </div>
       <div className="text-xs mt-1 flex justify-center">
-        {renderDiff(Number(val1), Number(val2))}
+        {renderDiff(val1, val2)}
       </div>
     </div>
   );
@@ -228,7 +228,7 @@ export default function PlayerComparison() {
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                         <StatBox label="Goals" val1={player.match1Stats.goals} val2={player.match2Stats.goals} />
                         <StatBox label="Passes" val1={player.match1Stats.passCount} val2={player.match2Stats.passCount} />
-                        <StatBox label="Pass Accuracy" val1={`${player.match1Stats.passAccuracy}%`} val2={`${player.match2Stats.passAccuracy}%`} />
+                        <StatBox label="Pass Accuracy" val1={player.match1Stats.passAccuracy} val2={player.match2Stats.passAccuracy} suffix="%" />
                         <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
                         <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
                         <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
