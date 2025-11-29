@@ -43,36 +43,35 @@ export default function PlayerComparison() {
   const match1 = matches?.find(m => m.id === match1Id);
   const match2 = matches?.find(m => m.id === match2Id);
 
-  // Render diff: positive = Match 1 higher, negative = Match 2 higher
+  // Render diff where higher is better (goals, passes, etc.)
   const renderDiff = (val1: number, val2: number) => {
     const diff = val1 - val2;
-    if (diff > 0) return (
-      <span className="text-primary flex items-center gap-1">
-        <ArrowUp className="h-3 w-3" />
-        <span className="font-medium">M1</span>
-        <span>+{diff}</span>
-      </span>
-    );
-    if (diff < 0) return (
-      <span className="text-accent-foreground flex items-center gap-1">
-        <ArrowUp className="h-3 w-3" />
-        <span className="font-medium">M2</span>
-        <span>+{Math.abs(diff)}</span>
-      </span>
-    );
-    return <span className="text-muted-foreground flex items-center gap-1"><Minus className="h-3 w-3" />Same</span>;
+    if (diff > 0) return <span className="text-green-500 flex items-center gap-1"><ArrowUp className="h-3 w-3" />+{diff}</span>;
+    if (diff < 0) return <span className="text-red-500 flex items-center gap-1"><ArrowDown className="h-3 w-3" />{diff}</span>;
+    return <span className="text-muted-foreground flex items-center gap-1"><Minus className="h-3 w-3" />0</span>;
   };
 
-  const StatBox = ({ label, val1, val2 }: { label: string; val1: number | string; val2: number | string }) => (
+  // Render diff where lower is better (fouls, aerial duels lost)
+  const renderDiffInverse = (val1: number, val2: number) => {
+    const diff = val1 - val2;
+    if (diff < 0) return <span className="text-green-500 flex items-center gap-1"><ArrowDown className="h-3 w-3" />{diff}</span>;
+    if (diff > 0) return <span className="text-red-500 flex items-center gap-1"><ArrowUp className="h-3 w-3" />+{diff}</span>;
+    return <span className="text-muted-foreground flex items-center gap-1"><Minus className="h-3 w-3" />0</span>;
+  };
+
+  const StatBox = ({ label, val1, val2, inverse = false }: { label: string; val1: number | string; val2: number | string; inverse?: boolean }) => (
     <div className="p-3 bg-muted/50 rounded-lg">
       <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <div className="flex items-center justify-between">
-        <span className="font-bold text-primary">{val1}</span>
+        <span className="font-bold">{val1}</span>
         <span className="text-muted-foreground text-xs">vs</span>
-        <span className="font-bold text-accent-foreground">{val2}</span>
+        <span className="font-bold">{val2}</span>
       </div>
       <div className="text-xs mt-1 flex justify-center">
-        {renderDiff(Number(val1), Number(val2))}
+        {inverse 
+          ? renderDiffInverse(Number(val1), Number(val2))
+          : renderDiff(Number(val1), Number(val2))
+        }
       </div>
     </div>
   );
@@ -176,30 +175,25 @@ export default function PlayerComparison() {
 
         {/* Selected Matches Summary */}
         {match1 && match2 && (
-          <div className="space-y-4 mb-8">
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card className="border-primary/50">
-                <CardContent className="pt-4">
-                  <Badge className="mb-2 bg-primary text-primary-foreground">M1</Badge>
-                  <h3 className="font-semibold">{match1.home_team?.name} vs {match1.away_team?.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(match1.match_date), 'MMMM d, yyyy')} • Score: {match1.home_score}-{match1.away_score}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="border-accent/50">
-                <CardContent className="pt-4">
-                  <Badge variant="secondary" className="mb-2">M2</Badge>
-                  <h3 className="font-semibold">{match2.home_team?.name} vs {match2.away_team?.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(match2.match_date), 'MMMM d, yyyy')} • Score: {match2.home_score}-{match2.away_score}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-            <p className="text-xs text-muted-foreground text-center">
-              Difference shows which match has the higher value (M1↑ = Match 1 higher, M2↑ = Match 2 higher)
-            </p>
+          <div className="grid md:grid-cols-2 gap-4 mb-8">
+            <Card className="border-primary/50">
+              <CardContent className="pt-4">
+                <Badge variant="outline" className="mb-2">Match 1</Badge>
+                <h3 className="font-semibold">{match1.home_team?.name} vs {match1.away_team?.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(match1.match_date), 'MMMM d, yyyy')} • Score: {match1.home_score}-{match1.away_score}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-accent/50">
+              <CardContent className="pt-4">
+                <Badge variant="secondary" className="mb-2">Match 2</Badge>
+                <h3 className="font-semibold">{match2.home_team?.name} vs {match2.away_team?.name}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {format(new Date(match2.match_date), 'MMMM d, yyyy')} • Score: {match2.home_score}-{match2.away_score}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -248,7 +242,7 @@ export default function PlayerComparison() {
                         <StatBox label="Pass Accuracy" val1={`${player.match1Stats.passAccuracy}%`} val2={`${player.match2Stats.passAccuracy}%`} />
                         <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
                         <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
+                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} inverse />
                       </div>
                     </TabsContent>
                     
@@ -268,8 +262,8 @@ export default function PlayerComparison() {
                         <StatBox label="Tackles" val1={player.match1Stats.tackles} val2={player.match2Stats.tackles} />
                         <StatBox label="Saves" val1={player.match1Stats.saves} val2={player.match2Stats.saves} />
                         <StatBox label="Aerial Won" val1={player.match1Stats.aerialDuelsWon} val2={player.match2Stats.aerialDuelsWon} />
-                        <StatBox label="Aerial Lost" val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
+                        <StatBox label="Aerial Lost" val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} inverse />
+                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} inverse />
                       </div>
                     </TabsContent>
                     
