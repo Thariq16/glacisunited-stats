@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      match_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          created_by: string
+          id: string
+          match_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          created_by: string
+          id?: string
+          match_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          match_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_comments_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           away_score: number
@@ -331,6 +366,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_coach: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user" | "coach"

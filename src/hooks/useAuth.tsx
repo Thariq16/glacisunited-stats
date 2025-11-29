@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  isCoach: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, username?: string) => Promise<{ error: any }>;
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isCoach, setIsCoach] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,13 +31,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Defer admin check
+        // Defer role checks
         if (session?.user) {
           setTimeout(() => {
-            checkAdminStatus(session.user.id);
+            checkUserRoles(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsCoach(false);
         }
       }
     );
@@ -46,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        checkAdminStatus(session.user.id);
+        checkUserRoles(session.user.id);
       } else {
         setLoading(false);
       }
@@ -55,19 +58,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const checkAdminStatus = async (userId: string) => {
+  const checkUserRoles = async (userId: string) => {
     try {
       const { data } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
+        .eq('user_id', userId);
       
-      setIsAdmin(!!data);
+      const roles = data?.map(r => r.role) || [];
+      setIsAdmin(roles.includes('admin'));
+      setIsCoach(roles.includes('coach'));
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('Error checking user roles:', error);
       setIsAdmin(false);
+      setIsCoach(false);
     } finally {
       setLoading(false);
     }
@@ -103,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setSession(null);
     setIsAdmin(false);
+    setIsCoach(false);
   };
 
   const resetPassword = async (email: string) => {
@@ -127,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         isAdmin,
+        isCoach,
         loading,
         signIn,
         signUp,
