@@ -13,6 +13,7 @@ import OppositionPlayers from "./pages/OppositionPlayers";
 import TeamStats from "./pages/TeamStats";
 import PlayerProfile from "./pages/PlayerProfile";
 import SquadAnalysis from "./pages/SquadAnalysis";
+import PlayerComparison from "./pages/PlayerComparison";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminPlayers from "./pages/AdminPlayers";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/players" element={<Players />} />
             <Route path="/opposition-players" element={<OppositionPlayers />} />
             <Route path="/squad-analysis" element={<SquadAnalysis />} />
+            <Route path="/compare" element={<PlayerComparison />} />
             <Route path="/team/:teamId" element={<TeamStats />} />
             <Route path="/team/:teamId/player/:playerName" element={<PlayerProfile />} />
             <Route path="/import" element={<AdminUpload />} />

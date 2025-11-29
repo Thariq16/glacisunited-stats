@@ -27,6 +27,9 @@ export function Navbar() {
             <NavLink to="/squad-analysis" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
               Squad Analysis
             </NavLink>
+            <NavLink to="/compare" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
+              Compare
+            </NavLink>
           </div>
 
           {/* Mobile Navigation */}
@@ -49,6 +52,9 @@ export function Navbar() {
                 </NavLink>
                 <NavLink to="/squad-analysis" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
                   Squad Analysis
+                </NavLink>
+                <NavLink to="/compare" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
+                  Compare
                 </NavLink>
               </div>
             </SheetContent>
