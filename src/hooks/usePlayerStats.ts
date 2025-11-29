@@ -107,13 +107,13 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           tackles: acc.tackles + (stat.tackles || 0),
           clearance: acc.clearance + (stat.clearance || 0),
           fouls: acc.fouls + (stat.fouls || 0),
-          foulsFinalThird: acc.foulsFinalThird + (stat.fouls_final_third || 0),
-          foulsMiddleThird: acc.foulsMiddleThird + (stat.fouls_middle_third || 0),
-          foulsDefensiveThird: acc.foulsDefensiveThird + (stat.fouls_defensive_third || 0),
+          foulsInFinalThird: acc.foulsInFinalThird + (stat.fouls_final_third || 0),
+          foulsInMiddleThird: acc.foulsInMiddleThird + (stat.fouls_middle_third || 0),
+          foulsInDefensiveThird: acc.foulsInDefensiveThird + (stat.fouls_defensive_third || 0),
           foulWon: acc.foulWon + (stat.foul_won || 0),
-          fwFinal3rd: acc.fwFinal3rd + (stat.fw_final_3rd || 0),
-          fwMiddle3rd: acc.fwMiddle3rd + (stat.fw_middle_3rd || 0),
-          fwDefensive3rd: acc.fwDefensive3rd + (stat.fw_defensive_3rd || 0),
+          fwFinalThird: acc.fwFinalThird + (stat.fw_final_3rd || 0),
+          fwMiddleThird: acc.fwMiddleThird + (stat.fw_middle_3rd || 0),
+          fwDefensiveThird: acc.fwDefensiveThird + (stat.fw_defensive_3rd || 0),
           cutBacks: acc.cutBacks + (stat.cut_backs || 0),
           crosses: acc.crosses + (stat.crosses || 0),
           freeKicks: acc.freeKicks + (stat.free_kicks || 0),
@@ -128,17 +128,35 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           passCount: 0, successfulPass: 0, missPass: 0, forwardPass: 0, backwardPass: 0,
           goals: 0, penaltyAreaPass: 0, penaltyAreaEntry: 0, shotsAttempted: 0, shotsOnTarget: 0,
           saves: 0, defensiveErrors: 0, aerialDuelsWon: 0, aerialDuelsLost: 0, tackles: 0,
-          clearance: 0, fouls: 0, foulsFinalThird: 0, foulsMiddleThird: 0, foulsDefensiveThird: 0,
-          foulWon: 0, fwFinal3rd: 0, fwMiddle3rd: 0, fwDefensive3rd: 0, cutBacks: 0,
+          clearance: 0, fouls: 0, foulsInFinalThird: 0, foulsInMiddleThird: 0, foulsInDefensiveThird: 0,
+          foulWon: 0, fwFinalThird: 0, fwMiddleThird: 0, fwDefensiveThird: 0, cutBacks: 0,
           crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
           throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0,
         });
 
+        // Calculate percentages
+        const successPassPercent = aggregated.passCount > 0 
+          ? `${((aggregated.successfulPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          : '0%';
+        const missPassPercent = aggregated.passCount > 0 
+          ? `${((aggregated.missPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          : '0%';
+        const forwardPassPercent = aggregated.passCount > 0 
+          ? `${((aggregated.forwardPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          : '0%';
+        const backwardPassPercent = aggregated.passCount > 0 
+          ? `${((aggregated.backwardPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          : '0%';
+
         return {
-          jerseyNumber: player.jersey_number,
+          jerseyNumber: String(player.jersey_number),
           playerName: player.name,
           role: player.role || '',
           ...aggregated,
+          successPassPercent,
+          missPassPercent,
+          forwardPassPercent,
+          backwardPassPercent,
         };
       });
 

@@ -1,10 +1,13 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MatchCard } from "@/components/MatchCard";
-import { matches } from "@/data/matchData";
+import { useMatches } from "@/hooks/usePlayerStats";
 import { Trophy } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Matches() {
+  const { data: matches, isLoading } = useMatches();
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -18,11 +21,19 @@ export default function Matches() {
           <p className="text-muted-foreground">View all match results and statistics</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {matches.map((match) => (
-            <MatchCard key={match.id} match={match} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-2">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-40 w-full" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {matches?.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        )}
       </main>
       <Footer />
     </div>
