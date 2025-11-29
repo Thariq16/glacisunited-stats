@@ -125,11 +125,18 @@ function AdminMatchUploadContent() {
     setIsUploading(true);
 
     try {
-      // Get session token
-      const { data: { session } } = await supabase.auth.getSession();
+      // Force refresh the session to ensure we have a valid token
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
       
-      if (!session) {
-        throw new Error('Not authenticated');
+      if (sessionError || !session) {
+        // Session expired - redirect to login
+        toast({
+          variant: "destructive",
+          title: "Session Expired",
+          description: "Please log in again to continue.",
+        });
+        navigate('/auth');
+        return;
       }
 
       // Prepare form data
