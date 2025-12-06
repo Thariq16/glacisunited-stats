@@ -90,8 +90,8 @@ export function MatchCommentItem({ comment, matchId }: MatchCommentItemProps) {
           </span>
           
           <div className="flex gap-1">
-            {/* Reply button for coaches */}
-            {isCoach && !isAdmin && (
+            {/* Reply button for coaches and admins */}
+            {(isCoach || isAdmin) && (
               <Button
                 variant="ghost"
                 size="sm"
