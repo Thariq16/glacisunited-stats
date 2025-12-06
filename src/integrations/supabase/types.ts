@@ -21,6 +21,7 @@ export type Database = {
           created_by: string
           id: string
           match_id: string
+          parent_id: string | null
           updated_at: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           created_by: string
           id?: string
           match_id: string
+          parent_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           created_by?: string
           id?: string
           match_id?: string
+          parent_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -45,6 +48,13 @@ export type Database = {
             columns: ["match_id"]
             isOneToOne: false
             referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "match_comments"
             referencedColumns: ["id"]
           },
         ]
