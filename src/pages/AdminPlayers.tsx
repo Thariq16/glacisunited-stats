@@ -15,7 +15,7 @@ import { Users, Edit, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function AdminPlayersContent() {
-  const [selectedTeam, setSelectedTeam] = useState('glacis-united');
+  const [selectedTeam, setSelectedTeam] = useState('glacis-united-fc');
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: '', jersey_number: '', role: '' });
   
@@ -96,8 +96,8 @@ function AdminPlayersContent() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="glacis-united">Glacis United</SelectItem>
-                <SelectItem value="europa-point">Europa Point FC</SelectItem>
+                <SelectItem value="glacis-united-fc">Glacis United</SelectItem>
+                <SelectItem value="europa-point-fc">Europa Point FC</SelectItem>
               </SelectContent>
             </Select>
           </div>
