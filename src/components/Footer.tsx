@@ -102,7 +102,15 @@ export function Footer() {
         </div>
 
         <div className="text-center mt-4 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Analysis by Thariq Hamad
+          © {new Date().getFullYear()} Analysis by{" "}
+          <a 
+            href="https://www.linkedin.com/in/thariqhamad" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline transition-colors"
+          >
+            Thariq Hamad
+          </a>
         </div>
       </div>
     </footer>
