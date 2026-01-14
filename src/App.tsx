@@ -20,6 +20,8 @@ import AdminPlayers from "./pages/AdminPlayers";
 import AdminUpload from "./pages/AdminUpload";
 import AdminMatchUpload from "./pages/AdminMatchUpload";
 import AdminComments from "./pages/AdminComments";
+import AdminMatchEvents from "./pages/AdminMatchEvents";
+import AdminMatchSelect from "./pages/AdminMatchSelect";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,8 @@ const App = () => (
             <Route path="/admin/upload" element={<AdminUpload />} />
             <Route path="/admin/match-upload" element={<AdminMatchUpload />} />
             <Route path="/admin/comments" element={<AdminComments />} />
+            <Route path="/admin/match-select" element={<AdminMatchSelect />} />
+            <Route path="/admin/match-events/:matchId" element={<AdminMatchEvents />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/match/:matchId" element={<MatchDetail />} />
             <Route path="/players" element={<Players />} />

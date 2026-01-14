@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, Users, MessageSquare } from "lucide-react";
+import { Shield, Upload, Users, MessageSquare, MousePointer2 } from "lucide-react";
 
 function AdminContent() {
   const navigate = useNavigate();
@@ -70,6 +70,23 @@ function AdminContent() {
             <CardContent>
               <Button variant="secondary" className="w-full">
                 Manage Notes
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/match-select')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MousePointer2 className="h-5 w-5" />
+                Log Match Events
+              </CardTitle>
+              <CardDescription>
+                Log detailed match events with coordinates using the pitch diagram
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="secondary" className="w-full">
+                Log Events
               </Button>
             </CardContent>
           </Card>
