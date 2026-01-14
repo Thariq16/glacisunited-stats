@@ -49,6 +49,8 @@ export interface LocalEvent {
   aerialOutcome?: AerialOutcome;
   targetPlayerId?: string;
   substitutePlayerId?: string;
+  substitutePlayerName?: string;
+  substituteJerseyNumber?: number;
   minute: number;
   half: number;
   phaseId?: string;
