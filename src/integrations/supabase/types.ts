@@ -59,6 +59,95 @@ export type Database = {
           },
         ]
       }
+      match_events: {
+        Row: {
+          aerial_outcome: string | null
+          created_at: string
+          end_x: number | null
+          end_y: number | null
+          event_type: string
+          half: number
+          id: string
+          match_id: string
+          minute: number
+          phase_id: string | null
+          player_id: string
+          shot_outcome: string | null
+          substitute_player_id: string | null
+          successful: boolean
+          target_player_id: string | null
+          x: number
+          y: number
+        }
+        Insert: {
+          aerial_outcome?: string | null
+          created_at?: string
+          end_x?: number | null
+          end_y?: number | null
+          event_type: string
+          half: number
+          id?: string
+          match_id: string
+          minute: number
+          phase_id?: string | null
+          player_id: string
+          shot_outcome?: string | null
+          substitute_player_id?: string | null
+          successful?: boolean
+          target_player_id?: string | null
+          x?: number
+          y?: number
+        }
+        Update: {
+          aerial_outcome?: string | null
+          created_at?: string
+          end_x?: number | null
+          end_y?: number | null
+          event_type?: string
+          half?: number
+          id?: string
+          match_id?: string
+          minute?: number
+          phase_id?: string | null
+          player_id?: string
+          shot_outcome?: string | null
+          substitute_player_id?: string | null
+          successful?: boolean
+          target_player_id?: string | null
+          x?: number
+          y?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_events_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_events_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_events_substitute_player_id_fkey"
+            columns: ["substitute_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_events_target_player_id_fkey"
+            columns: ["target_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           away_score: number
@@ -69,6 +158,7 @@ export type Database = {
           home_team_id: string
           id: string
           match_date: string
+          status: string
           venue: string | null
         }
         Insert: {
@@ -80,6 +170,7 @@ export type Database = {
           home_team_id: string
           id?: string
           match_date: string
+          status?: string
           venue?: string | null
         }
         Update: {
@@ -91,6 +182,7 @@ export type Database = {
           home_team_id?: string
           id?: string
           match_date?: string
+          status?: string
           venue?: string | null
         }
         Relationships: [

@@ -6,9 +6,10 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -35,7 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Edit, Trash2, Calendar, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, ArrowLeft, Play, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -48,6 +49,7 @@ interface Match {
   away_score: number;
   competition: string | null;
   venue: string | null;
+  status: string;
   home_team: { id: string; name: string } | null;
   away_team: { id: string; name: string } | null;
 }
@@ -82,10 +84,15 @@ function AdminMatchesContent() {
     },
   });
 
+  // Separate ongoing and other matches
+  const ongoingMatches = matches.filter(m => m.status === 'in_progress');
+  const otherMatches = matches.filter(m => m.status !== 'in_progress');
+
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (matchId: string) => {
       // Delete related data first
+      await supabase.from('match_events').delete().eq('match_id', matchId);
       await supabase.from('player_match_stats').delete().eq('match_id', matchId);
       await supabase.from('match_comments').delete().eq('match_id', matchId);
       // Delete the match
@@ -127,6 +134,24 @@ function AdminMatchesContent() {
     },
   });
 
+  // Mark match as complete
+  const completeMutation = useMutation({
+    mutationFn: async (matchId: string) => {
+      const { error } = await supabase
+        .from('matches')
+        .update({ status: 'completed' })
+        .eq('id', matchId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-matches'] });
+      toast.success('Match marked as completed');
+    },
+    onError: (error) => {
+      toast.error('Failed to update match: ' + error.message);
+    },
+  });
+
   const handleEditOpen = (match: Match) => {
     setEditMatch(match);
     setEditForm({
@@ -142,6 +167,101 @@ function AdminMatchesContent() {
     if (!editMatch) return;
     updateMutation.mutate({ id: editMatch.id, ...editForm });
   };
+
+  const handleContinueCapture = (matchId: string) => {
+    navigate(`/admin/match-events/${matchId}`);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'in_progress':
+        return <Badge variant="default" className="bg-amber-500">In Progress</Badge>;
+      case 'completed':
+        return <Badge variant="secondary">Completed</Badge>;
+      default:
+        return <Badge variant="outline">Scheduled</Badge>;
+    }
+  };
+
+  const renderMatchTable = (matchList: Match[], showContinue = false) => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Date</TableHead>
+          <TableHead>Home Team</TableHead>
+          <TableHead>Score</TableHead>
+          <TableHead>Away Team</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Competition</TableHead>
+          <TableHead className="w-32">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {matchList.map((match) => (
+          <TableRow key={match.id}>
+            <TableCell className="font-mono text-sm">
+              {format(new Date(match.match_date), 'dd MMM yyyy')}
+            </TableCell>
+            <TableCell className="font-medium">
+              {match.home_team?.name || 'Unknown'}
+            </TableCell>
+            <TableCell className="font-bold text-center">
+              {match.home_score} - {match.away_score}
+            </TableCell>
+            <TableCell className="font-medium">
+              {match.away_team?.name || 'Unknown'}
+            </TableCell>
+            <TableCell>{getStatusBadge(match.status)}</TableCell>
+            <TableCell className="text-muted-foreground">
+              {match.competition || '-'}
+            </TableCell>
+            <TableCell>
+              <div className="flex gap-1">
+                {showContinue && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => handleContinueCapture(match.id)}
+                  >
+                    <Play className="h-3 w-3 mr-1" />
+                    Continue
+                  </Button>
+                )}
+                {match.status === 'in_progress' && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => completeMutation.mutate(match.id)}
+                    title="Mark as completed"
+                  >
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleEditOpen(match)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={() => setDeleteMatch(match)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -168,73 +288,36 @@ function AdminMatchesContent() {
           </Button>
         </div>
 
+        {/* Ongoing Matches Section */}
+        {ongoingMatches.length > 0 && (
+          <Card className="mb-6 border-amber-500/50 bg-amber-500/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-amber-600">
+                <Play className="h-5 w-5" />
+                Ongoing Matches ({ongoingMatches.length})
+              </CardTitle>
+              <CardDescription>
+                Matches currently being captured. Click "Continue" to resume data capture.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderMatchTable(ongoingMatches, true)}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* All Other Matches */}
         <Card>
           <CardHeader>
-            <CardTitle>All Matches ({matches.length})</CardTitle>
+            <CardTitle>All Matches ({otherMatches.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <p className="text-muted-foreground">Loading matches...</p>
-            ) : matches.length === 0 ? (
+            ) : otherMatches.length === 0 ? (
               <p className="text-muted-foreground">No matches found. Create a new match to get started.</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Home Team</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Away Team</TableHead>
-                    <TableHead>Competition</TableHead>
-                    <TableHead>Venue</TableHead>
-                    <TableHead className="w-24">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {matches.map((match) => (
-                    <TableRow key={match.id}>
-                      <TableCell className="font-mono text-sm">
-                        {format(new Date(match.match_date), 'dd MMM yyyy')}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {match.home_team?.name || 'Unknown'}
-                      </TableCell>
-                      <TableCell className="font-bold text-center">
-                        {match.home_score} - {match.away_score}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {match.away_team?.name || 'Unknown'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {match.competition || '-'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {match.venue || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => handleEditOpen(match)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => setDeleteMatch(match)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              renderMatchTable(otherMatches)
             )}
           </CardContent>
         </Card>
@@ -314,7 +397,7 @@ function AdminMatchesContent() {
             <AlertDialogDescription>
               This will permanently delete the match between{' '}
               <strong>{deleteMatch?.home_team?.name}</strong> and{' '}
-              <strong>{deleteMatch?.away_team?.name}</strong>, including all related statistics and comments.
+              <strong>{deleteMatch?.away_team?.name}</strong>, including all related statistics, events, and comments.
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
