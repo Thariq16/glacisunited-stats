@@ -78,7 +78,14 @@ export function EventList({ events, phases, onDelete, onEdit }: EventListProps) 
                       {event.playerName.split(' ')[0]}
                     </span>
                   </TableCell>
-                  <TableCell className="text-sm">{config.label}</TableCell>
+                  <TableCell className="text-sm">
+                    {config.label}
+                    {event.eventType === 'substitution' && event.substitutePlayerName && (
+                      <span className="text-xs text-muted-foreground ml-1">
+                        → #{event.substituteJerseyNumber} {event.substitutePlayerName.split(' ')[0]}
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell className="font-mono text-xs">
                     ({event.x}, {event.y})
                   </TableCell>

@@ -102,6 +102,9 @@ function AdminMatchEventsContent() {
     ? EVENT_CONFIG[selectedEventType].requiresEndPosition
     : false;
 
+  // Check if event is a "without ball" event that doesn't require pitch position
+  const isWithoutBallEvent = selectedEventType && ['substitution', 'yellow_card', 'red_card'].includes(selectedEventType);
+
   // Clear current event
   const clearEvent = useCallback(() => {
     setStartPosition(null);
@@ -110,6 +113,7 @@ function AdminMatchEventsContent() {
     setShotOutcome(null);
     setAerialOutcome(null);
     setTargetPlayerId(null);
+    setSubstitutePlayerId(null);
     if (!stickyPlayer) {
       setSelectedPlayerId(null);
     }
@@ -127,8 +131,24 @@ function AdminMatchEventsContent() {
 
   // Save event
   const saveEvent = useCallback(() => {
-    if (!selectedPlayerId || !selectedEventType || !startPosition) {
-      toast.error('Please select a player, event type, and position');
+    // For substitution events, require both player going OFF and coming ON
+    if (selectedEventType === 'substitution') {
+      if (!selectedPlayerId) {
+        toast.error('Select the player going OFF');
+        return;
+      }
+      if (!substitutePlayerId) {
+        toast.error('Select the substitute coming ON');
+        return;
+      }
+    } else if (!selectedPlayerId || !selectedEventType) {
+      toast.error('Please select a player and event type');
+      return;
+    }
+
+    // Only require position for non-card/substitution events
+    if (!isWithoutBallEvent && !startPosition) {
+      toast.error('Please click on the pitch to mark the position');
       return;
     }
 
@@ -150,20 +170,28 @@ function AdminMatchEventsContent() {
     const player = players.find((p) => p.id === selectedPlayerId);
     if (!player) return;
 
+    // Get substitute player info for substitution events
+    const substitutePlayer = substitutePlayerId 
+      ? players.find((p) => p.id === substitutePlayerId)
+      : null;
+
     const newEvent: LocalEvent = {
       id: crypto.randomUUID(),
       playerId: selectedPlayerId,
       playerName: player.name,
       jerseyNumber: player.jersey_number,
-      eventType: selectedEventType,
-      x: startPosition.x,
-      y: startPosition.y,
+      eventType: selectedEventType!,
+      x: startPosition?.x ?? 50,
+      y: startPosition?.y ?? 50,
       endX: endPosition?.x,
       endY: endPosition?.y,
       successful: !isUnsuccessful,
       shotOutcome: shotOutcome || undefined,
       aerialOutcome: aerialOutcome || undefined,
       targetPlayerId: targetPlayerId || undefined,
+      substitutePlayerId: substitutePlayerId || undefined,
+      substitutePlayerName: substitutePlayer?.name,
+      substituteJerseyNumber: substitutePlayer?.jersey_number,
       minute,
       half: selectedHalf,
       phaseId: currentPhase?.id,
@@ -442,7 +470,7 @@ function AdminMatchEventsContent() {
               substitutePlayerId={substitutePlayerId}
               onSubstitutePlayerChange={setSubstitutePlayerId}
               players={players}
-              substitutes={[]}
+              substitutes={players.filter(p => p.id !== selectedPlayerId)}
             />
 
             {/* Action buttons */}
