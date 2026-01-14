@@ -147,13 +147,51 @@ function AdminMatchEventsContent() {
     ? matchData?.home_team?.id 
     : matchData?.away_team?.id;
 
-  // Fetch players for selected team
-  const { data: players = [] } = useQuery({
+  // Load squad from session storage
+  const [homeSquad, setHomeSquad] = useState<Array<{
+    id: string;
+    name: string;
+    jersey_number: number;
+    role?: string | null;
+    status: 'starting' | 'substitute';
+  }>>([]);
+  const [awaySquad, setAwaySquad] = useState<Array<{
+    id: string;
+    name: string;
+    jersey_number: number;
+    role?: string | null;
+    status: 'starting' | 'substitute';
+  }>>([]);
+
+  useEffect(() => {
+    if (matchId) {
+      const homeData = sessionStorage.getItem(`match-${matchId}-home-squad`);
+      const awayData = sessionStorage.getItem(`match-${matchId}-away-squad`);
+      
+      if (homeData) {
+        try {
+          setHomeSquad(JSON.parse(homeData));
+        } catch (e) {
+          console.error('Failed to parse home squad:', e);
+        }
+      }
+      if (awayData) {
+        try {
+          setAwaySquad(JSON.parse(awayData));
+        } catch (e) {
+          console.error('Failed to parse away squad:', e);
+        }
+      }
+    }
+  }, [matchId]);
+
+  // Fetch players for selected team (fallback if no squad in session)
+  const { data: allPlayers = [] } = useQuery({
     queryKey: ['players-for-events', selectedTeamId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('players')
-        .select('id, name, jersey_number')
+        .select('id, name, jersey_number, role')
         .eq('team_id', selectedTeamId)
         .order('jersey_number');
       if (error) throw error;
@@ -161,6 +199,11 @@ function AdminMatchEventsContent() {
     },
     enabled: !!selectedTeamId,
   });
+
+  // Use squad players if available, otherwise use all players
+  const players = selectedTeamType === 'home' 
+    ? (homeSquad.length > 0 ? homeSquad : allPlayers)
+    : (awaySquad.length > 0 ? awaySquad : allPlayers);
 
   // Save event mutation
   const saveEventMutation = useMutation({
