@@ -6,6 +6,7 @@ import { useState } from 'react';
 const SHORTCUTS = [
   { keys: ['1-9'], description: 'Select recent player' },
   { keys: ['U'], description: 'Toggle Unsuccessful' },
+  { keys: ['S'], description: 'Use suggested start pos' },
   { keys: ['Enter'], description: 'Save event' },
   { keys: ['Z'], description: 'Undo last event' },
   { keys: ['Escape'], description: 'Clear selection' },

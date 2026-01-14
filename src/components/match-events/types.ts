@@ -133,3 +133,34 @@ export const BALL_MOVEMENT_EVENTS: EventType[] = [
 export const BALL_POSSESSION_EVENTS: EventType[] = [
   'pass', 'key_pass', 'assist', 'shot', 'carry', 'dribble', 'clearance', 'cross', 'corner', 'throw_in', 'free_kick', 'penalty_area_entry', 'penalty_area_pass'
 ];
+
+// Events that break ball continuity (next event should NOT auto-inherit position)
+// These situations mean the ball position is reset or unpredictable
+export const CONTINUITY_BREAKING_EVENTS: EventType[] = [
+  'shot',           // Ball goes to goal/keeper/out
+  'clearance',      // Ball cleared away, could go anywhere
+  'aerial_duel',    // Ball could drop anywhere
+  'tackle_won',     // Regained possession, position may differ
+  'tackle_not_won', // Lost possession
+  'foul_committed', // Play stops, free kick at different position
+  'foul_won',       // Play stops, free kick position
+  'defensive_error', // Turnover
+  'corner',         // Set piece, fixed position
+  'throw_in',       // Set piece, sideline position
+  'free_kick',      // Set piece, position of foul
+  'save',           // Keeper action
+];
+
+// Ball trail type for movement history
+export interface BallTrailPoint {
+  x: number;
+  y: number;
+  endX?: number;
+  endY?: number;
+  jerseyNumber: number;
+  playerName: string;
+  targetJerseyNumber?: number;
+  targetPlayerName?: string;
+  eventType: EventType;
+  successful: boolean;
+}

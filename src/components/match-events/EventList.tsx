@@ -8,17 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Trash2, Edit, Check, X } from 'lucide-react';
-import { LocalEvent, Phase, EVENT_CONFIG } from './types';
+import { Trash2, Edit, Check, X, ArrowRight } from 'lucide-react';
+import { LocalEvent, Phase, EVENT_CONFIG, EVENTS_WITH_TARGET_PLAYER } from './types';
 
 interface EventListProps {
   events: LocalEvent[];
   phases: Phase[];
+  players?: Array<{ id: string; name: string; jersey_number: number }>;
   onDelete: (eventId: string) => void;
   onEdit: (eventId: string) => void;
 }
 
-export function EventList({ events, phases, onDelete, onEdit }: EventListProps) {
+export function EventList({ events, phases, players = [], onDelete, onEdit }: EventListProps) {
   if (events.length === 0) {
     return (
       <div className="border rounded-lg p-8 text-center text-muted-foreground">
@@ -44,6 +45,11 @@ export function EventList({ events, phases, onDelete, onEdit }: EventListProps) 
     return colors[(phaseNumber - 1) % colors.length];
   };
 
+  const getTargetPlayer = (targetPlayerId: string | undefined) => {
+    if (!targetPlayerId) return null;
+    return players.find(p => p.id === targetPlayerId);
+  };
+
   return (
     <div className="border rounded-lg">
       <ScrollArea className="h-[300px]">
@@ -54,6 +60,7 @@ export function EventList({ events, phases, onDelete, onEdit }: EventListProps) 
               <TableHead className="w-16">Min</TableHead>
               <TableHead>Player</TableHead>
               <TableHead>Event</TableHead>
+              <TableHead>Receiver</TableHead>
               <TableHead className="w-20">From</TableHead>
               <TableHead className="w-20">To</TableHead>
               <TableHead className="w-16">Status</TableHead>
@@ -64,6 +71,8 @@ export function EventList({ events, phases, onDelete, onEdit }: EventListProps) 
             {events.map((event, index) => {
               const phase = getPhaseForEvent(event.id);
               const config = EVENT_CONFIG[event.eventType];
+              const targetPlayer = getTargetPlayer(event.targetPlayerId);
+              const showReceiver = EVENTS_WITH_TARGET_PLAYER.includes(event.eventType);
 
               return (
                 <TableRow
@@ -84,6 +93,21 @@ export function EventList({ events, phases, onDelete, onEdit }: EventListProps) 
                       <span className="text-xs text-muted-foreground ml-1">
                         → #{event.substituteJerseyNumber} {event.substitutePlayerName.split(' ')[0]}
                       </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {showReceiver && targetPlayer ? (
+                      <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                        <ArrowRight className="h-3 w-3" />
+                        <span className="font-medium">#{targetPlayer.jersey_number}</span>
+                        <span className="text-muted-foreground text-xs">
+                          {targetPlayer.name.split(' ')[0]}
+                        </span>
+                      </span>
+                    ) : showReceiver ? (
+                      <span className="text-muted-foreground text-xs">-</span>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">N/A</span>
                     )}
                   </TableCell>
                   <TableCell className="font-mono text-xs">

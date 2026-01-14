@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
-import { Position } from './types';
+import { Position, BallTrailPoint } from './types';
 
 export interface BallPosition {
   x: number;
@@ -18,6 +18,7 @@ interface PitchDiagramProps {
   onClear: () => void;
   requiresEndPosition: boolean;
   ballPosition?: BallPosition | null;
+  ballTrail?: BallTrailPoint[];
 }
 
 export function PitchDiagram({
@@ -28,6 +29,7 @@ export function PitchDiagram({
   onClear,
   requiresEndPosition,
   ballPosition,
+  ballTrail = [],
 }: PitchDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverPosition, setHoverPosition] = useState<Position | null>(null);
@@ -160,7 +162,78 @@ export function PitchDiagram({
         <text x="50" y="4" fill="rgba(255,255,255,0.5)" fontSize="3" textAnchor="middle">MID</text>
         <text x="83.5" y="4" fill="rgba(255,255,255,0.5)" fontSize="3" textAnchor="middle">FIN</text>
 
-        {/* Arrow line between positions */}
+        {/* Ball movement trail - faded arrows showing recent movements */}
+        {ballTrail.map((trail, index) => {
+          const opacity = 0.2 + (index / ballTrail.length) * 0.4; // Fade older trails
+          const hasEnd = trail.endX !== undefined && trail.endY !== undefined;
+          const trailColor = trail.successful ? '#60A5FA' : '#F87171'; // Blue for success, red for fail
+          const markerId = `trail-arrow-${index}`;
+          
+          return (
+            <g key={index}>
+              <defs>
+                <marker
+                  id={markerId}
+                  markerWidth="3"
+                  markerHeight="3"
+                  refX="2.5"
+                  refY="1.5"
+                  orient="auto"
+                >
+                  <polygon
+                    points="0 0, 3 1.5, 0 3"
+                    fill={trailColor}
+                    opacity={opacity}
+                  />
+                </marker>
+              </defs>
+              {/* Trail line */}
+              <line
+                x1={trail.x}
+                y1={trail.y}
+                x2={hasEnd ? trail.endX! : trail.x}
+                y2={hasEnd ? trail.endY! : trail.y}
+                stroke={trailColor}
+                strokeWidth="0.4"
+                opacity={opacity}
+                markerEnd={hasEnd ? `url(#${markerId})` : undefined}
+                strokeDasharray={trail.successful ? undefined : '1,0.5'}
+              />
+              {/* Start point marker */}
+              <circle
+                cx={trail.x}
+                cy={trail.y}
+                r="1.2"
+                fill={trailColor}
+                opacity={opacity}
+              />
+              {/* Jersey number label */}
+              <text
+                x={trail.x}
+                y={trail.y - 2}
+                fill="white"
+                fontSize="1.8"
+                textAnchor="middle"
+                opacity={opacity + 0.2}
+              >
+                #{trail.jerseyNumber}
+              </text>
+              {/* Target player label at end position */}
+              {hasEnd && trail.targetJerseyNumber && (
+                <text
+                  x={trail.endX!}
+                  y={trail.endY! + 3}
+                  fill="white"
+                  fontSize="1.6"
+                  textAnchor="middle"
+                  opacity={opacity + 0.2}
+                >
+                  →#{trail.targetJerseyNumber}
+                </text>
+              )}
+            </g>
+          );
+        })}
         {startPosition && endPosition && (
           <>
             <defs>

@@ -32,6 +32,8 @@ import {
   BALL_MOVEMENT_EVENTS,
   BALL_POSSESSION_EVENTS,
   EVENTS_WITH_TARGET_PLAYER,
+  CONTINUITY_BREAKING_EVENTS,
+  BallTrailPoint,
 } from '@/components/match-events/types';
 import { BallPosition } from '@/components/match-events/PitchDiagram';
 
@@ -329,6 +331,65 @@ function AdminMatchEventsContent() {
     };
   }, [events, players]);
 
+  // Calculate ball movement trail (last 5 ball events)
+  const ballTrail = useMemo((): BallTrailPoint[] => {
+    if (events.length === 0) return [];
+
+    // Get ball-related events (both successful and unsuccessful for trail)
+    const ballEvents = events.filter(e => 
+      BALL_POSSESSION_EVENTS.includes(e.eventType)
+    );
+
+    // Get last 5 events for trail
+    const trailEvents = ballEvents.slice(-5);
+
+    return trailEvents.map(event => {
+      const targetPlayer = event.targetPlayerId 
+        ? players.find(p => p.id === event.targetPlayerId)
+        : null;
+
+      return {
+        x: event.x,
+        y: event.y,
+        endX: event.endX,
+        endY: event.endY,
+        jerseyNumber: event.jerseyNumber,
+        playerName: event.playerName,
+        targetJerseyNumber: targetPlayer?.jersey_number,
+        targetPlayerName: targetPlayer?.name,
+        eventType: event.eventType,
+        successful: event.successful,
+      };
+    });
+  }, [events, players]);
+
+  // Calculate suggested start position from last event's end position
+  // Only suggest if the last event doesn't break continuity
+  const suggestedStartPosition = useMemo((): Position | null => {
+    if (events.length === 0) return null;
+
+    const lastEvent = events[events.length - 1];
+    
+    // Don't suggest if last event was unsuccessful (turnover/interception)
+    if (!lastEvent.successful) return null;
+    
+    // Don't suggest if last event breaks continuity
+    if (CONTINUITY_BREAKING_EVENTS.includes(lastEvent.eventType)) return null;
+    
+    // If event has end position, suggest that as next start
+    if (lastEvent.endX !== undefined && lastEvent.endY !== undefined) {
+      return { x: lastEvent.endX, y: lastEvent.endY };
+    }
+    
+    // For events without end position but with ball (like penalty_area_entry), 
+    // suggest the event position
+    if (BALL_POSSESSION_EVENTS.includes(lastEvent.eventType)) {
+      return { x: lastEvent.x, y: lastEvent.y };
+    }
+    
+    return null;
+  }, [events]);
+
   // Clear current event
   const clearEvent = useCallback(() => {
     setStartPosition(null);
@@ -562,6 +623,14 @@ function AdminMatchEventsContent() {
             setShotOutcome('blocked');
           }
           break;
+        case 's':
+        case 'S':
+          // Use suggested start position
+          if (suggestedStartPosition && !startPosition) {
+            setStartPosition(suggestedStartPosition);
+            toast.info('Used suggested start position');
+          }
+          break;
         default:
           if (/^[1-9]$/.test(e.key)) {
             const index = parseInt(e.key) - 1;
@@ -583,6 +652,8 @@ function AdminMatchEventsContent() {
     selectedEventType,
     recentPlayerIds,
     handlePlayerSelect,
+    suggestedStartPosition,
+    startPosition,
   ]);
 
   if (matchLoading || eventsLoading) {
@@ -734,7 +805,23 @@ function AdminMatchEventsContent() {
               onClear={clearEvent}
               requiresEndPosition={requiresEndPosition}
               ballPosition={ballPosition}
+              ballTrail={ballTrail}
             />
+            {/* Suggested start position indicator */}
+            {suggestedStartPosition && !startPosition && (
+              <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2 text-sm">
+                <span className="text-muted-foreground">
+                  Suggested start: ({suggestedStartPosition.x}, {suggestedStartPosition.y})
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStartPosition(suggestedStartPosition)}
+                >
+                  Use Suggested
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Right sidebar */}
@@ -763,6 +850,7 @@ function AdminMatchEventsContent() {
           <EventList
             events={events}
             phases={phases}
+            players={players}
             onDelete={handleDeleteEvent}
             onEdit={handleEditEvent}
           />
