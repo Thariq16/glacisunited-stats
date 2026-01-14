@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Calendar, MapPin, Trophy, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Calendar, MapPin, Trophy, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 function AdminNewMatchContent() {
@@ -25,6 +26,9 @@ function AdminNewMatchContent() {
     competition: '',
   });
 
+  const [newTeamDialogOpen, setNewTeamDialogOpen] = useState(false);
+  const [newTeamForm, setNewTeamForm] = useState({ name: '', slug: '' });
+
   // Fetch teams
   const { data: teams, isLoading: teamsLoading } = useQuery({
     queryKey: ['teams'],
@@ -36,6 +40,32 @@ function AdminNewMatchContent() {
       
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Create team mutation
+  const createTeamMutation = useMutation({
+    mutationFn: async (data: { name: string; slug: string }) => {
+      const { data: newTeam, error } = await supabase
+        .from('teams')
+        .insert(data)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return newTeam;
+    },
+    onSuccess: (newTeam) => {
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      toast.success('Team created successfully');
+      setNewTeamDialogOpen(false);
+      setNewTeamForm({ name: '', slug: '' });
+      // Auto-select the new team as away team
+      setFormData(prev => ({ ...prev, awayTeamId: newTeam.id }));
+    },
+    onError: (error) => {
+      console.error('Error creating team:', error);
+      toast.error('Failed to create team');
     },
   });
 
@@ -62,13 +92,25 @@ function AdminNewMatchContent() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       toast.success('Match created successfully');
-      navigate(`/admin/match-events/${data.id}`);
+      navigate(`/admin/squad-selection/${data.id}`);
     },
     onError: (error) => {
       console.error('Error creating match:', error);
       toast.error('Failed to create match');
     },
   });
+
+  const handleCreateTeam = () => {
+    if (!newTeamForm.name) {
+      toast.error('Please enter a team name');
+      return;
+    }
+    
+    createTeamMutation.mutate({
+      name: newTeamForm.name,
+      slug: newTeamForm.slug || newTeamForm.name.toLowerCase().replace(/\s+/g, '-'),
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +182,19 @@ function AdminNewMatchContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="awayTeam">Away Team *</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="awayTeam">Away Team *</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto py-0 px-1 text-xs"
+                        onClick={() => setNewTeamDialogOpen(true)}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        New Team
+                      </Button>
+                    </div>
                     <Select
                       value={formData.awayTeamId}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, awayTeamId: value }))}
@@ -240,13 +294,63 @@ function AdminNewMatchContent() {
                       Creating Match...
                     </>
                   ) : (
-                    'Create Match & Start Logging Events'
+                    'Create Match & Select Squad'
                   )}
                 </Button>
               </form>
             </CardContent>
           </Card>
         </div>
+
+        {/* New Team Dialog */}
+        <Dialog open={newTeamDialogOpen} onOpenChange={setNewTeamDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Team</DialogTitle>
+              <DialogDescription>
+                Add a new opposition team to the system
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="teamName">Team Name *</Label>
+                <Input
+                  id="teamName"
+                  value={newTeamForm.name}
+                  onChange={(e) => setNewTeamForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., FC Barcelona"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="teamSlug">URL Slug (optional)</Label>
+                <Input
+                  id="teamSlug"
+                  value={newTeamForm.slug}
+                  onChange={(e) => setNewTeamForm(prev => ({ ...prev, slug: e.target.value }))}
+                  placeholder="e.g., fc-barcelona"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Leave empty to auto-generate from team name
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setNewTeamDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateTeam} disabled={createTeamMutation.isPending}>
+                {createTeamMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Team'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
       <Footer />
     </div>
