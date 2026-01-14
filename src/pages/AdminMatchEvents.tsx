@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,7 +29,11 @@ import {
   LocalEvent,
   Phase,
   EVENT_CONFIG,
+  BALL_MOVEMENT_EVENTS,
+  BALL_POSSESSION_EVENTS,
+  EVENTS_WITH_TARGET_PLAYER,
 } from '@/components/match-events/types';
+import { BallPosition } from '@/components/match-events/PitchDiagram';
 
 function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -274,6 +278,56 @@ function AdminMatchEventsContent() {
 
   // Check if event is a "without ball" event that doesn't require pitch position
   const isWithoutBallEvent = selectedEventType && ['substitution', 'yellow_card', 'red_card'].includes(selectedEventType);
+
+  // Calculate ball position from last ball-related event
+  const ballPosition = useMemo((): BallPosition | null => {
+    if (events.length === 0) return null;
+
+    // Get successful ball-related events only
+    const ballEvents = events.filter(e => 
+      e.successful && BALL_POSSESSION_EVENTS.includes(e.eventType)
+    );
+
+    if (ballEvents.length === 0) return null;
+
+    const lastBallEvent = ballEvents[ballEvents.length - 1];
+    
+    // If the event has a target player and end position (like a pass), 
+    // the ball is at end position with target player
+    if (BALL_MOVEMENT_EVENTS.includes(lastBallEvent.eventType) && 
+        lastBallEvent.endX !== undefined && 
+        lastBallEvent.endY !== undefined) {
+      
+      // For events with target player, show target player's jersey
+      if (EVENTS_WITH_TARGET_PLAYER.includes(lastBallEvent.eventType) && lastBallEvent.targetPlayerId) {
+        const targetPlayer = players.find(p => p.id === lastBallEvent.targetPlayerId);
+        if (targetPlayer) {
+          return {
+            x: lastBallEvent.endX,
+            y: lastBallEvent.endY,
+            jerseyNumber: targetPlayer.jersey_number,
+            playerName: targetPlayer.name,
+          };
+        }
+      }
+      
+      // For movement events like carry/dribble, same player has the ball at end position
+      return {
+        x: lastBallEvent.endX,
+        y: lastBallEvent.endY,
+        jerseyNumber: lastBallEvent.jerseyNumber,
+        playerName: lastBallEvent.playerName,
+      };
+    }
+
+    // Otherwise ball is at start position with the player who made the event
+    return {
+      x: lastBallEvent.x,
+      y: lastBallEvent.y,
+      jerseyNumber: lastBallEvent.jerseyNumber,
+      playerName: lastBallEvent.playerName,
+    };
+  }, [events, players]);
 
   // Clear current event
   const clearEvent = useCallback(() => {
@@ -679,6 +733,7 @@ function AdminMatchEventsContent() {
               onEndClick={setEndPosition}
               onClear={clearEvent}
               requiresEndPosition={requiresEndPosition}
+              ballPosition={ballPosition}
             />
           </div>
 
