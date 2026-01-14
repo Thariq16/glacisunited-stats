@@ -2,7 +2,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EventType, ShotOutcome, AerialOutcome, EVENTS_WITH_UNSUCCESSFUL } from './types';
+import { EventType, ShotOutcome, AerialOutcome, EVENTS_WITH_UNSUCCESSFUL, EVENTS_WITH_TARGET_PLAYER, EVENT_CONFIG } from './types';
 
 interface Player {
   id: string;
@@ -51,7 +51,8 @@ export function EventModifiers({
   const showUnsuccessful = EVENTS_WITH_UNSUCCESSFUL.includes(selectedEventType);
   const showShotOutcome = selectedEventType === 'shot';
   const showAerialOutcome = selectedEventType === 'aerial_duel';
-  const showTargetPlayer = selectedEventType === 'pass';
+  const showTargetPlayer = EVENTS_WITH_TARGET_PLAYER.includes(selectedEventType);
+  const isTargetRequired = selectedEventType ? EVENT_CONFIG[selectedEventType]?.requiresTargetPlayer : false;
 
   return (
     <div className="space-y-4">
@@ -123,10 +124,12 @@ export function EventModifiers({
         </div>
       )}
 
-      {/* Target player (for passes) */}
+      {/* Target player (for passes, key passes, assists, throw-ins, crosses) */}
       {showTargetPlayer && (
         <div className="space-y-2">
-          <Label className="text-sm">Target Player (optional)</Label>
+          <Label className="text-sm">
+            Target Player {isTargetRequired ? <span className="text-destructive">*</span> : '(optional)'}
+          </Label>
           <Select
             value={targetPlayerId || 'none'}
             onValueChange={(value) => onTargetPlayerChange(value === 'none' ? null : value)}
@@ -135,7 +138,7 @@ export function EventModifiers({
               <SelectValue placeholder="Select target player" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">No target specified</SelectItem>
+              {!isTargetRequired && <SelectItem value="none">No target specified</SelectItem>}
               {players
                 .sort((a, b) => a.jersey_number - b.jersey_number)
                 .map((player) => (

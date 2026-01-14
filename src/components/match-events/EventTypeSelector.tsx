@@ -21,6 +21,8 @@ import {
   DoorOpen,
   Send,
   XCircle,
+  Key,
+  Trophy,
 } from 'lucide-react';
 import { EventType, EVENT_CONFIG } from './types';
 
@@ -31,6 +33,8 @@ interface EventTypeSelectorProps {
 
 const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>> = {
   pass: ArrowRight,
+  key_pass: Key,
+  assist: Trophy,
   shot: Target,
   tackle_won: Shield,
   tackle_not_won: ShieldX,
@@ -54,6 +58,8 @@ const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>
 
 const EVENT_ORDER: EventType[] = [
   'pass',
+  'key_pass',
+  'assist',
   'shot',
   'cross',
   'penalty_area_pass',
