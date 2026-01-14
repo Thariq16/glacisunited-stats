@@ -2,15 +2,15 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { MatchComments } from '@/components/MatchComments';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Save, Undo2, CheckCircle } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { PitchDiagram } from '@/components/match-events/PitchDiagram';
@@ -503,13 +503,13 @@ function AdminMatchEventsContent() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
+  const [notesOpen, setNotesOpen] = useState(false);
 
-      <main className="container mx-auto px-4 py-6 flex-1">
+  return (
+    <div className="min-h-screen bg-background">
+      <main className="container mx-auto px-4 py-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => navigate('/admin/matches')}>
               <ArrowLeft className="h-4 w-4 mr-1" />
@@ -524,18 +524,36 @@ function AdminMatchEventsContent() {
               </p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            onClick={() => completeMatchMutation.mutate()}
-            disabled={completeMatchMutation.isPending}
-          >
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Complete Match
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setNotesOpen(!notesOpen)}
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Notes
+              <ChevronDown className={`h-4 w-4 ml-1 transition-transform ${notesOpen ? 'rotate-180' : ''}`} />
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => completeMatchMutation.mutate()}
+              disabled={completeMatchMutation.isPending}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Complete Match
+            </Button>
+          </div>
         </div>
 
+        {/* Collapsible Notes Section */}
+        <Collapsible open={notesOpen} onOpenChange={setNotesOpen}>
+          <CollapsibleContent className="mb-4">
+            <MatchComments matchId={matchId!} />
+          </CollapsibleContent>
+        </Collapsible>
+
         {/* Controls row */}
-        <div className="flex flex-wrap items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4 mb-4">
           <Tabs value={String(selectedHalf)} onValueChange={(v) => setSelectedHalf(Number(v) as 1 | 2)}>
             <TabsList>
               <TabsTrigger value="1">1st Half</TabsTrigger>
@@ -568,9 +586,9 @@ function AdminMatchEventsContent() {
         </div>
 
         {/* Main content grid */}
-        <div className="grid lg:grid-cols-[280px_1fr_280px] gap-6 mb-6">
+        <div className="grid lg:grid-cols-[280px_1fr_280px] gap-4 mb-4">
           {/* Left sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <PlayerSelector
               players={players}
               selectedPlayerId={selectedPlayerId}
@@ -622,7 +640,7 @@ function AdminMatchEventsContent() {
           </div>
 
           {/* Right sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <EventTypeSelector
               selectedEventType={selectedEventType}
               onSelect={setSelectedEventType}
@@ -652,8 +670,6 @@ function AdminMatchEventsContent() {
           />
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
