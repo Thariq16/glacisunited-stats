@@ -74,19 +74,19 @@ function AdminContent() {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/match-select')}>
+          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/new-match')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MousePointer2 className="h-5 w-5" />
-                Log Match Events
+                Create New Match
               </CardTitle>
               <CardDescription>
-                Log detailed match events with coordinates using the pitch diagram
+                Create a new match and log detailed events with coordinates using the pitch diagram
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button variant="secondary" className="w-full">
-                Log Events
+                New Match
               </Button>
             </CardContent>
           </Card>

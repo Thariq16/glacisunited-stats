@@ -1,5 +1,7 @@
 export type EventType =
   | 'pass'
+  | 'key_pass'
+  | 'assist'
   | 'shot'
   | 'tackle_won'
   | 'tackle_not_won'
@@ -77,9 +79,12 @@ export interface EventLoggerState {
 export const EVENT_CONFIG: Record<EventType, {
   label: string;
   requiresEndPosition: boolean;
+  requiresTargetPlayer?: boolean;
   category: 'passing' | 'shooting' | 'defensive' | 'set_piece' | 'movement';
 }> = {
   pass: { label: 'Pass', requiresEndPosition: true, category: 'passing' },
+  key_pass: { label: 'Key Pass', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
+  assist: { label: 'Assist', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
   shot: { label: 'Shot', requiresEndPosition: false, category: 'shooting' },
   tackle_won: { label: 'Tackle Won', requiresEndPosition: false, category: 'defensive' },
   tackle_not_won: { label: 'Tackle Not Won', requiresEndPosition: false, category: 'defensive' },
@@ -92,7 +97,7 @@ export const EVENT_CONFIG: Record<EventType, {
   save: { label: 'Save', requiresEndPosition: false, category: 'defensive' },
   cross: { label: 'Cross', requiresEndPosition: true, category: 'passing' },
   corner: { label: 'Corner', requiresEndPosition: false, category: 'set_piece' },
-  throw_in: { label: 'Throw In', requiresEndPosition: false, category: 'set_piece' },
+  throw_in: { label: 'Throw In', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   free_kick: { label: 'Free Kick', requiresEndPosition: false, category: 'set_piece' },
   run_in_behind: { label: 'Run in Behind', requiresEndPosition: true, category: 'movement' },
   overlap: { label: 'Overlap', requiresEndPosition: true, category: 'movement' },
@@ -102,5 +107,9 @@ export const EVENT_CONFIG: Record<EventType, {
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
-  'pass', 'carry', 'dribble', 'cross', 'corner', 'throw_in', 'penalty_area_pass'
+  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'corner', 'throw_in', 'penalty_area_pass'
+];
+
+export const EVENTS_WITH_TARGET_PLAYER: EventType[] = [
+  'pass', 'key_pass', 'assist', 'throw_in', 'cross', 'penalty_area_pass'
 ];
