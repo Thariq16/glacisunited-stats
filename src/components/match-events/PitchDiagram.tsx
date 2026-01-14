@@ -3,6 +3,13 @@ import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { Position } from './types';
 
+export interface BallPosition {
+  x: number;
+  y: number;
+  jerseyNumber: number;
+  playerName: string;
+}
+
 interface PitchDiagramProps {
   startPosition: Position | null;
   endPosition: Position | null;
@@ -10,6 +17,7 @@ interface PitchDiagramProps {
   onEndClick: (pos: Position) => void;
   onClear: () => void;
   requiresEndPosition: boolean;
+  ballPosition?: BallPosition | null;
 }
 
 export function PitchDiagram({
@@ -19,6 +27,7 @@ export function PitchDiagram({
   onEndClick,
   onClear,
   requiresEndPosition,
+  ballPosition,
 }: PitchDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverPosition, setHoverPosition] = useState<Position | null>(null);
@@ -267,6 +276,97 @@ export function PitchDiagram({
             stroke="white"
             strokeWidth="0.2"
           />
+        )}
+
+        {/* Ball position indicator */}
+        {ballPosition && (
+          <g>
+            {/* Outer glow effect */}
+            <circle
+              cx={ballPosition.x}
+              cy={ballPosition.y}
+              r="4"
+              fill="rgba(255, 215, 0, 0.3)"
+            >
+              <animate
+                attributeName="r"
+                values="3.5;4.5;3.5"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="opacity"
+                values="0.3;0.5;0.3"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+            </circle>
+            
+            {/* Football/soccer ball icon */}
+            <circle
+              cx={ballPosition.x}
+              cy={ballPosition.y}
+              r="2.5"
+              fill="white"
+              stroke="#333"
+              strokeWidth="0.3"
+            />
+            {/* Pentagon pattern on ball */}
+            <circle
+              cx={ballPosition.x}
+              cy={ballPosition.y}
+              r="1"
+              fill="#333"
+            />
+            <circle
+              cx={ballPosition.x - 1.2}
+              cy={ballPosition.y - 0.8}
+              r="0.5"
+              fill="#333"
+            />
+            <circle
+              cx={ballPosition.x + 1.2}
+              cy={ballPosition.y - 0.8}
+              r="0.5"
+              fill="#333"
+            />
+            <circle
+              cx={ballPosition.x - 0.8}
+              cy={ballPosition.y + 1.2}
+              r="0.5"
+              fill="#333"
+            />
+            <circle
+              cx={ballPosition.x + 0.8}
+              cy={ballPosition.y + 1.2}
+              r="0.5"
+              fill="#333"
+            />
+            
+            {/* Jersey number badge */}
+            <g>
+              <rect
+                x={ballPosition.x + 2.5}
+                y={ballPosition.y - 4}
+                width="6"
+                height="4"
+                rx="1"
+                fill="#FFD700"
+                stroke="#B8860B"
+                strokeWidth="0.2"
+              />
+              <text
+                x={ballPosition.x + 5.5}
+                y={ballPosition.y - 1.5}
+                fill="#333"
+                fontSize="2.5"
+                fontWeight="bold"
+                textAnchor="middle"
+              >
+                #{ballPosition.jerseyNumber}
+              </text>
+            </g>
+          </g>
         )}
       </svg>
     </div>

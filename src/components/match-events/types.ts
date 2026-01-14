@@ -123,3 +123,13 @@ export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
 export const EVENTS_WITH_TARGET_PLAYER: EventType[] = [
   'pass', 'key_pass', 'assist', 'throw_in', 'cross', 'penalty_area_pass'
 ];
+
+// Events where the ball moves to the end position (for ball tracking)
+export const BALL_MOVEMENT_EVENTS: EventType[] = [
+  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'throw_in', 'penalty_area_pass', 'run_in_behind', 'overlap'
+];
+
+// Events where the player has the ball at start position
+export const BALL_POSSESSION_EVENTS: EventType[] = [
+  'pass', 'key_pass', 'assist', 'shot', 'carry', 'dribble', 'clearance', 'cross', 'corner', 'throw_in', 'free_kick', 'penalty_area_entry', 'penalty_area_pass'
+];
