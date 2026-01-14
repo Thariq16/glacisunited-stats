@@ -65,6 +65,7 @@ function AdminMatchEventsContent() {
   const [shotOutcome, setShotOutcome] = useState<ShotOutcome | null>(null);
   const [aerialOutcome, setAerialOutcome] = useState<AerialOutcome | null>(null);
   const [targetPlayerId, setTargetPlayerId] = useState<string | null>(null);
+  const [substitutePlayerId, setSubstitutePlayerId] = useState<string | null>(null);
   const [minute, setMinute] = useState(1);
   const [stickyPlayer, setStickyPlayer] = useState(false);
 
@@ -438,7 +439,10 @@ function AdminMatchEventsContent() {
               onAerialOutcomeChange={setAerialOutcome}
               targetPlayerId={targetPlayerId}
               onTargetPlayerChange={setTargetPlayerId}
+              substitutePlayerId={substitutePlayerId}
+              onSubstitutePlayerChange={setSubstitutePlayerId}
               players={players}
+              substitutes={[]}
             />
 
             {/* Action buttons */}

@@ -20,7 +20,10 @@ interface EventModifiersProps {
   onAerialOutcomeChange: (value: AerialOutcome) => void;
   targetPlayerId: string | null;
   onTargetPlayerChange: (value: string | null) => void;
+  substitutePlayerId: string | null;
+  onSubstitutePlayerChange: (value: string | null) => void;
   players: Player[];
+  substitutes?: Player[];
 }
 
 export function EventModifiers({
@@ -33,7 +36,10 @@ export function EventModifiers({
   onAerialOutcomeChange,
   targetPlayerId,
   onTargetPlayerChange,
+  substitutePlayerId,
+  onSubstitutePlayerChange,
   players,
+  substitutes = [],
 }: EventModifiersProps) {
   if (!selectedEventType) {
     return (
@@ -52,6 +58,7 @@ export function EventModifiers({
   const showShotOutcome = selectedEventType === 'shot';
   const showAerialOutcome = selectedEventType === 'aerial_duel';
   const showTargetPlayer = EVENTS_WITH_TARGET_PLAYER.includes(selectedEventType);
+  const showSubstitutePlayer = selectedEventType === 'substitution';
   const isTargetRequired = selectedEventType ? EVENT_CONFIG[selectedEventType]?.requiresTargetPlayer : false;
 
   return (
@@ -151,7 +158,33 @@ export function EventModifiers({
         </div>
       )}
 
-      {!showUnsuccessful && !showShotOutcome && !showAerialOutcome && !showTargetPlayer && (
+      {/* Substitute player (for substitutions - player coming ON) */}
+      {showSubstitutePlayer && (
+        <div className="space-y-2">
+          <Label className="text-sm">
+            Player Coming On <span className="text-destructive">*</span>
+          </Label>
+          <Select
+            value={substitutePlayerId || 'none'}
+            onValueChange={(value) => onSubstitutePlayerChange(value === 'none' ? null : value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select substitute" />
+            </SelectTrigger>
+            <SelectContent>
+              {substitutes
+                .sort((a, b) => a.jersey_number - b.jersey_number)
+                .map((player) => (
+                  <SelectItem key={player.id} value={player.id}>
+                    #{player.jersey_number} {player.name}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {!showUnsuccessful && !showShotOutcome && !showAerialOutcome && !showTargetPlayer && !showSubstitutePlayer && (
         <p className="text-sm text-muted-foreground italic">
           No modifiers for this event type
         </p>

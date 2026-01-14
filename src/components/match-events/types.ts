@@ -20,7 +20,10 @@ export type EventType =
   | 'overlap'
   | 'penalty_area_entry'
   | 'penalty_area_pass'
-  | 'defensive_error';
+  | 'defensive_error'
+  | 'substitution'
+  | 'yellow_card'
+  | 'red_card';
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
@@ -45,6 +48,7 @@ export interface LocalEvent {
   shotOutcome?: ShotOutcome;
   aerialOutcome?: AerialOutcome;
   targetPlayerId?: string;
+  substitutePlayerId?: string;
   minute: number;
   half: number;
   phaseId?: string;
@@ -80,7 +84,8 @@ export const EVENT_CONFIG: Record<EventType, {
   label: string;
   requiresEndPosition: boolean;
   requiresTargetPlayer?: boolean;
-  category: 'passing' | 'shooting' | 'defensive' | 'set_piece' | 'movement';
+  requiresSubstitutePlayer?: boolean;
+  category: 'passing' | 'shooting' | 'defensive' | 'set_piece' | 'movement' | 'without_ball';
 }> = {
   pass: { label: 'Pass', requiresEndPosition: true, category: 'passing' },
   key_pass: { label: 'Key Pass', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
@@ -104,6 +109,9 @@ export const EVENT_CONFIG: Record<EventType, {
   penalty_area_entry: { label: 'Penalty Area Entry', requiresEndPosition: false, category: 'movement' },
   penalty_area_pass: { label: 'Penalty Area Pass', requiresEndPosition: true, category: 'passing' },
   defensive_error: { label: 'Defensive Error', requiresEndPosition: false, category: 'defensive' },
+  substitution: { label: 'Substitution', requiresEndPosition: false, requiresSubstitutePlayer: true, category: 'without_ball' },
+  yellow_card: { label: 'Yellow Card', requiresEndPosition: false, category: 'without_ball' },
+  red_card: { label: 'Red Card', requiresEndPosition: false, category: 'without_ball' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
