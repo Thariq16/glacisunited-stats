@@ -1,0 +1,123 @@
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Trash2, Edit, Check, X } from 'lucide-react';
+import { LocalEvent, Phase, EVENT_CONFIG } from './types';
+
+interface EventListProps {
+  events: LocalEvent[];
+  phases: Phase[];
+  onDelete: (eventId: string) => void;
+  onEdit: (eventId: string) => void;
+}
+
+export function EventList({ events, phases, onDelete, onEdit }: EventListProps) {
+  if (events.length === 0) {
+    return (
+      <div className="border rounded-lg p-8 text-center text-muted-foreground">
+        <p>No events logged yet</p>
+        <p className="text-sm mt-1">Click on the pitch to start logging events</p>
+      </div>
+    );
+  }
+
+  const getPhaseForEvent = (eventId: string) => {
+    return phases.find((p) => p.eventIds.includes(eventId));
+  };
+
+  const getPhaseColor = (phaseNumber: number) => {
+    const colors = [
+      'border-l-blue-500',
+      'border-l-green-500',
+      'border-l-yellow-500',
+      'border-l-purple-500',
+      'border-l-pink-500',
+      'border-l-cyan-500',
+    ];
+    return colors[(phaseNumber - 1) % colors.length];
+  };
+
+  return (
+    <div className="border rounded-lg">
+      <ScrollArea className="h-[300px]">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12">#</TableHead>
+              <TableHead className="w-16">Min</TableHead>
+              <TableHead>Player</TableHead>
+              <TableHead>Event</TableHead>
+              <TableHead className="w-20">From</TableHead>
+              <TableHead className="w-20">To</TableHead>
+              <TableHead className="w-16">Status</TableHead>
+              <TableHead className="w-24">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {events.map((event, index) => {
+              const phase = getPhaseForEvent(event.id);
+              const config = EVENT_CONFIG[event.eventType];
+
+              return (
+                <TableRow
+                  key={event.id}
+                  className={phase ? `border-l-4 ${getPhaseColor(phase.phaseNumber)}` : ''}
+                >
+                  <TableCell className="font-mono text-xs">{index + 1}</TableCell>
+                  <TableCell className="font-mono text-xs">{event.minute}'</TableCell>
+                  <TableCell className="text-sm">
+                    <span className="font-medium">#{event.jerseyNumber}</span>{' '}
+                    <span className="text-muted-foreground">
+                      {event.playerName.split(' ')[0]}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-sm">{config.label}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    ({event.x}, {event.y})
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {event.endX !== undefined ? `(${event.endX}, ${event.endY})` : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {event.successful ? (
+                      <Check className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <X className="h-4 w-4 text-red-500" />
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => onEdit(event.id)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => onDelete(event.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </ScrollArea>
+    </div>
+  );
+}
