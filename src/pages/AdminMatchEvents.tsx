@@ -97,6 +97,7 @@ function AdminMatchEventsContent() {
   // Events state (local display only, DB is source of truth)
   const [events, setEvents] = useState<LocalEvent[]>([]);
   const [recentPlayerIds, setRecentPlayerIds] = useState<string[]>([]);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   // Transform saved events to LocalEvent format
   useEffect(() => {
@@ -546,7 +547,6 @@ function AdminMatchEventsContent() {
     );
   }
 
-  const [notesOpen, setNotesOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
