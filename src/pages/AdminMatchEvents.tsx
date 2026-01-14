@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Save, Undo2 } from 'lucide-react';
+import { ArrowLeft, Save, Undo2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { PitchDiagram } from '@/components/match-events/PitchDiagram';
@@ -34,6 +34,8 @@ import {
 function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const hasSetInProgress = useRef(false);
 
   // Match and teams data
   const { data: matchData, isLoading: matchLoading } = useQuery({
@@ -48,6 +50,25 @@ function AdminMatchEventsContent() {
         `)
         .eq('id', matchId)
         .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!matchId,
+  });
+
+  // Load existing events from database
+  const { data: savedEvents = [], isLoading: eventsLoading } = useQuery({
+    queryKey: ['match-events', matchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('match_events')
+        .select(`
+          *,
+          player:players!match_events_player_id_fkey(id, name, jersey_number),
+          substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number)
+        `)
+        .eq('match_id', matchId)
+        .order('created_at', { ascending: true });
       if (error) throw error;
       return data;
     },
@@ -73,9 +94,53 @@ function AdminMatchEventsContent() {
   const [currentPhase, setCurrentPhase] = useState<Phase | null>(null);
   const [phases, setPhases] = useState<Phase[]>([]);
 
-  // Events state
+  // Events state (local display only, DB is source of truth)
   const [events, setEvents] = useState<LocalEvent[]>([]);
   const [recentPlayerIds, setRecentPlayerIds] = useState<string[]>([]);
+
+  // Transform saved events to LocalEvent format
+  useEffect(() => {
+    if (savedEvents.length > 0) {
+      const localEvents: LocalEvent[] = savedEvents.map((e: any) => ({
+        id: e.id,
+        playerId: e.player_id,
+        playerName: e.player?.name || 'Unknown',
+        jerseyNumber: e.player?.jersey_number || 0,
+        eventType: e.event_type as EventType,
+        x: Number(e.x),
+        y: Number(e.y),
+        endX: e.end_x ? Number(e.end_x) : undefined,
+        endY: e.end_y ? Number(e.end_y) : undefined,
+        successful: e.successful,
+        shotOutcome: e.shot_outcome as ShotOutcome | undefined,
+        aerialOutcome: e.aerial_outcome as AerialOutcome | undefined,
+        targetPlayerId: e.target_player_id,
+        substitutePlayerId: e.substitute_player_id,
+        substitutePlayerName: e.substitute?.name,
+        substituteJerseyNumber: e.substitute?.jersey_number,
+        minute: e.minute,
+        half: e.half,
+        phaseId: e.phase_id,
+      }));
+      setEvents(localEvents);
+    }
+  }, [savedEvents]);
+
+  // Set match status to "in_progress" when entering
+  useEffect(() => {
+    if (matchId && matchData && !hasSetInProgress.current && matchData.status !== 'in_progress') {
+      hasSetInProgress.current = true;
+      supabase
+        .from('matches')
+        .update({ status: 'in_progress' })
+        .eq('id', matchId)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Failed to update match status:', error);
+          }
+        });
+    }
+  }, [matchId, matchData]);
 
   // Get selected team ID
   const selectedTeamId = selectedTeamType === 'home' 
@@ -95,6 +160,67 @@ function AdminMatchEventsContent() {
       return data;
     },
     enabled: !!selectedTeamId,
+  });
+
+  // Save event mutation
+  const saveEventMutation = useMutation({
+    mutationFn: async (event: {
+      match_id: string;
+      player_id: string;
+      event_type: string;
+      half: number;
+      minute: number;
+      x: number;
+      y: number;
+      end_x?: number;
+      end_y?: number;
+      successful: boolean;
+      shot_outcome?: string;
+      aerial_outcome?: string;
+      target_player_id?: string;
+      substitute_player_id?: string;
+      phase_id?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('match_events')
+        .insert(event)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
+    },
+  });
+
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: string) => {
+      const { error } = await supabase
+        .from('match_events')
+        .delete()
+        .eq('id', eventId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
+    },
+  });
+
+  // Complete match mutation
+  const completeMatchMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('matches')
+        .update({ status: 'completed' })
+        .eq('id', matchId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Match marked as completed');
+      navigate('/admin/matches');
+    },
   });
 
   // Event type config
@@ -130,7 +256,7 @@ function AdminMatchEventsContent() {
   }, []);
 
   // Save event
-  const saveEvent = useCallback(() => {
+  const saveEvent = useCallback(async () => {
     // For substitution events, require both player going OFF and coming ON
     if (selectedEventType === 'substitution') {
       if (!selectedPlayerId) {
@@ -167,91 +293,78 @@ function AdminMatchEventsContent() {
       return;
     }
 
-    const player = players.find((p) => p.id === selectedPlayerId);
-    if (!player) return;
+    if (!matchId) return;
 
-    // Get substitute player info for substitution events
-    const substitutePlayer = substitutePlayerId 
-      ? players.find((p) => p.id === substitutePlayerId)
-      : null;
+    try {
+      await saveEventMutation.mutateAsync({
+        match_id: matchId,
+        player_id: selectedPlayerId,
+        event_type: selectedEventType!,
+        half: selectedHalf,
+        minute,
+        x: startPosition?.x ?? 50,
+        y: startPosition?.y ?? 50,
+        end_x: endPosition?.x,
+        end_y: endPosition?.y,
+        successful: !isUnsuccessful,
+        shot_outcome: shotOutcome || undefined,
+        aerial_outcome: aerialOutcome || undefined,
+        target_player_id: targetPlayerId || undefined,
+        substitute_player_id: substitutePlayerId || undefined,
+        phase_id: currentPhase?.id,
+      });
 
-    const newEvent: LocalEvent = {
-      id: crypto.randomUUID(),
-      playerId: selectedPlayerId,
-      playerName: player.name,
-      jerseyNumber: player.jersey_number,
-      eventType: selectedEventType!,
-      x: startPosition?.x ?? 50,
-      y: startPosition?.y ?? 50,
-      endX: endPosition?.x,
-      endY: endPosition?.y,
-      successful: !isUnsuccessful,
-      shotOutcome: shotOutcome || undefined,
-      aerialOutcome: aerialOutcome || undefined,
-      targetPlayerId: targetPlayerId || undefined,
-      substitutePlayerId: substitutePlayerId || undefined,
-      substitutePlayerName: substitutePlayer?.name,
-      substituteJerseyNumber: substitutePlayer?.jersey_number,
-      minute,
-      half: selectedHalf,
-      phaseId: currentPhase?.id,
-    };
-
-    setEvents((prev) => [...prev, newEvent]);
-
-    // Update phase if active
-    if (currentPhase) {
-      setCurrentPhase((prev) =>
-        prev ? { ...prev, eventIds: [...prev.eventIds, newEvent.id] } : null
-      );
+      toast.success('Event saved');
+      clearEvent();
+    } catch (error) {
+      toast.error('Failed to save event');
+      console.error(error);
     }
-
-    toast.success('Event logged');
-    clearEvent();
   }, [
+    matchId,
     selectedPlayerId,
     selectedEventType,
     startPosition,
     endPosition,
     requiresEndPosition,
+    isWithoutBallEvent,
     shotOutcome,
     aerialOutcome,
     isUnsuccessful,
     targetPlayerId,
+    substitutePlayerId,
     minute,
     selectedHalf,
     currentPhase,
-    players,
     clearEvent,
+    saveEventMutation,
   ]);
 
-  // Undo last event
-  const undoLastEvent = useCallback(() => {
+  // Undo last event (delete from DB)
+  const undoLastEvent = useCallback(async () => {
     if (events.length === 0) return;
 
     const lastEvent = events[events.length - 1];
-    setEvents((prev) => prev.slice(0, -1));
-
-    // Update phase if last event was in a phase
-    if (lastEvent.phaseId && currentPhase?.id === lastEvent.phaseId) {
-      setCurrentPhase((prev) =>
-        prev
-          ? { ...prev, eventIds: prev.eventIds.filter((id) => id !== lastEvent.id) }
-          : null
-      );
+    try {
+      await deleteEventMutation.mutateAsync(lastEvent.id);
+      toast.info('Event removed');
+    } catch (error) {
+      toast.error('Failed to remove event');
     }
-
-    toast.info('Event removed');
-  }, [events, currentPhase]);
+  }, [events, deleteEventMutation]);
 
   // Delete event
-  const handleDeleteEvent = useCallback((eventId: string) => {
-    setEvents((prev) => prev.filter((e) => e.id !== eventId));
-    toast.info('Event deleted');
-  }, []);
+  const handleDeleteEvent = useCallback(async (eventId: string) => {
+    try {
+      await deleteEventMutation.mutateAsync(eventId);
+      toast.info('Event deleted');
+    } catch (error) {
+      toast.error('Failed to delete event');
+    }
+  }, [deleteEventMutation]);
 
-  // Edit event (loads it back into the form)
-  const handleEditEvent = useCallback((eventId: string) => {
+  // Edit event (loads it back into the form, deletes from DB)
+  const handleEditEvent = useCallback(async (eventId: string) => {
     const event = events.find((e) => e.id === eventId);
     if (!event) return;
 
@@ -263,11 +376,16 @@ function AdminMatchEventsContent() {
     setShotOutcome(event.shotOutcome || null);
     setAerialOutcome(event.aerialOutcome || null);
     setTargetPlayerId(event.targetPlayerId || null);
+    setSubstitutePlayerId(event.substitutePlayerId || null);
     setMinute(event.minute);
 
-    // Remove the event (will be re-added on save)
-    setEvents((prev) => prev.filter((e) => e.id !== eventId));
-  }, [events]);
+    // Delete from DB (will be re-added on save)
+    try {
+      await deleteEventMutation.mutateAsync(eventId);
+    } catch (error) {
+      console.error('Failed to delete event for edit:', error);
+    }
+  }, [events, deleteEventMutation]);
 
   // Phase controls
   const handleStartPhase = useCallback(() => {
@@ -293,7 +411,6 @@ function AdminMatchEventsContent() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
@@ -318,7 +435,6 @@ function AdminMatchEventsContent() {
         case 'p':
         case 'P':
           if (currentPhase) {
-            // Don't auto-end, just show info
             toast.info('Use End Phase button to select outcome');
           } else {
             handleStartPhase();
@@ -349,7 +465,6 @@ function AdminMatchEventsContent() {
           }
           break;
         default:
-          // Number keys 1-9 for recent players
           if (/^[1-9]$/.test(e.key)) {
             const index = parseInt(e.key) - 1;
             if (recentPlayerIds[index]) {
@@ -372,7 +487,7 @@ function AdminMatchEventsContent() {
     handlePlayerSelect,
   ]);
 
-  if (matchLoading) {
+  if (matchLoading || eventsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <p>Loading match data...</p>
@@ -396,7 +511,7 @@ function AdminMatchEventsContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/match-select')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/matches')}>
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -409,6 +524,14 @@ function AdminMatchEventsContent() {
               </p>
             </div>
           </div>
+          <Button 
+            variant="outline" 
+            onClick={() => completeMatchMutation.mutate()}
+            disabled={completeMatchMutation.isPending}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Complete Match
+          </Button>
         </div>
 
         {/* Controls row */}
@@ -475,11 +598,11 @@ function AdminMatchEventsContent() {
 
             {/* Action buttons */}
             <div className="space-y-2">
-              <Button className="w-full" onClick={saveEvent}>
+              <Button className="w-full" onClick={saveEvent} disabled={saveEventMutation.isPending}>
                 <Save className="h-4 w-4 mr-2" />
-                Save Event
+                {saveEventMutation.isPending ? 'Saving...' : 'Save Event'}
               </Button>
-              <Button variant="outline" className="w-full" onClick={undoLastEvent} disabled={events.length === 0}>
+              <Button variant="outline" className="w-full" onClick={undoLastEvent} disabled={events.length === 0 || deleteEventMutation.isPending}>
                 <Undo2 className="h-4 w-4 mr-2" />
                 Undo Last
               </Button>
