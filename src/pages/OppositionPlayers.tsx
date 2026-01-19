@@ -51,8 +51,9 @@ export default function OppositionPlayers() {
             <TabsContent value="all">
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {oppositionTeams.flatMap(team => 
-                  team.players
+                  [...team.players]
                     .filter(player => player.passCount > 0 || player.goals > 0 || player.tackles > 0)
+                    .sort((a, b) => parseInt(a.jerseyNumber) - parseInt(b.jerseyNumber))
                     .map(player => (
                       <PlayerCard 
                         key={`${team.slug}-${player.jerseyNumber}-${player.playerName}`}
@@ -74,8 +75,9 @@ export default function OppositionPlayers() {
             {oppositionTeams.map((team) => (
               <TabsContent key={team.slug} value={team.slug}>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {team.players
+                  {[...team.players]
                     .filter(player => player.passCount > 0 || player.goals > 0 || player.tackles > 0)
+                    .sort((a, b) => parseInt(a.jerseyNumber) - parseInt(b.jerseyNumber))
                     .map(player => (
                       <PlayerCard 
                         key={`${player.jerseyNumber}-${player.playerName}`}

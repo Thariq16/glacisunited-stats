@@ -38,13 +38,15 @@ export default function Players() {
           </div>
         ) : players && players.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {players.map(player => (
-              <PlayerCard 
-                key={`${player.jerseyNumber}-${player.playerName}`}
-                player={player}
-                teamId="glacis-united-fc"
-              />
-            ))}
+            {[...players]
+              .sort((a, b) => parseInt(a.jerseyNumber) - parseInt(b.jerseyNumber))
+              .map(player => (
+                <PlayerCard 
+                  key={`${player.jerseyNumber}-${player.playerName}`}
+                  player={player}
+                  teamId="glacis-united-fc"
+                />
+              ))}
           </div>
         ) : (
           <div className="text-center py-12">
