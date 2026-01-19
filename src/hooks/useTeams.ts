@@ -126,7 +126,7 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
         matchIds = matches?.map(m => m.id) || [];
       }
 
-      // Get all players with their stats
+      // Get all players with their stats (excluding hidden players)
       let playersQuery = supabase
         .from('players')
         .select(`
@@ -134,6 +134,7 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
           jersey_number,
           name,
           role,
+          hidden,
           player_match_stats(
             match_id,
             pass_count,
@@ -175,7 +176,8 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
             minutes_played
           )
         `)
-        .eq('team_id', team.id);
+        .eq('team_id', team.id)
+        .eq('hidden', false);
 
       const { data: playersData, error: playersError } = await playersQuery;
 
@@ -259,6 +261,7 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', mat
               jersey_number,
               name,
               role,
+              hidden,
               player_match_stats(
                 match_id,
                 pass_count, successful_pass, miss_pass, forward_pass, backward_pass,
@@ -271,7 +274,8 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', mat
                 offside, minutes_played
               )
             `)
-            .eq('team_id', team.id);
+            .eq('team_id', team.id)
+            .eq('hidden', false);
 
           const players: PlayerStats[] = (playersData || []).map((player: any) => {
             let stats = player.player_match_stats || [];

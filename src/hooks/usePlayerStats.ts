@@ -9,11 +9,11 @@ export interface MatchFilterOptions {
   matchId?: string;
 }
 
-export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all') {
+export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all', includeHidden: boolean = false) {
   const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
   
   return useQuery({
-    queryKey: ['player-stats', teamSlug, matchFilter],
+    queryKey: ['player-stats', teamSlug, matchFilter, includeHidden],
     queryFn: async () => {
       // Get team
       const { data: team } = await supabase
@@ -50,13 +50,14 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
       }
 
       // Get all players and their aggregated stats
-      const { data: playersData } = await supabase
+      let playersQuery = supabase
         .from('players')
         .select(`
           id,
           jersey_number,
           name,
           role,
+          hidden,
           player_match_stats!inner(
             pass_count,
             successful_pass,
@@ -100,10 +101,17 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
         .eq('team_id', team.id)
         .in('player_match_stats.match_id', matchIds);
 
+      // Only filter hidden players if not explicitly including them
+      if (!includeHidden) {
+        playersQuery = playersQuery.eq('hidden', false);
+      }
+
+      const { data: playersData } = await playersQuery;
+
       if (!playersData) return [];
 
       // Aggregate stats for each player
-      const aggregatedPlayers: PlayerStats[] = playersData.map((player: any) => {
+      const aggregatedPlayers = playersData.map((player: any) => {
         const stats = player.player_match_stats;
         
         const aggregated = stats.reduce((acc: any, stat: any) => ({
@@ -173,12 +181,13 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           jerseyNumber: String(player.jersey_number),
           playerName: player.name,
           role: player.role || '',
+          hidden: player.hidden || false,
           ...aggregated,
           successPassPercent,
           missPassPercent,
           forwardPassPercent,
           backwardPassPercent,
-        };
+        } as PlayerStats & { hidden: boolean };
       });
 
       return aggregatedPlayers;
