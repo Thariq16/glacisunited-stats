@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { PitchDiagram } from '@/components/match-events/PitchDiagram';
@@ -98,6 +98,10 @@ function AdminMatchEventsContent() {
   const [minute, setMinute] = useState(1);
   const [stickyPlayer, setStickyPlayer] = useState(false);
 
+  // Direction setup state
+  const [directionConfirmed, setDirectionConfirmed] = useState(false);
+  const [pendingHomeAttacksLeft, setPendingHomeAttacksLeft] = useState<boolean>(true);
+
   // Phase state
   const [currentPhase, setCurrentPhase] = useState<Phase | null>(null);
   const [phases, setPhases] = useState<Phase[]>([]);
@@ -134,6 +138,20 @@ function AdminMatchEventsContent() {
       setEvents(localEvents);
     }
   }, [savedEvents]);
+
+  // Initialize direction state from match data and check if already confirmed
+  useEffect(() => {
+    if (matchData) {
+      // If match has direction set and has events, direction is confirmed
+      if (matchData.home_attacks_left !== null) {
+        setPendingHomeAttacksLeft(matchData.home_attacks_left);
+        // If there are already events, direction was already confirmed
+        if (savedEvents.length > 0) {
+          setDirectionConfirmed(true);
+        }
+      }
+    }
+  }, [matchData, savedEvents.length]);
 
   // Set match status to "in_progress" when entering
   useEffect(() => {
@@ -675,6 +693,146 @@ function AdminMatchEventsContent() {
     );
   }
 
+  // Compute effective attack direction for current half
+  // 1st half uses the stored direction, 2nd half automatically flips it
+  const effectiveHomeAttacksLeft = useMemo(() => {
+    const baseDirection = directionConfirmed ? matchData.home_attacks_left : pendingHomeAttacksLeft;
+    if (baseDirection === null) return true;
+    // Flip direction for 2nd half
+    return selectedHalf === 1 ? baseDirection : !baseDirection;
+  }, [directionConfirmed, matchData.home_attacks_left, pendingHomeAttacksLeft, selectedHalf]);
+
+  // Confirm direction mutation
+  const confirmDirectionMutation = useMutation({
+    mutationFn: async (homeAttacksLeft: boolean) => {
+      const { error } = await supabase
+        .from('matches')
+        .update({ home_attacks_left: homeAttacksLeft })
+        .eq('id', matchId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setDirectionConfirmed(true);
+      queryClient.invalidateQueries({ queryKey: ['match-for-events', matchId] });
+      toast.success('Attack direction confirmed');
+    },
+    onError: () => {
+      toast.error('Failed to save attack direction');
+    },
+  });
+
+  // Direction setup screen (shown before first event)
+  if (!directionConfirmed) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/matches')} className="mb-6">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+            
+            <div className="bg-card border rounded-xl p-6 space-y-6">
+              <div className="text-center">
+                <h1 className="text-2xl font-bold mb-2">Set Attack Direction</h1>
+                <p className="text-muted-foreground">
+                  {matchData.home_team?.name} vs {matchData.away_team?.name}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Configure which side each team attacks in the 1st half. Direction will auto-flip for 2nd half.
+                </p>
+              </div>
+
+              {/* Visual direction selector */}
+              <div className="space-y-4">
+                <div 
+                  className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    pendingHomeAttacksLeft ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
+                  }`}
+                  onClick={() => setPendingHomeAttacksLeft(true)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <MoveLeft className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{matchData.home_team?.name} attacks LEFT</p>
+                        <p className="text-sm text-muted-foreground">{matchData.away_team?.name} attacks right</p>
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 ${pendingHomeAttacksLeft ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}>
+                      {pendingHomeAttacksLeft && <div className="w-full h-full flex items-center justify-center text-primary-foreground text-xs">✓</div>}
+                    </div>
+                  </div>
+                </div>
+
+                <div 
+                  className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                    !pendingHomeAttacksLeft ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
+                  }`}
+                  onClick={() => setPendingHomeAttacksLeft(false)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <MoveRight className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{matchData.home_team?.name} attacks RIGHT</p>
+                        <p className="text-sm text-muted-foreground">{matchData.away_team?.name} attacks left</p>
+                      </div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 ${!pendingHomeAttacksLeft ? 'bg-primary border-primary' : 'border-muted-foreground/50'}`}>
+                      {!pendingHomeAttacksLeft && <div className="w-full h-full flex items-center justify-center text-primary-foreground text-xs">✓</div>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pitch preview */}
+              <div className="bg-muted/30 rounded-lg p-4">
+                <p className="text-xs text-muted-foreground mb-3 text-center">1st Half Preview</p>
+                <div className="relative aspect-[3/2] bg-emerald-700/20 border border-emerald-600/30 rounded-lg flex items-center justify-between px-4">
+                  <div className="text-center">
+                    <div className={`text-sm font-medium ${pendingHomeAttacksLeft ? 'text-primary' : 'text-muted-foreground'}`}>
+                      {pendingHomeAttacksLeft ? matchData.home_team?.name : matchData.away_team?.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground">← ATK</div>
+                  </div>
+                  <div className="w-px h-full bg-white/20" />
+                  <div className="text-center">
+                    <div className={`text-sm font-medium ${!pendingHomeAttacksLeft ? 'text-primary' : 'text-muted-foreground'}`}>
+                      {!pendingHomeAttacksLeft ? matchData.home_team?.name : matchData.away_team?.name}
+                    </div>
+                    <div className="text-xs text-muted-foreground">ATK →</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2nd half auto-flip notice */}
+              <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex items-start gap-3">
+                <ArrowRight className="h-5 w-5 text-blue-500 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-600 dark:text-blue-400">Auto-flip for 2nd half</p>
+                  <p className="text-muted-foreground">Directions will automatically swap when you switch to 2nd half.</p>
+                </div>
+              </div>
+
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={() => confirmDirectionMutation.mutate(pendingHomeAttacksLeft)}
+                disabled={confirmDirectionMutation.isPending}
+              >
+                {confirmDirectionMutation.isPending ? 'Saving...' : 'Confirm & Start Logging'}
+              </Button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -809,12 +967,12 @@ function AdminMatchEventsContent() {
               requiresEndPosition={requiresEndPosition}
               ballPosition={ballPosition}
               ballTrail={ballTrail}
-              attackDirection={matchData.home_attacks_left !== null ? {
-                homeAttacksLeft: matchData.home_attacks_left,
+              attackDirection={{
+                homeAttacksLeft: effectiveHomeAttacksLeft,
                 homeTeamName: matchData.home_team?.name || 'Home',
                 awayTeamName: matchData.away_team?.name || 'Away',
                 currentHalf: selectedHalf,
-              } : undefined}
+              }}
             />
             
             {/* Goal mouth diagram for shots */}
