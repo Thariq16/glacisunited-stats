@@ -400,6 +400,7 @@ export type Database = {
       players: {
         Row: {
           created_at: string | null
+          hidden: boolean | null
           id: string
           jersey_number: number
           name: string
@@ -408,6 +409,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          hidden?: boolean | null
           id?: string
           jersey_number: number
           name: string
@@ -416,6 +418,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          hidden?: boolean | null
           id?: string
           jersey_number?: number
           name?: string
