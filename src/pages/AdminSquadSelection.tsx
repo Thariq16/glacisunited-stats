@@ -288,49 +288,91 @@ function AdminSquadSelectionContent() {
       );
     }
     
-    return (
-      <div className="space-y-2">
-        {players.map(player => {
-          const inSquad = squad.find(p => p.id === player.id);
-          
-          return (
-            <div
-              key={player.id}
-              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                inSquad ? 'bg-primary/10 border-primary' : 'hover:bg-muted'
-              }`}
-              onClick={() => togglePlayerInSquad(player, teamType)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted font-bold">
-                  <Shirt className="h-4 w-4 mr-1" />
-                  {player.jersey_number}
-                </div>
-                <div>
-                  <p className="font-medium">{player.name}</p>
-                  {player.role && <p className="text-xs text-muted-foreground">{player.role}</p>}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {inSquad && (
-                  <>
-                    <Badge
-                      variant={inSquad.status === 'starting' ? 'default' : 'secondary'}
-                      className="cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        togglePlayerStatus(player.id, teamType);
-                      }}
-                    >
-                      {inSquad.status === 'starting' ? 'Starting XI' : 'Substitute'}
-                    </Badge>
-                    <Check className="h-5 w-5 text-primary" />
-                  </>
-                )}
-              </div>
+    // Sort players: Starting XI first, then Substitutes, then Unselected
+    const sortedPlayers = [...players].sort((a, b) => {
+      const aInSquad = squad.find(p => p.id === a.id);
+      const bInSquad = squad.find(p => p.id === b.id);
+      
+      // Priority: starting (0) > substitute (1) > unselected (2)
+      const getPriority = (player: Player) => {
+        const inSquad = squad.find(p => p.id === player.id);
+        if (!inSquad) return 2;
+        return inSquad.status === 'starting' ? 0 : 1;
+      };
+      
+      const priorityDiff = getPriority(a) - getPriority(b);
+      if (priorityDiff !== 0) return priorityDiff;
+      
+      // Within same priority, sort by jersey number
+      return a.jersey_number - b.jersey_number;
+    });
+
+    const startingPlayers = sortedPlayers.filter(p => squad.find(s => s.id === p.id)?.status === 'starting');
+    const substitutePlayers = sortedPlayers.filter(p => squad.find(s => s.id === p.id)?.status === 'substitute');
+    const unselectedPlayers = sortedPlayers.filter(p => !squad.find(s => s.id === p.id));
+
+    const renderPlayerItem = (player: Player) => {
+      const inSquad = squad.find(p => p.id === player.id);
+      
+      return (
+        <div
+          key={player.id}
+          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+            inSquad ? 'bg-primary/10 border-primary' : 'hover:bg-muted'
+          }`}
+          onClick={() => togglePlayerInSquad(player, teamType)}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted font-bold">
+              <Shirt className="h-4 w-4 mr-1" />
+              {player.jersey_number}
             </div>
-          );
-        })}
+            <div>
+              <p className="font-medium">{player.name}</p>
+              {player.role && <p className="text-xs text-muted-foreground">{player.role}</p>}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {inSquad && (
+              <>
+                <Badge
+                  variant={inSquad.status === 'starting' ? 'default' : 'secondary'}
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePlayerStatus(player.id, teamType);
+                  }}
+                >
+                  {inSquad.status === 'starting' ? 'Starting XI' : 'Substitute'}
+                </Badge>
+                <Check className="h-5 w-5 text-primary" />
+              </>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <div className="space-y-4">
+        {startingPlayers.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground px-1">Starting XI ({startingPlayers.length}/11)</p>
+            {startingPlayers.map(renderPlayerItem)}
+          </div>
+        )}
+        {substitutePlayers.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground px-1">Substitutes ({substitutePlayers.length})</p>
+            {substitutePlayers.map(renderPlayerItem)}
+          </div>
+        )}
+        {unselectedPlayers.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground px-1">Available Players ({unselectedPlayers.length})</p>
+            {unselectedPlayers.map(renderPlayerItem)}
+          </div>
+        )}
       </div>
     );
   };
