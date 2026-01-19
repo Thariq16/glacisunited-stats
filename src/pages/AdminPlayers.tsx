@@ -122,7 +122,9 @@ function AdminPlayersContent() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {players?.map(player => (
+          {players && [...players]
+            .sort((a, b) => parseInt(a.jerseyNumber) - parseInt(b.jerseyNumber))
+            .map(player => (
             <Card key={`${player.jerseyNumber}-${player.playerName}`} className={player.hidden ? 'opacity-60' : ''}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">

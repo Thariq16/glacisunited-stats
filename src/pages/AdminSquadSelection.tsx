@@ -77,7 +77,7 @@ function AdminSquadSelectionContent() {
     enabled: !!matchId,
   });
 
-  // Fetch home team players
+  // Fetch home team players (excluding hidden)
   const { data: homePlayers, isLoading: homePlayersLoading } = useQuery({
     queryKey: ['players', match?.home_team_id],
     queryFn: async () => {
@@ -85,6 +85,7 @@ function AdminSquadSelectionContent() {
         .from('players')
         .select('*')
         .eq('team_id', match?.home_team_id)
+        .eq('hidden', false)
         .order('jersey_number');
       
       if (error) throw error;
@@ -93,7 +94,7 @@ function AdminSquadSelectionContent() {
     enabled: !!match?.home_team_id,
   });
 
-  // Fetch away team players
+  // Fetch away team players (excluding hidden)
   const { data: awayPlayers, isLoading: awayPlayersLoading } = useQuery({
     queryKey: ['players', match?.away_team_id],
     queryFn: async () => {
@@ -101,6 +102,7 @@ function AdminSquadSelectionContent() {
         .from('players')
         .select('*')
         .eq('team_id', match?.away_team_id)
+        .eq('hidden', false)
         .order('jersey_number');
       
       if (error) throw error;
