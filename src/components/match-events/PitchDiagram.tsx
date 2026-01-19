@@ -168,7 +168,7 @@ export function PitchDiagram({
         <line x1="100" y1="34" x2="102.5" y2="34" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
         <line x1="100" y1="36" x2="102.5" y2="36" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
 
-        {/* Attack direction indicators */}
+        {/* Attack direction indicator - top banner only */}
         {attackDirection && (() => {
           // In first half: home attacks left if homeAttacksLeft is true
           // In second half: directions swap
@@ -176,37 +176,29 @@ export function PitchDiagram({
             ? attackDirection.homeAttacksLeft 
             : !attackDirection.homeAttacksLeft;
           
-          const leftTeam = homeAttacksLeftThisHalf ? attackDirection.awayTeamName : attackDirection.homeTeamName;
-          const rightTeam = homeAttacksLeftThisHalf ? attackDirection.homeTeamName : attackDirection.awayTeamName;
+          // Team attacking right (towards right goal)
+          const teamAttackingRight = homeAttacksLeftThisHalf ? attackDirection.awayTeamName : attackDirection.homeTeamName;
+          // Team attacking left (towards left goal)
+          const teamAttackingLeft = homeAttacksLeftThisHalf ? attackDirection.homeTeamName : attackDirection.awayTeamName;
           
           // Truncate long team names
-          const truncate = (name: string) => name.length > 12 ? name.slice(0, 10) + '…' : name;
+          const truncate = (name: string, max: number = 10) => name.length > max ? name.slice(0, max - 1) + '…' : name;
           
           return (
             <>
-              {/* Left goal team label */}
+              {/* Single top banner showing attack directions */}
               <g>
-                <rect x="1" y="40" width="14" height="5" rx="1" fill="rgba(0,0,0,0.6)" />
-                <text x="8" y="43.5" fill="white" fontSize="2.5" textAnchor="middle" fontWeight="bold">
-                  {truncate(leftTeam)}
+                {/* Background bar */}
+                <rect x="10" y="60" width="80" height="6" rx="1" fill="rgba(0,0,0,0.7)" />
+                
+                {/* Left side: team attacking left */}
+                <text x="14" y="64.2" fill="white" fontSize="2.8" textAnchor="start" fontWeight="bold">
+                  ← {truncate(teamAttackingLeft, 12)}
                 </text>
-                {/* Attack arrow pointing right */}
-                <polygon points="2,57 6,54 6,60" fill="rgba(255,255,255,0.5)" />
-                <text x="8" y="58" fill="rgba(255,255,255,0.4)" fontSize="2" textAnchor="start">
-                  ATK →
-                </text>
-              </g>
-              
-              {/* Right goal team label */}
-              <g>
-                <rect x="85" y="40" width="14" height="5" rx="1" fill="rgba(0,0,0,0.6)" />
-                <text x="92" y="43.5" fill="white" fontSize="2.5" textAnchor="middle" fontWeight="bold">
-                  {truncate(rightTeam)}
-                </text>
-                {/* Attack arrow pointing left */}
-                <polygon points="98,57 94,54 94,60" fill="rgba(255,255,255,0.5)" />
-                <text x="92" y="58" fill="rgba(255,255,255,0.4)" fontSize="2" textAnchor="end">
-                  ← ATK
+                
+                {/* Right side: team attacking right */}
+                <text x="86" y="64.2" fill="white" fontSize="2.8" textAnchor="end" fontWeight="bold">
+                  {truncate(teamAttackingRight, 12)} →
                 </text>
               </g>
             </>
