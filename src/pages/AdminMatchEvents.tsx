@@ -36,6 +36,7 @@ import {
   BallTrailPoint,
 } from '@/components/match-events/types';
 import { BallPosition } from '@/components/match-events/PitchDiagram';
+import { GoalMouthDiagram, ShotPlacement } from '@/components/match-events/GoalMouthDiagram';
 
 function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -93,6 +94,7 @@ function AdminMatchEventsContent() {
   const [aerialOutcome, setAerialOutcome] = useState<AerialOutcome | null>(null);
   const [targetPlayerId, setTargetPlayerId] = useState<string | null>(null);
   const [substitutePlayerId, setSubstitutePlayerId] = useState<string | null>(null);
+  const [shotPlacement, setShotPlacement] = useState<ShotPlacement | null>(null);
   const [minute, setMinute] = useState(1);
   const [stickyPlayer, setStickyPlayer] = useState(false);
 
@@ -399,6 +401,7 @@ function AdminMatchEventsContent() {
     setAerialOutcome(null);
     setTargetPlayerId(null);
     setSubstitutePlayerId(null);
+    setShotPlacement(null);
     if (!stickyPlayer) {
       setSelectedPlayerId(null);
     }
@@ -806,7 +809,23 @@ function AdminMatchEventsContent() {
               requiresEndPosition={requiresEndPosition}
               ballPosition={ballPosition}
               ballTrail={ballTrail}
+              attackDirection={matchData.home_attacks_left !== null ? {
+                homeAttacksLeft: matchData.home_attacks_left,
+                homeTeamName: matchData.home_team?.name || 'Home',
+                awayTeamName: matchData.away_team?.name || 'Away',
+                currentHalf: selectedHalf,
+              } : undefined}
             />
+            
+            {/* Goal mouth diagram for shots */}
+            {selectedEventType === 'shot' && (
+              <GoalMouthDiagram
+                selectedPlacement={shotPlacement}
+                onSelect={setShotPlacement}
+                outcome={shotOutcome || undefined}
+                className="mt-4"
+              />
+            )}
             {/* Suggested start position indicator */}
             {suggestedStartPosition && !startPosition && (
               <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2 text-sm">

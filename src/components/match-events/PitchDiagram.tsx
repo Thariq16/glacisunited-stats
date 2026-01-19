@@ -10,6 +10,13 @@ export interface BallPosition {
   playerName: string;
 }
 
+interface AttackDirection {
+  homeAttacksLeft: boolean;
+  homeTeamName: string;
+  awayTeamName: string;
+  currentHalf: 1 | 2;
+}
+
 interface PitchDiagramProps {
   startPosition: Position | null;
   endPosition: Position | null;
@@ -19,6 +26,7 @@ interface PitchDiagramProps {
   requiresEndPosition: boolean;
   ballPosition?: BallPosition | null;
   ballTrail?: BallTrailPoint[];
+  attackDirection?: AttackDirection;
 }
 
 export function PitchDiagram({
@@ -30,6 +38,7 @@ export function PitchDiagram({
   requiresEndPosition,
   ballPosition,
   ballTrail = [],
+  attackDirection,
 }: PitchDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverPosition, setHoverPosition] = useState<Position | null>(null);
@@ -133,8 +142,14 @@ export function PitchDiagram({
         <circle cx="11" cy="34" r="0.4" fill="white" />
         {/* Left penalty arc */}
         <path d="M 16.5 27.5 A 9.15 9.15 0 0 1 16.5 40.5" fill="none" stroke="white" strokeWidth="0.3" />
-        {/* Left goal */}
-        <rect x="-2" y="30.34" width="2" height="7.32" fill="none" stroke="white" strokeWidth="0.3" />
+        {/* Left goal - enhanced with colored post */}
+        <rect x="-2.5" y="29.84" width="3" height="8.32" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        {/* Left goal net pattern */}
+        <line x1="-2" y1="31" x2="-2" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="-1" y1="31" x2="-1" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="-2.5" y1="32" x2="0" y2="32" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="-2.5" y1="34" x2="0" y2="34" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="-2.5" y1="36" x2="0" y2="36" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
 
         {/* Right penalty area */}
         <rect x="83.5" y="13.84" width="16.5" height="40.32" fill="none" stroke="white" strokeWidth="0.3" />
@@ -144,8 +159,59 @@ export function PitchDiagram({
         <circle cx="89" cy="34" r="0.4" fill="white" />
         {/* Right penalty arc */}
         <path d="M 83.5 27.5 A 9.15 9.15 0 0 0 83.5 40.5" fill="none" stroke="white" strokeWidth="0.3" />
-        {/* Right goal */}
-        <rect x="100" y="30.34" width="2" height="7.32" fill="none" stroke="white" strokeWidth="0.3" />
+        {/* Right goal - enhanced with colored post */}
+        <rect x="99.5" y="29.84" width="3" height="8.32" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        {/* Right goal net pattern */}
+        <line x1="101" y1="31" x2="101" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="102" y1="31" x2="102" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="100" y1="32" x2="102.5" y2="32" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="100" y1="34" x2="102.5" y2="34" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="100" y1="36" x2="102.5" y2="36" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+
+        {/* Attack direction indicators */}
+        {attackDirection && (() => {
+          // In first half: home attacks left if homeAttacksLeft is true
+          // In second half: directions swap
+          const homeAttacksLeftThisHalf = attackDirection.currentHalf === 1 
+            ? attackDirection.homeAttacksLeft 
+            : !attackDirection.homeAttacksLeft;
+          
+          const leftTeam = homeAttacksLeftThisHalf ? attackDirection.awayTeamName : attackDirection.homeTeamName;
+          const rightTeam = homeAttacksLeftThisHalf ? attackDirection.homeTeamName : attackDirection.awayTeamName;
+          
+          // Truncate long team names
+          const truncate = (name: string) => name.length > 12 ? name.slice(0, 10) + '…' : name;
+          
+          return (
+            <>
+              {/* Left goal team label */}
+              <g>
+                <rect x="1" y="40" width="14" height="5" rx="1" fill="rgba(0,0,0,0.6)" />
+                <text x="8" y="43.5" fill="white" fontSize="2.5" textAnchor="middle" fontWeight="bold">
+                  {truncate(leftTeam)}
+                </text>
+                {/* Attack arrow pointing right */}
+                <polygon points="2,57 6,54 6,60" fill="rgba(255,255,255,0.5)" />
+                <text x="8" y="58" fill="rgba(255,255,255,0.4)" fontSize="2" textAnchor="start">
+                  ATK →
+                </text>
+              </g>
+              
+              {/* Right goal team label */}
+              <g>
+                <rect x="85" y="40" width="14" height="5" rx="1" fill="rgba(0,0,0,0.6)" />
+                <text x="92" y="43.5" fill="white" fontSize="2.5" textAnchor="middle" fontWeight="bold">
+                  {truncate(rightTeam)}
+                </text>
+                {/* Attack arrow pointing left */}
+                <polygon points="98,57 94,54 94,60" fill="rgba(255,255,255,0.5)" />
+                <text x="92" y="58" fill="rgba(255,255,255,0.4)" fontSize="2" textAnchor="end">
+                  ← ATK
+                </text>
+              </g>
+            </>
+          );
+        })()}
 
         {/* Corner arcs */}
         <path d="M 0 1 A 1 1 0 0 0 1 0" fill="none" stroke="white" strokeWidth="0.3" />

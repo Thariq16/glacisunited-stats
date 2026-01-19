@@ -11,8 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Calendar, MapPin, Trophy, Loader2, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Trophy, Loader2, Plus, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 
 function AdminNewMatchContent() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ function AdminNewMatchContent() {
     matchDate: new Date().toISOString().split('T')[0],
     venue: '',
     competition: '',
+    homeAttacksLeft: true, // Home team attacks left goal in first half
   });
 
   const [newTeamDialogOpen, setNewTeamDialogOpen] = useState(false);
@@ -82,6 +84,7 @@ function AdminNewMatchContent() {
           competition: formData.competition || null,
           home_score: 0,
           away_score: 0,
+          home_attacks_left: formData.homeAttacksLeft,
         })
         .select('id')
         .single();
@@ -263,7 +266,42 @@ function AdminNewMatchContent() {
                   />
                 </div>
 
-                {/* Preview */}
+                {/* Attack Direction */}
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
+                    <ArrowRight className="h-4 w-4" />
+                    First Half Attack Direction
+                  </Label>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">
+                          {homeTeam?.name || 'Home Team'} attacks{' '}
+                          <span className="font-bold text-primary">
+                            {formData.homeAttacksLeft ? 'Left → Right' : 'Right → Left'}
+                          </span>
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {awayTeam?.name || 'Away Team'} attacks{' '}
+                          {formData.homeAttacksLeft ? 'Right → Left' : 'Left → Right'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">← L</span>
+                        <Switch
+                          checked={formData.homeAttacksLeft}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ ...prev, homeAttacksLeft: checked }))
+                          }
+                        />
+                        <span className="text-xs text-muted-foreground">R →</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2 italic">
+                      This will swap automatically in the second half
+                    </p>
+                  </div>
+                </div>
                 {homeTeam && awayTeam && (
                   <div className="p-4 bg-muted rounded-lg text-center">
                     <p className="text-sm text-muted-foreground mb-1">Match Preview</p>
