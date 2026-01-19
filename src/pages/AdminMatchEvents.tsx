@@ -677,30 +677,15 @@ function AdminMatchEventsContent() {
     startPosition,
   ]);
 
-  if (matchLoading || eventsLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p>Loading match data...</p>
-      </div>
-    );
-  }
-
-  if (!matchData) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p>Match not found</p>
-      </div>
-    );
-  }
-
   // Compute effective attack direction for current half
   // 1st half uses the stored direction, 2nd half automatically flips it
   const effectiveHomeAttacksLeft = useMemo(() => {
+    if (!matchData) return pendingHomeAttacksLeft;
     const baseDirection = directionConfirmed ? matchData.home_attacks_left : pendingHomeAttacksLeft;
     if (baseDirection === null) return true;
     // Flip direction for 2nd half
     return selectedHalf === 1 ? baseDirection : !baseDirection;
-  }, [directionConfirmed, matchData.home_attacks_left, pendingHomeAttacksLeft, selectedHalf]);
+  }, [matchData, directionConfirmed, pendingHomeAttacksLeft, selectedHalf]);
 
   // Confirm direction mutation
   const confirmDirectionMutation = useMutation({
@@ -720,6 +705,22 @@ function AdminMatchEventsContent() {
       toast.error('Failed to save attack direction');
     },
   });
+
+  if (matchLoading || eventsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p>Loading match data...</p>
+      </div>
+    );
+  }
+
+  if (!matchData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p>Match not found</p>
+      </div>
+    );
+  }
 
   // Direction setup screen (shown before first event)
   if (!directionConfirmed) {
