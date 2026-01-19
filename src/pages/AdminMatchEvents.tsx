@@ -96,6 +96,7 @@ function AdminMatchEventsContent() {
   const [substitutePlayerId, setSubstitutePlayerId] = useState<string | null>(null);
   const [shotPlacement, setShotPlacement] = useState<ShotPlacement | null>(null);
   const [minute, setMinute] = useState(1);
+  const [seconds, setSeconds] = useState(0);
   const [stickyPlayer, setStickyPlayer] = useState(false);
 
   // Direction setup state
@@ -557,7 +558,8 @@ function AdminMatchEventsContent() {
     setAerialOutcome(event.aerialOutcome || null);
     setTargetPlayerId(event.targetPlayerId || null);
     setSubstitutePlayerId(event.substitutePlayerId || null);
-    setMinute(event.minute);
+    setMinute(Math.floor(event.minute));
+    setSeconds(0); // Seconds not stored in DB currently
 
     // Delete from DB (will be re-added on save)
     try {
@@ -901,17 +903,31 @@ function AdminMatchEventsContent() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-2">
-            <Label htmlFor="minute" className="text-sm">Minute:</Label>
-            <Input
-              id="minute"
-              type="number"
-              min={1}
-              max={90}
-              value={minute}
-              onChange={(e) => setMinute(Number(e.target.value))}
-              className="w-16"
-            />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="minute" className="text-sm">Min:</Label>
+              <Input
+                id="minute"
+                type="number"
+                min={0}
+                max={120}
+                value={minute}
+                onChange={(e) => setMinute(Number(e.target.value))}
+                className="w-16"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="seconds" className="text-sm">Sec:</Label>
+              <Input
+                id="seconds"
+                type="number"
+                min={0}
+                max={59}
+                value={seconds}
+                onChange={(e) => setSeconds(Math.min(59, Math.max(0, Number(e.target.value))))}
+                className="w-16"
+              />
+            </div>
           </div>
         </div>
 
