@@ -148,6 +148,48 @@ export type Database = {
           },
         ]
       }
+      match_squad: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          player_id: string
+          status: string
+          team_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          player_id: string
+          status: string
+          team_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          player_id?: string
+          status?: string
+          team_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_squad_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_squad_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           away_score: number

@@ -219,7 +219,44 @@ function AdminSquadSelectionContent() {
     });
   };
 
-  const handleProceed = () => {
+  // Save squad to database mutation
+  const saveSquadMutation = useMutation({
+    mutationFn: async (squadData: { homeSquad: SquadPlayer[]; awaySquad: SquadPlayer[] }) => {
+      // Delete existing squad entries for this match
+      const { error: deleteError } = await supabase
+        .from('match_squad')
+        .delete()
+        .eq('match_id', matchId);
+      
+      if (deleteError) throw deleteError;
+
+      // Prepare all squad entries
+      const entries = [
+        ...squadData.homeSquad.map(p => ({
+          match_id: matchId!,
+          player_id: p.id,
+          team_type: 'home' as const,
+          status: p.status,
+        })),
+        ...squadData.awaySquad.map(p => ({
+          match_id: matchId!,
+          player_id: p.id,
+          team_type: 'away' as const,
+          status: p.status,
+        })),
+      ];
+
+      if (entries.length > 0) {
+        const { error: insertError } = await supabase
+          .from('match_squad')
+          .insert(entries);
+        
+        if (insertError) throw insertError;
+      }
+    },
+  });
+
+  const handleProceed = async () => {
     const homeStarting = homeSquad.filter(p => p.status === 'starting').length;
     const awayStarting = awaySquad.filter(p => p.status === 'starting').length;
     
@@ -233,11 +270,19 @@ function AdminSquadSelectionContent() {
       return;
     }
     
-    // Store squad in session storage for the match events page
-    sessionStorage.setItem(`match-${matchId}-home-squad`, JSON.stringify(homeSquad));
-    sessionStorage.setItem(`match-${matchId}-away-squad`, JSON.stringify(awaySquad));
-    
-    navigate(`/admin/match-events/${matchId}`);
+    try {
+      // Save squad to database
+      await saveSquadMutation.mutateAsync({ homeSquad, awaySquad });
+      
+      // Also store in session storage for immediate access
+      sessionStorage.setItem(`match-${matchId}-home-squad`, JSON.stringify(homeSquad));
+      sessionStorage.setItem(`match-${matchId}-away-squad`, JSON.stringify(awaySquad));
+      
+      navigate(`/admin/match-events/${matchId}`);
+    } catch (error) {
+      console.error('Failed to save squad:', error);
+      toast.error('Failed to save squad selection');
+    }
   };
 
   if (matchLoading) {
@@ -481,9 +526,16 @@ function AdminSquadSelectionContent() {
           <Button 
             size="lg" 
             onClick={handleProceed}
-            disabled={homeStartingCount !== 11 || awayStartingCount !== 11}
+            disabled={homeStartingCount !== 11 || awayStartingCount !== 11 || saveSquadMutation.isPending}
           >
-            Proceed to Event Logging
+            {saveSquadMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Proceed to Event Logging'
+            )}
           </Button>
         </div>
 
