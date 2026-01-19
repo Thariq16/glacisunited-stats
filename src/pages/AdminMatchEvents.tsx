@@ -175,7 +175,7 @@ function AdminMatchEventsContent() {
     ? matchData?.home_team?.id 
     : matchData?.away_team?.id;
 
-  // Load squad from session storage
+  // Squad state
   const [homeSquad, setHomeSquad] = useState<Array<{
     id: string;
     name: string;
@@ -190,28 +190,82 @@ function AdminMatchEventsContent() {
     role?: string | null;
     status: 'starting' | 'substitute';
   }>>([]);
+  const [squadSource, setSquadSource] = useState<'session' | 'database' | 'fallback' | null>(null);
 
+  // Fetch squad from database
+  const { data: dbSquad, isLoading: squadLoading } = useQuery({
+    queryKey: ['match-squad', matchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('match_squad')
+        .select(`
+          *,
+          player:players!match_squad_player_id_fkey(id, name, jersey_number, role)
+        `)
+        .eq('match_id', matchId);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!matchId,
+  });
+
+  // Load squad: session storage first, then database, then fallback to all players
   useEffect(() => {
     if (matchId) {
+      // Try session storage first
       const homeData = sessionStorage.getItem(`match-${matchId}-home-squad`);
       const awayData = sessionStorage.getItem(`match-${matchId}-away-squad`);
       
-      if (homeData) {
+      if (homeData && awayData) {
         try {
           setHomeSquad(JSON.parse(homeData));
+          setAwaySquad(JSON.parse(awayData));
+          setSquadSource('session');
+          return;
         } catch (e) {
-          console.error('Failed to parse home squad:', e);
+          console.error('Failed to parse squad from session:', e);
         }
       }
-      if (awayData) {
-        try {
-          setAwaySquad(JSON.parse(awayData));
-        } catch (e) {
-          console.error('Failed to parse away squad:', e);
+      
+      // Try database
+      if (dbSquad && dbSquad.length > 0) {
+        const homeFromDb = dbSquad
+          .filter((s: any) => s.team_type === 'home' && s.player)
+          .map((s: any) => ({
+            id: s.player.id,
+            name: s.player.name,
+            jersey_number: s.player.jersey_number,
+            role: s.player.role,
+            status: s.status as 'starting' | 'substitute',
+          }));
+        const awayFromDb = dbSquad
+          .filter((s: any) => s.team_type === 'away' && s.player)
+          .map((s: any) => ({
+            id: s.player.id,
+            name: s.player.name,
+            jersey_number: s.player.jersey_number,
+            role: s.player.role,
+            status: s.status as 'starting' | 'substitute',
+          }));
+        
+        if (homeFromDb.length > 0 || awayFromDb.length > 0) {
+          setHomeSquad(homeFromDb);
+          setAwaySquad(awayFromDb);
+          setSquadSource('database');
+          
+          // Cache to session storage for faster access
+          sessionStorage.setItem(`match-${matchId}-home-squad`, JSON.stringify(homeFromDb));
+          sessionStorage.setItem(`match-${matchId}-away-squad`, JSON.stringify(awayFromDb));
+          return;
         }
+      }
+      
+      // No squad found - will fallback to all players
+      if (!squadLoading && dbSquad !== undefined) {
+        setSquadSource('fallback');
       }
     }
-  }, [matchId]);
+  }, [matchId, dbSquad, squadLoading]);
 
   // Fetch players for selected team (fallback if no squad in session)
   const { data: allPlayers = [] } = useQuery({
@@ -883,6 +937,24 @@ function AdminMatchEventsContent() {
             <MatchComments matchId={matchId!} />
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Squad source warning */}
+        {squadSource === 'fallback' && (
+          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <span className="text-sm">
+                ⚠️ No squad selection found. Showing all players. For accurate tracking, select your match day squad.
+              </span>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate(`/admin/squad-selection/${matchId}`)}
+            >
+              Select Squad
+            </Button>
+          </div>
+        )}
 
         {/* Controls row */}
         <div className="flex flex-wrap items-center gap-4 mb-4">
