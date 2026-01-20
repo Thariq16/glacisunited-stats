@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      attacking_phases: {
+        Row: {
+          created_at: string | null
+          half: number
+          id: string
+          match_id: string
+          outcome: string
+          phase_number: number
+          team_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          half: number
+          id?: string
+          match_id: string
+          outcome: string
+          phase_number: number
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          half?: number
+          id?: string
+          match_id?: string
+          outcome?: string
+          phase_number?: number
+          team_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attacking_phases_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attacking_phases_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_comments: {
         Row: {
           comment: string

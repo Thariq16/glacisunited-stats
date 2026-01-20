@@ -65,6 +65,21 @@ function AdminMatchEventsContent() {
     enabled: !!matchId,
   });
 
+  // Load existing phases from database
+  const { data: savedPhases = [], isLoading: phasesLoading } = useQuery({
+    queryKey: ['attacking-phases', matchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('attacking_phases')
+        .select('*')
+        .eq('match_id', matchId)
+        .order('phase_number');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!matchId,
+  });
+
   // Load existing events from database
   const { data: savedEvents = [], isLoading: eventsLoading } = useQuery({
     queryKey: ['match-events', matchId],
@@ -160,6 +175,28 @@ function AdminMatchEventsContent() {
       }
     }
   }, [savedEvents, matchId]);
+
+  // Reconstruct phases from database
+  useEffect(() => {
+    if (savedPhases.length > 0 && events.length > 0) {
+      const reconstructedPhases: Phase[] = savedPhases.map((p: any) => ({
+        id: p.id,
+        phaseNumber: p.phase_number,
+        half: p.half,
+        outcome: p.outcome as PhaseOutcome,
+        teamId: p.team_id,
+        eventIds: events
+          .filter((e: LocalEvent) => e.phaseId === p.id)
+          .map((e: LocalEvent) => e.id),
+      }));
+      setPhases(reconstructedPhases);
+      
+      // Cache phases to sessionStorage
+      if (matchId) {
+        sessionStorage.setItem(`match-${matchId}-phases`, JSON.stringify(reconstructedPhases));
+      }
+    }
+  }, [savedPhases, events, matchId]);
 
   // Initialize direction state from match data and check if already confirmed
   useEffect(() => {
@@ -726,26 +763,42 @@ function AdminMatchEventsContent() {
     const phaseId = crypto.randomUUID();
     const phaseNumber = phases.length + 1;
     
-    // Update events in database with the phase_id
     try {
-      const { error } = await supabase
+      // 1. Insert into attacking_phases table
+      const { error: phaseError } = await supabase
+        .from('attacking_phases')
+        .insert({
+          id: phaseId,
+          match_id: matchId,
+          phase_number: phaseNumber,
+          half: selectedHalf,
+          outcome,
+          team_id: teamId,
+        });
+      
+      if (phaseError) throw phaseError;
+      
+      // 2. Update events in database with the phase_id
+      const { error: eventsError } = await supabase
         .from('match_events')
         .update({ phase_id: phaseId })
         .in('id', eventIds);
       
-      if (error) throw error;
+      if (eventsError) throw eventsError;
       
-      // Add to local phases state
+      // 3. Add to local phases state
       const newPhase: Phase = {
         id: phaseId,
         phaseNumber,
         half: selectedHalf,
         outcome,
         eventIds,
+        teamId,
       };
       setPhases(prev => [...prev, newPhase]);
       
-      // Refresh events to get updated phase_id
+      // 4. Refresh queries
+      queryClient.invalidateQueries({ queryKey: ['attacking-phases', matchId] });
       queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
       
       toast.success(`Phase #${phaseNumber} created: ${outcome.replace('_', ' ')}`);
@@ -754,6 +807,73 @@ function AdminMatchEventsContent() {
       toast.error('Failed to create phase');
     }
   }, [phases.length, selectedHalf, matchId, queryClient]);
+
+  // Edit phase outcome
+  const handleEditPhase = useCallback(async (phaseId: string, newOutcome: PhaseOutcome) => {
+    try {
+      const { error } = await supabase
+        .from('attacking_phases')
+        .update({ outcome: newOutcome })
+        .eq('id', phaseId);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setPhases(prev => prev.map(p => 
+        p.id === phaseId ? { ...p, outcome: newOutcome } : p
+      ));
+      
+      queryClient.invalidateQueries({ queryKey: ['attacking-phases', matchId] });
+      toast.success('Phase outcome updated');
+    } catch (error) {
+      console.error('Failed to update phase:', error);
+      toast.error('Failed to update phase');
+    }
+  }, [matchId, queryClient]);
+
+  // Delete phase
+  const handleDeletePhase = useCallback(async (phaseId: string) => {
+    try {
+      // 1. Clear phase_id from all events in this phase
+      const { error: eventsError } = await supabase
+        .from('match_events')
+        .update({ phase_id: null })
+        .eq('phase_id', phaseId);
+      
+      if (eventsError) throw eventsError;
+      
+      // 2. Delete the phase record
+      const { error: phaseError } = await supabase
+        .from('attacking_phases')
+        .delete()
+        .eq('id', phaseId);
+      
+      if (phaseError) throw phaseError;
+      
+      // 3. Update local state and renumber
+      setPhases(prev => {
+        const filtered = prev.filter(p => p.id !== phaseId);
+        return filtered.map((p, i) => ({ ...p, phaseNumber: i + 1 }));
+      });
+      
+      // 4. Update phase numbers in database for remaining phases
+      const remainingPhases = phases.filter(p => p.id !== phaseId);
+      for (let i = 0; i < remainingPhases.length; i++) {
+        await supabase
+          .from('attacking_phases')
+          .update({ phase_number: i + 1 })
+          .eq('id', remainingPhases[i].id);
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['attacking-phases', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
+      
+      toast.success('Phase deleted');
+    } catch (error) {
+      console.error('Failed to delete phase:', error);
+      toast.error('Failed to delete phase');
+    }
+  }, [matchId, queryClient, phases]);
 
   // Legacy phase controls (kept for backwards compatibility)
   const handleStartPhase = useCallback(() => {
@@ -1217,6 +1337,8 @@ function AdminMatchEventsContent() {
               awayTeamName={matchData.away_team?.name}
               homeTeamId={matchData.home_team?.id}
               events={events}
+              onPhaseEdit={handleEditPhase}
+              onPhaseDelete={handleDeletePhase}
             />
 
             {/* Suggested start position indicator */}

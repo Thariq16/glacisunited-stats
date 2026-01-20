@@ -72,6 +72,7 @@ export interface Phase {
   half: number;
   outcome?: PhaseOutcome;
   eventIds: string[];
+  teamId?: string;
 }
 
 export interface EventLoggerState {
