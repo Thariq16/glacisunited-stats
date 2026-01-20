@@ -28,7 +28,8 @@ export type EventType =
   | 'offside'
   | 'goal_kick'
   | 'kick_off'
-  | 'goal_restart';
+  | 'goal_restart'
+  | 'block';
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
@@ -128,6 +129,7 @@ export const EVENT_CONFIG: Record<EventType, {
   goal_kick: { label: 'Goal Kick', requiresEndPosition: false, category: 'set_piece' },
   kick_off: { label: 'Kick Off', requiresEndPosition: false, category: 'set_piece' },
   goal_restart: { label: 'Goal Restart', requiresEndPosition: false, category: 'set_piece' },
+  block: { label: 'Block', requiresEndPosition: false, category: 'defensive' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
@@ -167,6 +169,7 @@ export const CONTINUITY_BREAKING_EVENTS: EventType[] = [
   'goal_kick',      // Set piece, keeper restart
   'kick_off',       // Set piece, center restart
   'goal_restart',   // Set piece, kick off after goal
+  'block',          // Ball deflected, unpredictable position
 ];
 
 // Ball trail type for movement history
