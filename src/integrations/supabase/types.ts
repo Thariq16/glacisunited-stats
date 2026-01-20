@@ -72,6 +72,7 @@ export type Database = {
           minute: number
           phase_id: string | null
           player_id: string
+          seconds: number | null
           shot_outcome: string | null
           substitute_player_id: string | null
           successful: boolean
@@ -91,6 +92,7 @@ export type Database = {
           minute: number
           phase_id?: string | null
           player_id: string
+          seconds?: number | null
           shot_outcome?: string | null
           substitute_player_id?: string | null
           successful?: boolean
@@ -110,6 +112,7 @@ export type Database = {
           minute?: number
           phase_id?: string | null
           player_id?: string
+          seconds?: number | null
           shot_outcome?: string | null
           substitute_player_id?: string | null
           successful?: boolean

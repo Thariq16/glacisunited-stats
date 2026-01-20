@@ -60,7 +60,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, home
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">#</TableHead>
-              <TableHead className="w-16">Min</TableHead>
+              <TableHead className="w-16">Time</TableHead>
               <TableHead>Team</TableHead>
               <TableHead>Player</TableHead>
               <TableHead>Event</TableHead>
@@ -87,8 +87,11 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, home
                   key={event.id}
                   className={phase ? `border-l-4 ${getPhaseColor(phase.phaseNumber)}` : ''}
                 >
+                  {/* Time in mm:ss format */}
                   <TableCell className="font-mono text-xs">{index + 1}</TableCell>
-                  <TableCell className="font-mono text-xs">{event.minute}'</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {String(event.minute).padStart(2, '0')}:{String(event.seconds ?? 0).padStart(2, '0')}
+                  </TableCell>
                   <TableCell className="text-sm">
                     <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isHomeTeam ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
                       {teamName || (isHomeTeam ? 'Home' : 'Away')}

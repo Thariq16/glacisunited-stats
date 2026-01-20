@@ -134,8 +134,8 @@ export function PitchDiagram({
         <circle cx="50" cy="34" r="9.15" fill="none" stroke="white" strokeWidth="0.3" />
         <circle cx="50" cy="34" r="0.5" fill="white" />
 
-        {/* Left penalty area */}
-        <rect x="0" y="13.84" width="16.5" height="40.32" fill="none" stroke="white" strokeWidth="0.3" />
+        {/* Left penalty area - with subtle highlight */}
+        <rect x="0" y="13.84" width="16.5" height="40.32" fill="rgba(255,200,0,0.1)" stroke="white" strokeWidth="0.3" />
         {/* Left 6-yard box */}
         <rect x="0" y="24.84" width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" />
         {/* Left penalty spot */}
@@ -151,8 +151,8 @@ export function PitchDiagram({
         <line x1="-2.5" y1="34" x2="0" y2="34" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
         <line x1="-2.5" y1="36" x2="0" y2="36" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
 
-        {/* Right penalty area */}
-        <rect x="83.5" y="13.84" width="16.5" height="40.32" fill="none" stroke="white" strokeWidth="0.3" />
+        {/* Right penalty area - with subtle highlight */}
+        <rect x="83.5" y="13.84" width="16.5" height="40.32" fill="rgba(255,200,0,0.1)" stroke="white" strokeWidth="0.3" />
         {/* Right 6-yard box */}
         <rect x="94.5" y="24.84" width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" />
         {/* Right penalty spot */}
