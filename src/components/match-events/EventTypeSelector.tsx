@@ -26,6 +26,7 @@ import {
   ArrowLeftRight,
   Square,
   OctagonX,
+  CircleDot,
 } from 'lucide-react';
 import { EventType, EVENT_CONFIG } from './types';
 
@@ -60,6 +61,7 @@ const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>
   substitution: ArrowLeftRight,
   yellow_card: Square,
   red_card: OctagonX,
+  penalty: CircleDot,
 };
 
 const BALL_EVENTS: EventType[] = [
@@ -84,6 +86,7 @@ const BALL_EVENTS: EventType[] = [
   'corner',
   'throw_in',
   'free_kick',
+  'penalty',
   'penalty_area_entry',
 ];
 

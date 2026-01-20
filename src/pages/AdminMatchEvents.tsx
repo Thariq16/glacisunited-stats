@@ -20,6 +20,7 @@ import { EventModifiers } from '@/components/match-events/EventModifiers';
 import { PhaseControls } from '@/components/match-events/PhaseControls';
 import { EventList } from '@/components/match-events/EventList';
 import { KeyboardShortcuts } from '@/components/match-events/KeyboardShortcuts';
+import { PenaltyAreaSuggestion } from '@/components/match-events/PenaltyAreaSuggestion';
 import {
   EventType,
   ShotOutcome,
@@ -112,6 +113,15 @@ function AdminMatchEventsContent() {
   const [recentPlayerIds, setRecentPlayerIds] = useState<string[]>([]);
   const [notesOpen, setNotesOpen] = useState(false);
 
+  // Penalty area suggestion state
+  const [penaltyAreaSuggestion, setPenaltyAreaSuggestion] = useState<{
+    visible: boolean;
+    playerId: string;
+    playerName: string;
+    jerseyNumber: number;
+    position: Position;
+  } | null>(null);
+
   // Transform saved events to LocalEvent format
   useEffect(() => {
     if (savedEvents.length > 0) {
@@ -134,6 +144,7 @@ function AdminMatchEventsContent() {
         substitutePlayerName: e.substitute?.name,
         substituteJerseyNumber: e.substitute?.jersey_number,
         minute: e.minute,
+        seconds: e.seconds ?? 0,
         half: e.half,
         phaseId: e.phase_id,
       }));
@@ -296,6 +307,7 @@ function AdminMatchEventsContent() {
       event_type: string;
       half: number;
       minute: number;
+      seconds?: number;
       x: number;
       y: number;
       end_x?: number;
@@ -466,6 +478,66 @@ function AdminMatchEventsContent() {
     return null;
   }, [events]);
 
+  // Penalty area detection helper
+  // Left penalty area: x < 17, y between 14-54 (adjusted for pitch proportions)
+  // Right penalty area: x > 83, y between 14-54
+  const isInOpponentPenaltyArea = useCallback((x: number, y: number): boolean => {
+    // Get home team's attack direction for this half
+    const homeAttacksLeftThisHalf = selectedHalf === 1 
+      ? matchData?.home_attacks_left 
+      : !matchData?.home_attacks_left;
+    
+    // Determine which penalty area is the "opponent's" based on current team
+    // If home team attacks left, their opponent's penalty is on the LEFT
+    // If home team attacks right, their opponent's penalty is on the RIGHT
+    const opponentPenaltyOnRight = selectedTeamType === 'home' 
+      ? !homeAttacksLeftThisHalf  // Home attacks right = opponent penalty on right
+      : homeAttacksLeftThisHalf;   // Away attacks opposite direction
+    
+    const inYRange = y >= 14 && y <= 54;
+    
+    if (opponentPenaltyOnRight) {
+      return x > 83 && inYRange;
+    } else {
+      return x < 17 && inYRange;
+    }
+  }, [matchData?.home_attacks_left, selectedHalf, selectedTeamType]);
+
+  // Check if event warrants penalty area entry suggestion
+  const checkPenaltyAreaEntry = useCallback((
+    eventType: EventType,
+    startX: number,
+    startY: number,
+    endX: number | undefined,
+    endY: number | undefined,
+    successful: boolean,
+    playerId: string
+  ) => {
+    // Only check for ball movement events that could enter penalty area
+    const relevantEvents: EventType[] = ['carry', 'dribble', 'pass', 'key_pass', 'run_in_behind'];
+    if (!relevantEvents.includes(eventType)) return;
+    if (!successful) return;
+    if (endX === undefined || endY === undefined) return;
+    
+    // Check if movement goes INTO the penalty area
+    const startedOutside = !isInOpponentPenaltyArea(startX, startY);
+    const endedInside = isInOpponentPenaltyArea(endX, endY);
+    
+    if (startedOutside && endedInside) {
+      // Find the player to show in suggestion
+      const player = players.find(p => p.id === playerId);
+      if (player) {
+        setPenaltyAreaSuggestion({
+          visible: true,
+          playerId: player.id,
+          playerName: player.name,
+          jerseyNumber: player.jersey_number,
+          position: { x: endX, y: endY },
+        });
+      }
+    }
+  }, [isInOpponentPenaltyArea, players]);
+
   // Clear current event
   const clearEvent = useCallback(() => {
     setStartPosition(null);
@@ -538,6 +610,7 @@ function AdminMatchEventsContent() {
         event_type: selectedEventType!,
         half: selectedHalf,
         minute,
+        seconds,
         x: startPosition?.x ?? 50,
         y: startPosition?.y ?? 50,
         end_x: endPosition?.x,
@@ -549,6 +622,19 @@ function AdminMatchEventsContent() {
         substitute_player_id: substitutePlayerId || undefined,
         phase_id: currentPhase?.id,
       });
+
+      // Check for penalty area entry after saving
+      if (!isUnsuccessful && startPosition && endPosition) {
+        checkPenaltyAreaEntry(
+          selectedEventType!,
+          startPosition.x,
+          startPosition.y,
+          endPosition.x,
+          endPosition.y,
+          true,
+          selectedPlayerId
+        );
+      }
 
       toast.success('Event saved');
       clearEvent();
@@ -570,10 +656,12 @@ function AdminMatchEventsContent() {
     targetPlayerId,
     substitutePlayerId,
     minute,
+    seconds,
     selectedHalf,
     currentPhase,
     clearEvent,
     saveEventMutation,
+    checkPenaltyAreaEntry,
   ]);
 
   // Undo last event (delete from DB)
@@ -614,7 +702,7 @@ function AdminMatchEventsContent() {
     setTargetPlayerId(event.targetPlayerId || null);
     setSubstitutePlayerId(event.substitutePlayerId || null);
     setMinute(Math.floor(event.minute));
-    setSeconds(0); // Seconds not stored in DB currently
+    setSeconds(event.seconds ?? 0);
 
     // Delete from DB (will be re-added on save)
     try {
@@ -1125,6 +1213,25 @@ function AdminMatchEventsContent() {
             homeTeamId={matchData.home_team?.id}
           />
         </div>
+
+        {/* Penalty area entry suggestion */}
+        <PenaltyAreaSuggestion
+          isVisible={penaltyAreaSuggestion?.visible ?? false}
+          onAccept={() => {
+            if (penaltyAreaSuggestion) {
+              // Pre-fill the form for penalty area entry
+              setSelectedPlayerId(penaltyAreaSuggestion.playerId);
+              setSelectedEventType('penalty_area_entry');
+              setStartPosition(penaltyAreaSuggestion.position);
+              setEndPosition(null);
+              setPenaltyAreaSuggestion(null);
+              toast.info('Penalty Area Entry pre-filled - click Save to confirm');
+            }
+          }}
+          onDismiss={() => setPenaltyAreaSuggestion(null)}
+          playerName={penaltyAreaSuggestion?.playerName ?? ''}
+          jerseyNumber={penaltyAreaSuggestion?.jerseyNumber ?? 0}
+        />
       </main>
     </div>
   );

@@ -23,7 +23,8 @@ export type EventType =
   | 'defensive_error'
   | 'substitution'
   | 'yellow_card'
-  | 'red_card';
+  | 'red_card'
+  | 'penalty';
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
@@ -53,6 +54,7 @@ export interface LocalEvent {
   substitutePlayerName?: string;
   substituteJerseyNumber?: number;
   minute: number;
+  seconds?: number;
   half: number;
   phaseId?: string;
 }
@@ -115,6 +117,7 @@ export const EVENT_CONFIG: Record<EventType, {
   substitution: { label: 'Substitution', requiresEndPosition: false, requiresSubstitutePlayer: true, category: 'without_ball' },
   yellow_card: { label: 'Yellow Card', requiresEndPosition: false, category: 'without_ball' },
   red_card: { label: 'Red Card', requiresEndPosition: false, category: 'without_ball' },
+  penalty: { label: 'Penalty', requiresEndPosition: false, category: 'set_piece' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
