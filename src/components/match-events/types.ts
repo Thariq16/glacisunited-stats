@@ -25,7 +25,10 @@ export type EventType =
   | 'yellow_card'
   | 'red_card'
   | 'penalty'
-  | 'offside';
+  | 'offside'
+  | 'goal_kick'
+  | 'kick_off'
+  | 'goal_restart';
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
@@ -122,6 +125,9 @@ export const EVENT_CONFIG: Record<EventType, {
   red_card: { label: 'Red Card', requiresEndPosition: false, category: 'without_ball' },
   penalty: { label: 'Penalty', requiresEndPosition: false, category: 'set_piece' },
   offside: { label: 'Offside', requiresEndPosition: false, category: 'movement' },
+  goal_kick: { label: 'Goal Kick', requiresEndPosition: false, category: 'set_piece' },
+  kick_off: { label: 'Kick Off', requiresEndPosition: false, category: 'set_piece' },
+  goal_restart: { label: 'Goal Restart', requiresEndPosition: false, category: 'set_piece' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
@@ -157,6 +163,10 @@ export const CONTINUITY_BREAKING_EVENTS: EventType[] = [
   'throw_in',       // Set piece, sideline position
   'free_kick',      // Set piece, position of foul
   'save',           // Keeper action
+  'offside',        // Loses possession, free kick to opponent
+  'goal_kick',      // Set piece, keeper restart
+  'kick_off',       // Set piece, center restart
+  'goal_restart',   // Set piece, kick off after goal
 ];
 
 // Ball trail type for movement history
