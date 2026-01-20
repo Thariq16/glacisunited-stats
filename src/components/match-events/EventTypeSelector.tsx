@@ -31,6 +31,7 @@ import {
   Goal,
   Play,
   RotateCcw,
+  ShieldOff,
 } from 'lucide-react';
 import { EventType, EVENT_CONFIG } from './types';
 
@@ -70,6 +71,7 @@ const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>
   goal_kick: Goal,
   kick_off: Play,
   goal_restart: RotateCcw,
+  block: ShieldOff,
 };
 
 const BALL_EVENTS: EventType[] = [
@@ -90,6 +92,7 @@ const BALL_EVENTS: EventType[] = [
   'foul_committed',
   'foul_won',
   'defensive_error',
+  'block',
   'save',
   'corner',
   'throw_in',
