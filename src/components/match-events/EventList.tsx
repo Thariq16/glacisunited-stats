@@ -23,12 +23,20 @@ interface EventListProps {
 }
 
 export function EventList({ events, phases, players = [], onDelete, onEdit, homeTeamName, awayTeamName, homeTeamId }: EventListProps) {
-  // Sort events by match time (minute + seconds) descending - newest first
+  // Sort events by match time (minute + seconds) descending - newest first for display
   const sortedEvents = [...events].sort((a, b) => {
     const timeA = a.minute * 60 + (a.seconds ?? 0);
     const timeB = b.minute * 60 + (b.seconds ?? 0);
     return timeB - timeA; // Descending order
   });
+  
+  // Create a chronological index map (first entry = #1, second = #2, etc.)
+  const chronologicalEvents = [...events].sort((a, b) => {
+    const timeA = a.minute * 60 + (a.seconds ?? 0);
+    const timeB = b.minute * 60 + (b.seconds ?? 0);
+    return timeA - timeB; // Ascending order for numbering
+  });
+  const eventIndexMap = new Map(chronologicalEvents.map((e, idx) => [e.id, idx + 1]));
 
   if (events.length === 0) {
     return (
@@ -79,7 +87,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, home
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedEvents.map((event, index) => {
+            {sortedEvents.map((event) => {
               const phase = getPhaseForEvent(event.id);
               const config = EVENT_CONFIG[event.eventType];
               const targetPlayer = getTargetPlayer(event.targetPlayerId);
@@ -95,7 +103,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, home
                   className={phase ? `border-l-4 ${getPhaseColor(phase.phaseNumber)}` : ''}
                 >
                   {/* Time in mm:ss format */}
-                  <TableCell className="font-mono text-xs">{index + 1}</TableCell>
+                  <TableCell className="font-mono text-xs">{eventIndexMap.get(event.id)}</TableCell>
                   <TableCell className="font-mono text-xs">
                     {String(event.minute).padStart(2, '0')}:{String(event.seconds ?? 0).padStart(2, '0')}
                   </TableCell>
