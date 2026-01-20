@@ -104,7 +104,7 @@ export const EVENT_CONFIG: Record<EventType, {
   foul_won: { label: 'Foul Won', requiresEndPosition: false, category: 'defensive' },
   carry: { label: 'Carry', requiresEndPosition: true, category: 'movement' },
   dribble: { label: 'Dribble', requiresEndPosition: true, category: 'movement' },
-  clearance: { label: 'Clearance', requiresEndPosition: false, category: 'defensive' },
+  clearance: { label: 'Clearance', requiresEndPosition: true, category: 'defensive' },
   aerial_duel: { label: 'Aerial Duel', requiresEndPosition: false, category: 'defensive' },
   save: { label: 'Save', requiresEndPosition: false, category: 'defensive' },
   cross: { label: 'Cross', requiresEndPosition: true, category: 'passing' },
@@ -132,7 +132,7 @@ export const EVENTS_WITH_TARGET_PLAYER: EventType[] = [
 
 // Events where the ball moves to the end position (for ball tracking)
 export const BALL_MOVEMENT_EVENTS: EventType[] = [
-  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'throw_in', 'penalty_area_pass', 'run_in_behind', 'overlap'
+  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'throw_in', 'penalty_area_pass', 'run_in_behind', 'overlap', 'clearance'
 ];
 
 // Events where the player has the ball at start position
