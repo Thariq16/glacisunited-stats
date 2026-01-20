@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ArrowRight,
   Target,
@@ -89,18 +88,18 @@ export function EventTypeSelector({ selectedEventType, onSelect }: EventTypeSele
           <Button
             variant={isSelected ? 'default' : 'outline'}
             size="sm"
-            className={`flex items-center gap-1.5 h-auto py-1.5 px-2 text-xs justify-start ${
+            className={`inline-flex items-center gap-1 h-7 py-1 px-2 text-xs ${
               isSelected ? '' : 'hover:bg-accent'
             }`}
             onClick={() => onSelect(eventType)}
           >
-            <Icon className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="text-[11px] leading-tight text-left whitespace-normal break-words">
+            <Icon className="h-3 w-3 flex-shrink-0" />
+            <span className="text-[11px] leading-none whitespace-nowrap">
               {config.label}
             </span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="left">
+        <TooltipContent side="top">
           <p className="font-medium">{config.label}</p>
           <p className="text-xs text-muted-foreground">
             {config.requiresEndPosition ? 'Start + end position' : 'Single position'}
@@ -111,22 +110,20 @@ export function EventTypeSelector({ selectedEventType, onSelect }: EventTypeSele
   };
 
   return (
-    <ScrollArea className="h-[400px] pr-3">
-      <div className="space-y-3">
-        {CATEGORY_ORDER.map((category) => {
-          const config = EVENT_CATEGORIES[category];
-          return (
-            <div key={category}>
-              <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 sticky top-0 bg-background py-0.5">
-                {config.label}
-              </h4>
-              <div className="grid grid-cols-2 gap-1">
-                {config.events.map(renderEventButton)}
-              </div>
+    <div className="space-y-3">
+      {CATEGORY_ORDER.map((category) => {
+        const config = EVENT_CATEGORIES[category];
+        return (
+          <div key={category}>
+            <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+              {config.label}
+            </h4>
+            <div className="flex flex-wrap gap-1">
+              {config.events.map(renderEventButton)}
             </div>
-          );
-        })}
-      </div>
-    </ScrollArea>
+          </div>
+        );
+      })}
+    </div>
   );
 }
