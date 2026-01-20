@@ -17,9 +17,12 @@ interface EventListProps {
   players?: Array<{ id: string; name: string; jersey_number: number }>;
   onDelete: (eventId: string) => void;
   onEdit: (eventId: string) => void;
+  homeTeamName?: string;
+  awayTeamName?: string;
+  homeTeamId?: string;
 }
 
-export function EventList({ events, phases, players = [], onDelete, onEdit }: EventListProps) {
+export function EventList({ events, phases, players = [], onDelete, onEdit, homeTeamName, awayTeamName, homeTeamId }: EventListProps) {
   if (events.length === 0) {
     return (
       <div className="border rounded-lg p-8 text-center text-muted-foreground">
@@ -58,6 +61,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit }: Ev
             <TableRow>
               <TableHead className="w-12">#</TableHead>
               <TableHead className="w-16">Min</TableHead>
+              <TableHead>Team</TableHead>
               <TableHead>Player</TableHead>
               <TableHead>Event</TableHead>
               <TableHead>Receiver</TableHead>
@@ -73,6 +77,10 @@ export function EventList({ events, phases, players = [], onDelete, onEdit }: Ev
               const config = EVENT_CONFIG[event.eventType];
               const targetPlayer = getTargetPlayer(event.targetPlayerId);
               const showReceiver = EVENTS_WITH_TARGET_PLAYER.includes(event.eventType);
+              
+              // Determine team name based on event's teamId
+              const isHomeTeam = event.teamId === homeTeamId;
+              const teamName = isHomeTeam ? homeTeamName : awayTeamName;
 
               return (
                 <TableRow
@@ -81,6 +89,11 @@ export function EventList({ events, phases, players = [], onDelete, onEdit }: Ev
                 >
                   <TableCell className="font-mono text-xs">{index + 1}</TableCell>
                   <TableCell className="font-mono text-xs">{event.minute}'</TableCell>
+                  <TableCell className="text-sm">
+                    <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isHomeTeam ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
+                      {teamName || (isHomeTeam ? 'Home' : 'Away')}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-sm">
                     <span className="font-medium">#{event.jerseyNumber}</span>{' '}
                     <span className="text-muted-foreground">
