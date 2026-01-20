@@ -24,7 +24,8 @@ export type EventType =
   | 'substitution'
   | 'yellow_card'
   | 'red_card'
-  | 'penalty';
+  | 'penalty'
+  | 'offside';
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
@@ -120,6 +121,7 @@ export const EVENT_CONFIG: Record<EventType, {
   yellow_card: { label: 'Yellow Card', requiresEndPosition: false, category: 'without_ball' },
   red_card: { label: 'Red Card', requiresEndPosition: false, category: 'without_ball' },
   penalty: { label: 'Penalty', requiresEndPosition: false, category: 'set_piece' },
+  offside: { label: 'Offside', requiresEndPosition: false, category: 'movement' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
