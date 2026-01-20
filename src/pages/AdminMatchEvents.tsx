@@ -73,7 +73,8 @@ function AdminMatchEventsContent() {
         .select(`
           *,
           player:players!match_events_player_id_fkey(id, name, jersey_number, team_id),
-          substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number)
+          substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number),
+          target:players!match_events_target_player_id_fkey(id, name, jersey_number)
         `)
         .eq('match_id', matchId)
         .order('created_at', { ascending: true });
@@ -122,7 +123,7 @@ function AdminMatchEventsContent() {
     position: Position;
   } | null>(null);
 
-  // Transform saved events to LocalEvent format
+  // Transform saved events to LocalEvent format and cache to sessionStorage
   useEffect(() => {
     if (savedEvents.length > 0) {
       const localEvents: LocalEvent[] = savedEvents.map((e: any) => ({
@@ -140,6 +141,8 @@ function AdminMatchEventsContent() {
         shotOutcome: e.shot_outcome as ShotOutcome | undefined,
         aerialOutcome: e.aerial_outcome as AerialOutcome | undefined,
         targetPlayerId: e.target_player_id,
+        targetPlayerName: e.target?.name,
+        targetJerseyNumber: e.target?.jersey_number,
         substitutePlayerId: e.substitute_player_id,
         substitutePlayerName: e.substitute?.name,
         substituteJerseyNumber: e.substitute?.jersey_number,
@@ -149,8 +152,13 @@ function AdminMatchEventsContent() {
         phaseId: e.phase_id,
       }));
       setEvents(localEvents);
+      
+      // Cache events to sessionStorage for faster access on reload
+      if (matchId) {
+        sessionStorage.setItem(`match-${matchId}-events`, JSON.stringify(localEvents));
+      }
     }
-  }, [savedEvents]);
+  }, [savedEvents, matchId]);
 
   // Initialize direction state from match data and check if already confirmed
   useEffect(() => {

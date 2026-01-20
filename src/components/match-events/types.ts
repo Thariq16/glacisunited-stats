@@ -50,6 +50,8 @@ export interface LocalEvent {
   shotOutcome?: ShotOutcome;
   aerialOutcome?: AerialOutcome;
   targetPlayerId?: string;
+  targetPlayerName?: string;
+  targetJerseyNumber?: number;
   substitutePlayerId?: string;
   substitutePlayerName?: string;
   substituteJerseyNumber?: number;

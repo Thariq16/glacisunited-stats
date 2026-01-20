@@ -23,6 +23,13 @@ interface EventListProps {
 }
 
 export function EventList({ events, phases, players = [], onDelete, onEdit, homeTeamName, awayTeamName, homeTeamId }: EventListProps) {
+  // Sort events by match time (minute + seconds) descending - newest first
+  const sortedEvents = [...events].sort((a, b) => {
+    const timeA = a.minute * 60 + (a.seconds ?? 0);
+    const timeB = b.minute * 60 + (b.seconds ?? 0);
+    return timeB - timeA; // Descending order
+  });
+
   if (events.length === 0) {
     return (
       <div className="border rounded-lg p-8 text-center text-muted-foreground">
@@ -72,7 +79,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, home
             </TableRow>
           </TableHeader>
           <TableBody>
-            {events.map((event, index) => {
+            {sortedEvents.map((event, index) => {
               const phase = getPhaseForEvent(event.id);
               const config = EVENT_CONFIG[event.eventType];
               const targetPlayer = getTargetPlayer(event.targetPlayerId);
