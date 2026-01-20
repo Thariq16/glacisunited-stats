@@ -1133,6 +1133,10 @@ function AdminMatchEventsContent() {
               />
             </div>
           </div>
+
+          <div className="ml-auto">
+            <KeyboardShortcuts />
+          </div>
         </div>
 
         {/* Main content grid */}
@@ -1232,14 +1236,12 @@ function AdminMatchEventsContent() {
             )}
           </div>
 
-          {/* Right sidebar */}
-          <div className="space-y-4">
+          {/* Right sidebar - Event Types */}
+          <div>
             <EventTypeSelector
               selectedEventType={selectedEventType}
               onSelect={setSelectedEventType}
             />
-
-            <KeyboardShortcuts />
           </div>
         </div>
 
