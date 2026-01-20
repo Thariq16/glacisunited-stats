@@ -17,7 +17,7 @@ import { PitchDiagram } from '@/components/match-events/PitchDiagram';
 import { EventTypeSelector } from '@/components/match-events/EventTypeSelector';
 import { PlayerSelector } from '@/components/match-events/PlayerSelector';
 import { EventModifiers } from '@/components/match-events/EventModifiers';
-import { PhaseControls } from '@/components/match-events/PhaseControls';
+// PhaseControls removed - phases are now created by selecting events in EventList
 import { EventList } from '@/components/match-events/EventList';
 import { KeyboardShortcuts } from '@/components/match-events/KeyboardShortcuts';
 import { PenaltyAreaSuggestion } from '@/components/match-events/PenaltyAreaSuggestion';
@@ -720,7 +720,41 @@ function AdminMatchEventsContent() {
     }
   }, [events, deleteEventMutation]);
 
-  // Phase controls
+  // Phase controls - now handled via event selection in EventList
+  const handleCreatePhase = useCallback(async (eventIds: string[], outcome: PhaseOutcome, teamId: string) => {
+    const phaseId = crypto.randomUUID();
+    const phaseNumber = phases.length + 1;
+    
+    // Update events in database with the phase_id
+    try {
+      const { error } = await supabase
+        .from('match_events')
+        .update({ phase_id: phaseId })
+        .in('id', eventIds);
+      
+      if (error) throw error;
+      
+      // Add to local phases state
+      const newPhase: Phase = {
+        id: phaseId,
+        phaseNumber,
+        half: selectedHalf,
+        outcome,
+        eventIds,
+      };
+      setPhases(prev => [...prev, newPhase]);
+      
+      // Refresh events to get updated phase_id
+      queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
+      
+      toast.success(`Phase #${phaseNumber} created: ${outcome.replace('_', ' ')}`);
+    } catch (error) {
+      console.error('Failed to create phase:', error);
+      toast.error('Failed to create phase');
+    }
+  }, [phases.length, selectedHalf, matchId, queryClient]);
+
+  // Legacy phase controls (kept for backwards compatibility)
   const handleStartPhase = useCallback(() => {
     const newPhase: Phase = {
       id: crypto.randomUUID(),
@@ -1194,12 +1228,28 @@ function AdminMatchEventsContent() {
               onSelect={setSelectedEventType}
             />
 
-            <PhaseControls
-              currentPhase={currentPhase}
-              phaseCount={phases.length}
-              onStartPhase={handleStartPhase}
-              onEndPhase={handleEndPhase}
-            />
+            {/* Phase summary */}
+            {phases.length > 0 && (
+              <div className="bg-accent/30 rounded-lg p-3">
+                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">
+                  Attacking Phases
+                </h3>
+                <div className="space-y-1">
+                  {phases.map(phase => (
+                    <div key={phase.id} className="text-sm flex justify-between">
+                      <span>Phase #{phase.phaseNumber}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                        phase.outcome === 'goal' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        phase.outcome === 'shot' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        {phase.outcome?.replace('_', ' ')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <KeyboardShortcuts />
           </div>
@@ -1216,6 +1266,7 @@ function AdminMatchEventsContent() {
             players={players}
             onDelete={handleDeleteEvent}
             onEdit={handleEditEvent}
+            onCreatePhase={handleCreatePhase}
             homeTeamName={matchData.home_team?.name}
             awayTeamName={matchData.away_team?.name}
             homeTeamId={matchData.home_team?.id}
