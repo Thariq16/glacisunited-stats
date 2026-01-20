@@ -27,6 +27,7 @@ import {
   Square,
   OctagonX,
   CircleDot,
+  UserX,
 } from 'lucide-react';
 import { EventType, EVENT_CONFIG } from './types';
 
@@ -62,6 +63,7 @@ const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>
   yellow_card: Square,
   red_card: OctagonX,
   penalty: CircleDot,
+  offside: UserX,
 };
 
 const BALL_EVENTS: EventType[] = [
@@ -88,6 +90,7 @@ const BALL_EVENTS: EventType[] = [
   'free_kick',
   'penalty',
   'penalty_area_entry',
+  'offside',
 ];
 
 const WITHOUT_BALL_EVENTS: EventType[] = [
