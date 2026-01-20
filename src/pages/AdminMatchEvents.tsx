@@ -21,6 +21,7 @@ import { EventModifiers } from '@/components/match-events/EventModifiers';
 import { EventList } from '@/components/match-events/EventList';
 import { KeyboardShortcuts } from '@/components/match-events/KeyboardShortcuts';
 import { PenaltyAreaSuggestion } from '@/components/match-events/PenaltyAreaSuggestion';
+import { PhaseStrip } from '@/components/match-events/PhaseStrip';
 import {
   EventType,
   ShotOutcome,
@@ -1204,6 +1205,16 @@ function AdminMatchEventsContent() {
                 className="mt-4"
               />
             )}
+
+            {/* Phase strip - horizontal scrollable */}
+            <PhaseStrip
+              phases={phases}
+              homeTeamName={matchData.home_team?.name}
+              awayTeamName={matchData.away_team?.name}
+              homeTeamId={matchData.home_team?.id}
+              events={events}
+            />
+
             {/* Suggested start position indicator */}
             {suggestedStartPosition && !startPosition && (
               <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2 text-sm">
@@ -1227,29 +1238,6 @@ function AdminMatchEventsContent() {
               selectedEventType={selectedEventType}
               onSelect={setSelectedEventType}
             />
-
-            {/* Phase summary */}
-            {phases.length > 0 && (
-              <div className="bg-accent/30 rounded-lg p-3">
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-2">
-                  Attacking Phases
-                </h3>
-                <div className="space-y-1">
-                  {phases.map(phase => (
-                    <div key={phase.id} className="text-sm flex justify-between">
-                      <span>Phase #{phase.phaseNumber}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        phase.outcome === 'goal' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        phase.outcome === 'shot' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                        {phase.outcome?.replace('_', ' ')}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             <KeyboardShortcuts />
           </div>

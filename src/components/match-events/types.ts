@@ -185,3 +185,33 @@ export interface BallTrailPoint {
   eventType: EventType;
   successful: boolean;
 }
+
+// Event category groupings for UI tabs
+export type EventCategory = 'passing' | 'movement' | 'shooting' | 'defensive' | 'set_piece' | 'without_ball';
+
+export const EVENT_CATEGORIES: Record<EventCategory, { label: string; events: EventType[] }> = {
+  passing: {
+    label: 'Passing',
+    events: ['pass', 'key_pass', 'assist', 'cross', 'penalty_area_pass'],
+  },
+  movement: {
+    label: 'Movement',
+    events: ['carry', 'dribble', 'run_in_behind', 'overlap', 'penalty_area_entry', 'offside'],
+  },
+  shooting: {
+    label: 'Shooting',
+    events: ['shot'],
+  },
+  defensive: {
+    label: 'Defensive',
+    events: ['tackle_won', 'tackle_not_won', 'block', 'clearance', 'aerial_duel', 'save', 'foul_committed', 'foul_won', 'defensive_error'],
+  },
+  set_piece: {
+    label: 'Set Piece',
+    events: ['corner', 'throw_in', 'free_kick', 'penalty', 'goal_kick', 'kick_off', 'goal_restart'],
+  },
+  without_ball: {
+    label: 'Other',
+    events: ['substitution', 'yellow_card', 'red_card'],
+  },
+};
