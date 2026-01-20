@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   ArrowRight,
   Target,
@@ -76,31 +75,9 @@ const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>
   block: ShieldOff,
 };
 
-const CATEGORY_ICONS: Record<EventCategory, React.ComponentType<{ className?: string }>> = {
-  passing: ArrowRight,
-  movement: MoveRight,
-  shooting: Target,
-  defensive: Shield,
-  set_piece: Flag,
-  without_ball: Circle,
-};
+const CATEGORY_ORDER: EventCategory[] = ['passing', 'movement', 'shooting', 'defensive', 'set_piece', 'without_ball'];
 
 export function EventTypeSelector({ selectedEventType, onSelect }: EventTypeSelectorProps) {
-  // Find which category contains the selected event, default to 'passing'
-  const findCategoryForEvent = (eventType: EventType | null): EventCategory => {
-    if (!eventType) return 'passing';
-    for (const [category, config] of Object.entries(EVENT_CATEGORIES)) {
-      if (config.events.includes(eventType)) {
-        return category as EventCategory;
-      }
-    }
-    return 'passing';
-  };
-
-  const [activeCategory, setActiveCategory] = useState<EventCategory>(
-    findCategoryForEvent(selectedEventType)
-  );
-
   const renderEventButton = (eventType: EventType) => {
     const config = EVENT_CONFIG[eventType];
     const Icon = EVENT_ICONS[eventType];
@@ -112,56 +89,44 @@ export function EventTypeSelector({ selectedEventType, onSelect }: EventTypeSele
           <Button
             variant={isSelected ? 'default' : 'outline'}
             size="sm"
-            className={`flex flex-col items-center gap-1 h-auto py-2 px-1 text-xs ${
+            className={`flex items-center gap-1.5 h-auto py-1.5 px-2 text-xs justify-start ${
               isSelected ? '' : 'hover:bg-accent'
             }`}
             onClick={() => onSelect(eventType)}
           >
-            <Icon className="h-4 w-4" />
-            <span className="text-[10px] leading-tight text-center truncate w-full">
+            <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="text-[11px] leading-tight text-left whitespace-normal break-words">
               {config.label}
             </span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="top">
+        <TooltipContent side="left">
           <p className="font-medium">{config.label}</p>
           <p className="text-xs text-muted-foreground">
-            {config.requiresEndPosition ? 'Requires start + end position' : 'Single position only'}
+            {config.requiresEndPosition ? 'Start + end position' : 'Single position'}
           </p>
         </TooltipContent>
       </Tooltip>
     );
   };
 
-  const categories = Object.entries(EVENT_CATEGORIES) as [EventCategory, typeof EVENT_CATEGORIES[EventCategory]][];
-
   return (
-    <div className="space-y-2">
-      <Tabs value={activeCategory} onValueChange={(v) => setActiveCategory(v as EventCategory)}>
-        <TabsList className="w-full grid grid-cols-6 h-auto p-1">
-          {categories.map(([category, config]) => {
-            const CategoryIcon = CATEGORY_ICONS[category];
-            return (
-              <TabsTrigger
-                key={category}
-                value={category}
-                className="flex flex-col gap-0.5 py-1.5 px-1 text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                <CategoryIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline truncate">{config.label}</span>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-
-        {categories.map(([category, config]) => (
-          <TabsContent key={category} value={category} className="mt-3">
-            <div className={`grid gap-2 ${config.events.length <= 3 ? 'grid-cols-3' : 'grid-cols-3 sm:grid-cols-4'}`}>
-              {config.events.map(renderEventButton)}
+    <ScrollArea className="h-[400px] pr-3">
+      <div className="space-y-3">
+        {CATEGORY_ORDER.map((category) => {
+          const config = EVENT_CATEGORIES[category];
+          return (
+            <div key={category}>
+              <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 sticky top-0 bg-background py-0.5">
+                {config.label}
+              </h4>
+              <div className="grid grid-cols-2 gap-1">
+                {config.events.map(renderEventButton)}
+              </div>
             </div>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 }
