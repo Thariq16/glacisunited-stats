@@ -71,7 +71,7 @@ function AdminMatchEventsContent() {
         .from('match_events')
         .select(`
           *,
-          player:players!match_events_player_id_fkey(id, name, jersey_number),
+          player:players!match_events_player_id_fkey(id, name, jersey_number, team_id),
           substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number)
         `)
         .eq('match_id', matchId)
@@ -120,6 +120,7 @@ function AdminMatchEventsContent() {
         playerId: e.player_id,
         playerName: e.player?.name || 'Unknown',
         jerseyNumber: e.player?.jersey_number || 0,
+        teamId: e.player?.team_id,
         eventType: e.event_type as EventType,
         x: Number(e.x),
         y: Number(e.y),
@@ -1119,6 +1120,9 @@ function AdminMatchEventsContent() {
             players={players}
             onDelete={handleDeleteEvent}
             onEdit={handleEditEvent}
+            homeTeamName={matchData.home_team?.name}
+            awayTeamName={matchData.away_team?.name}
+            homeTeamId={matchData.home_team?.id}
           />
         </div>
       </main>

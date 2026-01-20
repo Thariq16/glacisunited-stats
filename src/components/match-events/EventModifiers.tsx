@@ -4,10 +4,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EventType, ShotOutcome, AerialOutcome, EVENTS_WITH_UNSUCCESSFUL, EVENTS_WITH_TARGET_PLAYER, EVENT_CONFIG } from './types';
 
+import { Badge } from '@/components/ui/badge';
+
 interface Player {
   id: string;
   name: string;
   jersey_number: number;
+  status?: 'starting' | 'substitute';
 }
 
 interface EventModifiersProps {
@@ -131,7 +134,6 @@ export function EventModifiers({
         </div>
       )}
 
-      {/* Target player (for passes, key passes, assists, throw-ins, crosses) */}
       {showTargetPlayer && (
         <div className="space-y-2">
           <Label className="text-sm">
@@ -146,11 +148,21 @@ export function EventModifiers({
             </SelectTrigger>
             <SelectContent>
               {!isTargetRequired && <SelectItem value="none">No target specified</SelectItem>}
-              {players
-                .sort((a, b) => a.jersey_number - b.jersey_number)
+              {[...players]
+                .sort((a, b) => {
+                  // Starting XI first, then substitutes, then by jersey number
+                  if (a.status === 'starting' && b.status !== 'starting') return -1;
+                  if (a.status !== 'starting' && b.status === 'starting') return 1;
+                  return a.jersey_number - b.jersey_number;
+                })
                 .map((player) => (
                   <SelectItem key={player.id} value={player.id}>
-                    #{player.jersey_number} {player.name}
+                    <span className="flex items-center gap-2">
+                      <span>#{player.jersey_number} {player.name}</span>
+                      {player.status === 'substitute' && (
+                        <Badge variant="outline" className="text-[10px] h-4 px-1">SUB</Badge>
+                      )}
+                    </span>
                   </SelectItem>
                 ))}
             </SelectContent>
@@ -172,11 +184,21 @@ export function EventModifiers({
               <SelectValue placeholder="Select substitute" />
             </SelectTrigger>
             <SelectContent>
-              {substitutes
-                .sort((a, b) => a.jersey_number - b.jersey_number)
+              {[...substitutes]
+                .sort((a, b) => {
+                  // Starting XI first, then substitutes, then by jersey number
+                  if (a.status === 'starting' && b.status !== 'starting') return -1;
+                  if (a.status !== 'starting' && b.status === 'starting') return 1;
+                  return a.jersey_number - b.jersey_number;
+                })
                 .map((player) => (
                   <SelectItem key={player.id} value={player.id}>
-                    #{player.jersey_number} {player.name}
+                    <span className="flex items-center gap-2">
+                      <span>#{player.jersey_number} {player.name}</span>
+                      {player.status === 'substitute' && (
+                        <Badge variant="outline" className="text-[10px] h-4 px-1">SUB</Badge>
+                      )}
+                    </span>
                   </SelectItem>
                 ))}
             </SelectContent>

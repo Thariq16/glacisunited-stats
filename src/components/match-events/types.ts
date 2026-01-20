@@ -39,6 +39,7 @@ export interface LocalEvent {
   playerId: string;
   playerName: string;
   jerseyNumber: number;
+  teamId?: string;
   eventType: EventType;
   x: number;
   y: number;
