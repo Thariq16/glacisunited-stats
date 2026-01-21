@@ -560,7 +560,8 @@ function AdminMatchEventsContent() {
     playerId: string
   ) => {
     // Only check for ball movement events that could enter penalty area
-    const relevantEvents: EventType[] = ['carry', 'dribble', 'pass', 'key_pass', 'run_in_behind'];
+    // Cross is treated as a pass - if it ends in penalty area, suggest penalty area entry
+    const relevantEvents: EventType[] = ['carry', 'dribble', 'pass', 'key_pass', 'run_in_behind', 'cross'];
     if (!relevantEvents.includes(eventType)) return;
     if (!successful) return;
     if (endX === undefined || endY === undefined) return;
