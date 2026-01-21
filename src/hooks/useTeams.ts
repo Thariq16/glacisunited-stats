@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { PlayerStats } from '@/utils/parseCSV';
 import { MatchFilter } from './usePlayerStats';
+import { fetchAndAggregateEventsForTeam, createEmptyPlayerStats } from '@/utils/aggregateMatchEvents';
 
 export function useTeams() {
   return useQuery({
@@ -105,7 +106,7 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
       if (!team) return null;
 
       // Determine which match IDs to filter by
-      let matchIds: string[] | null = null;
+      let matchIds: string[] = [];
       
       if (isSpecificMatch) {
         matchIds = [matchFilter];
@@ -124,10 +125,17 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
         
         const { data: matches } = await matchesQuery;
         matchIds = matches?.map(m => m.id) || [];
+      } else {
+        // Get all matches for the team
+        const { data: matches } = await supabase
+          .from('matches')
+          .select('id')
+          .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`);
+        matchIds = matches?.map(m => m.id) || [];
       }
 
       // Get all players with their stats (excluding hidden players)
-      let playersQuery = supabase
+      const { data: playersData, error: playersError } = await supabase
         .from('players')
         .select(`
           id,
@@ -179,30 +187,69 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
         .eq('team_id', team.id)
         .eq('hidden', false);
 
-      const { data: playersData, error: playersError } = await playersQuery;
-
       if (playersError) throw playersError;
 
-      // Aggregate stats for each player (filtering by match IDs if needed)
-      const players: PlayerStats[] = (playersData || []).map((player: any) => {
-        let stats = player.player_match_stats || [];
-        
-        // Filter stats by match IDs if we have a filter
-        if (matchIds && matchIds.length > 0) {
-          stats = stats.filter((stat: any) => matchIds.includes(stat.match_id));
+      // Check if any player has legacy stats for the filtered matches
+      let hasLegacyStats = false;
+      (playersData || []).forEach((player: any) => {
+        const filteredStats = (player.player_match_stats || []).filter(
+          (stat: any) => matchIds.length === 0 || matchIds.includes(stat.match_id)
+        );
+        if (filteredStats.length > 0) {
+          hasLegacyStats = true;
         }
-        
-        const aggregated = aggregatePlayerStats(stats);
-        const percentages = calculatePercentages(aggregated);
+      });
 
-        return {
+      let players: PlayerStats[] = [];
+
+      if (hasLegacyStats) {
+        // Use legacy player_match_stats data
+        players = (playersData || []).map((player: any) => {
+          let stats = player.player_match_stats || [];
+          
+          // Filter stats by match IDs if we have a filter
+          if (matchIds.length > 0) {
+            stats = stats.filter((stat: any) => matchIds.includes(stat.match_id));
+          }
+          
+          const aggregated = aggregatePlayerStats(stats);
+          const percentages = calculatePercentages(aggregated);
+
+          return {
+            jerseyNumber: String(player.jersey_number),
+            playerName: player.name,
+            role: player.role || '',
+            ...aggregated,
+            ...percentages,
+          };
+        });
+      } else if (matchIds.length > 0) {
+        // Fallback: Aggregate from match_events
+        const eventsStatsMap = await fetchAndAggregateEventsForTeam(matchIds, team.id);
+        
+        // Merge event-based stats with player list
+        players = (playersData || []).map((player: any) => {
+          const eventStats = eventsStatsMap.get(player.id);
+          if (eventStats) {
+            return eventStats;
+          }
+          // Return empty stats for players with no events
+          return {
+            jerseyNumber: String(player.jersey_number),
+            playerName: player.name,
+            role: player.role || '',
+            ...createEmptyPlayerStats(String(player.jersey_number), player.name, player.role || ''),
+          };
+        });
+      } else {
+        // No matches, return empty stats
+        players = (playersData || []).map((player: any) => ({
           jerseyNumber: String(player.jersey_number),
           playerName: player.name,
           role: player.role || '',
-          ...aggregated,
-          ...percentages,
-        };
-      });
+          ...createEmptyPlayerStats(String(player.jersey_number), player.name, player.role || ''),
+        }));
+      }
 
       return {
         ...team,
@@ -233,7 +280,7 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', mat
       const teamsWithPlayers = await Promise.all(
         teams.map(async (team) => {
           // Determine which match IDs to filter by for this team
-          let matchIds: string[] | null = null;
+          let matchIds: string[] = [];
           
           if (isSpecificMatch) {
             matchIds = [matchFilter];
@@ -251,6 +298,12 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', mat
             }
             
             const { data: matches } = await matchesQuery;
+            matchIds = matches?.map(m => m.id) || [];
+          } else {
+            const { data: matches } = await supabase
+              .from('matches')
+              .select('id')
+              .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`);
             matchIds = matches?.map(m => m.id) || [];
           }
 
@@ -277,25 +330,62 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', mat
             .eq('team_id', team.id)
             .eq('hidden', false);
 
-          const players: PlayerStats[] = (playersData || []).map((player: any) => {
-            let stats = player.player_match_stats || [];
-            
-            // Filter stats by match IDs if we have a filter
-            if (matchIds && matchIds.length > 0) {
-              stats = stats.filter((stat: any) => matchIds.includes(stat.match_id));
+          // Check if we have legacy stats
+          let hasLegacyStats = false;
+          (playersData || []).forEach((player: any) => {
+            const filteredStats = (player.player_match_stats || []).filter(
+              (stat: any) => matchIds.length === 0 || matchIds.includes(stat.match_id)
+            );
+            if (filteredStats.length > 0) {
+              hasLegacyStats = true;
             }
-            
-            const aggregated = aggregatePlayerStats(stats);
-            const percentages = calculatePercentages(aggregated);
+          });
 
-            return {
+          let players: PlayerStats[];
+
+          if (hasLegacyStats) {
+            players = (playersData || []).map((player: any) => {
+              let stats = player.player_match_stats || [];
+              
+              if (matchIds.length > 0) {
+                stats = stats.filter((stat: any) => matchIds.includes(stat.match_id));
+              }
+              
+              const aggregated = aggregatePlayerStats(stats);
+              const percentages = calculatePercentages(aggregated);
+
+              return {
+                jerseyNumber: String(player.jersey_number),
+                playerName: player.name,
+                role: player.role || '',
+                ...aggregated,
+                ...percentages,
+              };
+            });
+          } else if (matchIds.length > 0) {
+            // Fallback to match_events
+            const eventsStatsMap = await fetchAndAggregateEventsForTeam(matchIds, team.id);
+            
+            players = (playersData || []).map((player: any) => {
+              const eventStats = eventsStatsMap.get(player.id);
+              if (eventStats) {
+                return eventStats;
+              }
+              return {
+                jerseyNumber: String(player.jersey_number),
+                playerName: player.name,
+                role: player.role || '',
+                ...createEmptyPlayerStats(String(player.jersey_number), player.name, player.role || ''),
+              };
+            });
+          } else {
+            players = (playersData || []).map((player: any) => ({
               jerseyNumber: String(player.jersey_number),
               playerName: player.name,
               role: player.role || '',
-              ...aggregated,
-              ...percentages,
-            };
-          });
+              ...createEmptyPlayerStats(String(player.jersey_number), player.name, player.role || ''),
+            }));
+          }
 
           return { ...team, players };
         })
