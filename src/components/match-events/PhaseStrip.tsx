@@ -111,9 +111,9 @@ export function PhaseStrip({
         <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
           Attacking Phases ({phases.length})
         </h4>
-        <ScrollArea className="w-full whitespace-nowrap">
+        <ScrollArea className="w-full max-w-[520px] whitespace-nowrap">
           <div className="flex gap-2 pb-2">
-            {phases.map((phase) => {
+            {[...phases].reverse().map((phase) => {
               const team = getPhaseTeam(phase);
               const outcome = phase.outcome ? OUTCOME_CONFIG[phase.outcome] : null;
               const OutcomeIcon = outcome?.icon;
