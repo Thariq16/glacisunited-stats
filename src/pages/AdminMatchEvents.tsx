@@ -130,13 +130,17 @@ function AdminMatchEventsContent() {
   const [recentPlayerIds, setRecentPlayerIds] = useState<string[]>([]);
   const [notesOpen, setNotesOpen] = useState(false);
 
-  // Penalty area suggestion state
+  // Penalty area suggestion state - tracks both passer and receiver
   const [penaltyAreaSuggestion, setPenaltyAreaSuggestion] = useState<{
     visible: boolean;
-    playerId: string;
-    playerName: string;
-    jerseyNumber: number;
+    passerId: string;
+    passerName: string;
+    passerJerseyNumber: number;
+    receiverId: string | null;
+    receiverName: string | null;
+    receiverJerseyNumber: number | null;
     position: Position;
+    eventType: EventType; // To distinguish pass vs carry
   } | null>(null);
 
   // Transform saved events to LocalEvent format and cache to sessionStorage
@@ -557,10 +561,10 @@ function AdminMatchEventsContent() {
     endX: number | undefined,
     endY: number | undefined,
     successful: boolean,
-    playerId: string
+    playerId: string,
+    targetPlayerIdParam: string | null
   ) => {
     // Only check for ball movement events that could enter penalty area
-    // Cross is treated as a pass - if it ends in penalty area, suggest penalty area entry
     const relevantEvents: EventType[] = ['carry', 'dribble', 'pass', 'key_pass', 'run_in_behind', 'cross'];
     if (!relevantEvents.includes(eventType)) return;
     if (!successful) return;
@@ -571,15 +575,25 @@ function AdminMatchEventsContent() {
     const endedInside = isInOpponentPenaltyArea(endX, endY);
     
     if (startedOutside && endedInside) {
-      // Find the player to show in suggestion
-      const player = players.find(p => p.id === playerId);
-      if (player) {
+      // Find the passer
+      const passer = players.find(p => p.id === playerId);
+      // Find the receiver (if a target player was selected)
+      const receiver = targetPlayerIdParam ? players.find(p => p.id === targetPlayerIdParam) : null;
+      
+      // For carry/dribble, the passer is also the receiver (self-entry)
+      const isSelfEntry = ['carry', 'dribble'].includes(eventType);
+      
+      if (passer) {
         setPenaltyAreaSuggestion({
           visible: true,
-          playerId: player.id,
-          playerName: player.name,
-          jerseyNumber: player.jersey_number,
+          passerId: passer.id,
+          passerName: passer.name,
+          passerJerseyNumber: passer.jersey_number,
+          receiverId: isSelfEntry ? passer.id : (receiver?.id ?? null),
+          receiverName: isSelfEntry ? passer.name : (receiver?.name ?? null),
+          receiverJerseyNumber: isSelfEntry ? passer.jersey_number : (receiver?.jersey_number ?? null),
           position: { x: endX, y: endY },
+          eventType,
         });
       }
     }
@@ -679,7 +693,8 @@ function AdminMatchEventsContent() {
           endPosition.x,
           endPosition.y,
           true,
-          selectedPlayerId
+          selectedPlayerId,
+          targetPlayerId
         );
       }
 
@@ -1389,20 +1404,72 @@ function AdminMatchEventsContent() {
         {/* Penalty area entry suggestion */}
         <PenaltyAreaSuggestion
           isVisible={penaltyAreaSuggestion?.visible ?? false}
-          onAccept={() => {
-            if (penaltyAreaSuggestion) {
-              // Pre-fill the form for penalty area entry
-              setSelectedPlayerId(penaltyAreaSuggestion.playerId);
-              setSelectedEventType('penalty_area_entry');
-              setStartPosition(penaltyAreaSuggestion.position);
-              setEndPosition(null);
-              setPenaltyAreaSuggestion(null);
-              toast.info('Penalty Area Entry pre-filled - click Save to confirm');
+          onAccept={async () => {
+            if (penaltyAreaSuggestion && matchId) {
+              const isSelfEntry = ['carry', 'dribble'].includes(penaltyAreaSuggestion.eventType);
+              
+              try {
+                if (isSelfEntry) {
+                  // For carry/dribble, only log penalty_area_entry for the player
+                  await saveEventMutation.mutateAsync({
+                    match_id: matchId,
+                    player_id: penaltyAreaSuggestion.passerId,
+                    event_type: 'penalty_area_entry',
+                    half: selectedHalf,
+                    minute,
+                    seconds,
+                    x: penaltyAreaSuggestion.position.x,
+                    y: penaltyAreaSuggestion.position.y,
+                    successful: true,
+                  });
+                  toast.success('Penalty Area Entry logged');
+                } else {
+                  // For pass/cross, log penalty_area_pass for passer
+                  await saveEventMutation.mutateAsync({
+                    match_id: matchId,
+                    player_id: penaltyAreaSuggestion.passerId,
+                    event_type: 'penalty_area_pass',
+                    half: selectedHalf,
+                    minute,
+                    seconds,
+                    x: penaltyAreaSuggestion.position.x,
+                    y: penaltyAreaSuggestion.position.y,
+                    successful: true,
+                    target_player_id: penaltyAreaSuggestion.receiverId ?? undefined,
+                  });
+                  
+                  // Log penalty_area_entry for receiver (if exists)
+                  if (penaltyAreaSuggestion.receiverId) {
+                    await saveEventMutation.mutateAsync({
+                      match_id: matchId,
+                      player_id: penaltyAreaSuggestion.receiverId,
+                      event_type: 'penalty_area_entry',
+                      half: selectedHalf,
+                      minute,
+                      seconds,
+                      x: penaltyAreaSuggestion.position.x,
+                      y: penaltyAreaSuggestion.position.y,
+                      successful: true,
+                    });
+                    toast.success('Penalty Area Pass + Entry logged');
+                  } else {
+                    toast.success('Penalty Area Pass logged (no receiver selected)');
+                  }
+                }
+                
+                setPenaltyAreaSuggestion(null);
+              } catch (error) {
+                toast.error('Failed to log penalty area events');
+                console.error(error);
+              }
             }
           }}
           onDismiss={() => setPenaltyAreaSuggestion(null)}
-          playerName={penaltyAreaSuggestion?.playerName ?? ''}
-          jerseyNumber={penaltyAreaSuggestion?.jerseyNumber ?? 0}
+          passerName={penaltyAreaSuggestion?.passerName ?? ''}
+          passerJerseyNumber={penaltyAreaSuggestion?.passerJerseyNumber ?? 0}
+          receiverName={penaltyAreaSuggestion?.receiverName ?? null}
+          receiverJerseyNumber={penaltyAreaSuggestion?.receiverJerseyNumber ?? null}
+          isSelfEntry={penaltyAreaSuggestion ? ['carry', 'dribble'].includes(penaltyAreaSuggestion.eventType) : false}
         />
       </main>
     </div>
