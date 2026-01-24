@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight } from 'lucide-react';
+import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight, Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { PitchDiagram } from '@/components/match-events/PitchDiagram';
@@ -116,6 +116,10 @@ function AdminMatchEventsContent() {
   const [minute, setMinute] = useState(1);
   const [seconds, setSeconds] = useState(0);
   const [stickyPlayer, setStickyPlayer] = useState(false);
+  
+  // Chain mode and auto-advance settings
+  const [chainModeEnabled, setChainModeEnabled] = useState(false);
+  const autoAdvanceSeconds = 2; // Auto-advance time by 2 seconds per event
 
   // Direction setup state
   const [directionConfirmed, setDirectionConfirmed] = useState(false);
@@ -615,6 +619,28 @@ function AdminMatchEventsContent() {
     setSelectedEventType(null);
   }, [stickyPlayer]);
 
+  // Time adjustment helper
+  const adjustTime = useCallback((delta: number) => {
+    setSeconds(prev => {
+      let newSeconds = prev + delta;
+      let minuteChange = 0;
+      
+      while (newSeconds >= 60) {
+        newSeconds -= 60;
+        minuteChange++;
+      }
+      while (newSeconds < 0) {
+        newSeconds += 60;
+        minuteChange--;
+      }
+      
+      if (minuteChange !== 0) {
+        setMinute(m => Math.max(0, m + minuteChange));
+      }
+      return Math.max(0, newSeconds);
+    });
+  }, []);
+
   // Handle player selection
   const handlePlayerSelect = useCallback((playerId: string) => {
     setSelectedPlayerId(playerId);
@@ -685,18 +711,28 @@ function AdminMatchEventsContent() {
       });
 
       // Check for penalty area entry after saving
-      if (!isUnsuccessful && startPosition && endPosition) {
+      if (startPosition && endPosition) {
         checkPenaltyAreaEntry(
           selectedEventType!,
           startPosition.x,
           startPosition.y,
           endPosition.x,
           endPosition.y,
-          true,
+          !isUnsuccessful,
           selectedPlayerId,
           targetPlayerId
         );
       }
+
+      // Auto-advance time by configured seconds
+      setSeconds(prev => {
+        const newSeconds = prev + autoAdvanceSeconds;
+        if (newSeconds >= 60) {
+          setMinute(m => m + 1);
+          return newSeconds - 60;
+        }
+        return newSeconds;
+      });
 
       toast.success('Event saved');
       clearEvent();
@@ -724,6 +760,90 @@ function AdminMatchEventsContent() {
     clearEvent,
     saveEventMutation,
     checkPenaltyAreaEntry,
+    autoAdvanceSeconds,
+  ]);
+
+  // Chain Mode: save a pass from current ball position to clicked position
+  const saveChainPass = useCallback(async (endPos: Position) => {
+    if (!matchId || !selectedPlayerId) {
+      toast.error('Select a player first');
+      return;
+    }
+    
+    // Use current ball position, suggested position, or start position
+    const startPos = startPosition || suggestedStartPosition || { x: 50, y: 34 };
+    
+    try {
+      await saveEventMutation.mutateAsync({
+        match_id: matchId,
+        player_id: selectedPlayerId,
+        event_type: 'pass',
+        half: selectedHalf,
+        minute,
+        seconds,
+        x: startPos.x,
+        y: startPos.y,
+        end_x: endPos.x,
+        end_y: endPos.y,
+        successful: !isUnsuccessful,
+        target_player_id: targetPlayerId || undefined,
+        phase_id: currentPhase?.id,
+      });
+      
+      // Check for penalty area entry
+      checkPenaltyAreaEntry(
+        'pass',
+        startPos.x,
+        startPos.y,
+        endPos.x,
+        endPos.y,
+        !isUnsuccessful,
+        selectedPlayerId,
+        targetPlayerId
+      );
+      
+      // Update recent players
+      setRecentPlayerIds(prev => {
+        const filtered = prev.filter(id => id !== selectedPlayerId);
+        return [selectedPlayerId, ...filtered].slice(0, 5);
+      });
+      
+      // Set the end position as next start position for chaining
+      setStartPosition(endPos);
+      setEndPosition(null);
+      
+      // Auto-advance time
+      setSeconds(prev => {
+        const newSeconds = prev + autoAdvanceSeconds;
+        if (newSeconds >= 60) {
+          setMinute(m => m + 1);
+          return newSeconds - 60;
+        }
+        return newSeconds;
+      });
+      
+      // If target player was set, make them the new selected player
+      if (targetPlayerId) {
+        setSelectedPlayerId(targetPlayerId);
+        setRecentPlayerIds(prev => {
+          const filtered = prev.filter(id => id !== targetPlayerId);
+          return [targetPlayerId, ...filtered].slice(0, 5);
+        });
+        setTargetPlayerId(null);
+      }
+      
+      // Reset unsuccessful flag
+      setIsUnsuccessful(false);
+      
+      toast.success('Chain pass saved');
+    } catch (error) {
+      toast.error('Failed to save chain pass');
+      console.error(error);
+    }
+  }, [
+    matchId, selectedPlayerId, startPosition, suggestedStartPosition,
+    selectedHalf, minute, seconds, isUnsuccessful, targetPlayerId, currentPhase,
+    saveEventMutation, checkPenaltyAreaEntry, autoAdvanceSeconds
   ]);
 
   // Undo last event (delete from DB)
@@ -920,6 +1040,11 @@ function AdminMatchEventsContent() {
       }
 
       switch (e.key) {
+        case 'Tab':
+          e.preventDefault();
+          setSelectedTeamType(prev => prev === 'home' ? 'away' : 'home');
+          toast.info(`Switched to ${selectedTeamType === 'home' ? matchData?.away_team?.name : matchData?.home_team?.name}`);
+          break;
         case 'Escape':
           clearEvent();
           break;
@@ -935,6 +1060,63 @@ function AdminMatchEventsContent() {
         case 'u':
         case 'U':
           setIsUnsuccessful((prev) => !prev);
+          break;
+        case 'm':
+        case 'M':
+          setChainModeEnabled(prev => {
+            const newVal = !prev;
+            toast.info(newVal ? 'Chain Mode ON - click pitch to log passes' : 'Chain Mode OFF');
+            return newVal;
+          });
+          break;
+        case '+':
+        case '=':
+          adjustTime(15);
+          break;
+        case '-':
+        case '_':
+          adjustTime(-15);
+          break;
+        // Event type shortcuts
+        case 'q':
+        case 'Q':
+          setSelectedEventType('pass');
+          break;
+        case 'w':
+        case 'W':
+          setSelectedEventType('cross');
+          break;
+        case 'e':
+        case 'E':
+          setSelectedEventType('carry');
+          break;
+        case 'r':
+        case 'R':
+          setSelectedEventType('dribble');
+          break;
+        case 'd':
+        case 'D':
+          setSelectedEventType('tackle_won');
+          break;
+        case 'f':
+        case 'F':
+          setSelectedEventType('foul_won');
+          break;
+        case 'a':
+        case 'A':
+          setSelectedEventType('aerial_duel');
+          break;
+        case 'x':
+        case 'X':
+          setSelectedEventType('clearance');
+          break;
+        case 'c':
+        case 'C':
+          setSelectedEventType('corner');
+          break;
+        case 'h':
+        case 'H':
+          setSelectedEventType('shot');
           break;
         case 'p':
         case 'P':
@@ -999,6 +1181,9 @@ function AdminMatchEventsContent() {
     handlePlayerSelect,
     suggestedStartPosition,
     startPosition,
+    selectedTeamType,
+    matchData,
+    adjustTime,
   ]);
 
   // Compute effective attack direction for current half
@@ -1243,8 +1428,14 @@ function AdminMatchEventsContent() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => adjustTime(-15)} className="px-2">
+              -15s
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => adjustTime(-5)} className="px-2">
+              -5s
+            </Button>
+            <div className="flex items-center gap-1">
               <Label htmlFor="minute" className="text-sm">Min:</Label>
               <Input
                 id="minute"
@@ -1256,7 +1447,8 @@ function AdminMatchEventsContent() {
                 className="w-16"
               />
             </div>
-            <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">:</span>
+            <div className="flex items-center gap-1">
               <Label htmlFor="seconds" className="text-sm">Sec:</Label>
               <Input
                 id="seconds"
@@ -1268,7 +1460,29 @@ function AdminMatchEventsContent() {
                 className="w-16"
               />
             </div>
+            <Button variant="outline" size="sm" onClick={() => adjustTime(5)} className="px-2">
+              +5s
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => adjustTime(15)} className="px-2">
+              +15s
+            </Button>
           </div>
+
+          <Button
+            variant={chainModeEnabled ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setChainModeEnabled(prev => {
+                const newVal = !prev;
+                toast.info(newVal ? 'Chain Mode ON - click pitch to log passes' : 'Chain Mode OFF');
+                return newVal;
+              });
+            }}
+            className={chainModeEnabled ? 'bg-green-600 hover:bg-green-700' : ''}
+          >
+            <Link2 className="h-4 w-4 mr-1" />
+            Chain {chainModeEnabled ? 'ON' : 'OFF'}
+          </Button>
 
           <div className="ml-auto">
             <KeyboardShortcuts />
@@ -1334,6 +1548,8 @@ function AdminMatchEventsContent() {
                 awayTeamName: matchData.away_team?.name || 'Away',
                 currentHalf: selectedHalf,
               }}
+              chainModeEnabled={chainModeEnabled}
+              onChainClick={saveChainPass}
             />
             
             {/* Goal mouth diagram for shots */}

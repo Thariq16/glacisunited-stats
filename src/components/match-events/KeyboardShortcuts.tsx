@@ -3,6 +3,19 @@ import { Button } from '@/components/ui/button';
 import { Keyboard } from 'lucide-react';
 
 const SHORTCUTS = [
+  { keys: ['Q'], description: 'Pass' },
+  { keys: ['W'], description: 'Cross' },
+  { keys: ['E'], description: 'Carry' },
+  { keys: ['R'], description: 'Dribble' },
+  { keys: ['D'], description: 'Tackle Won' },
+  { keys: ['F'], description: 'Foul Won' },
+  { keys: ['A'], description: 'Aerial Duel' },
+  { keys: ['X'], description: 'Clearance' },
+  { keys: ['C'], description: 'Corner' },
+  { keys: ['H'], description: 'Shot' },
+  { keys: ['Tab'], description: 'Switch team' },
+  { keys: ['+/-'], description: 'Adjust time ±15s' },
+  { keys: ['M'], description: 'Toggle Chain Mode' },
   { keys: ['1-9'], description: 'Select recent player' },
   { keys: ['U'], description: 'Toggle Unsuccessful' },
   { keys: ['S'], description: 'Use suggested position' },
