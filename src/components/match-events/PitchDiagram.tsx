@@ -27,6 +27,9 @@ interface PitchDiagramProps {
   ballPosition?: BallPosition | null;
   ballTrail?: BallTrailPoint[];
   attackDirection?: AttackDirection;
+  // Chain mode support
+  chainModeEnabled?: boolean;
+  onChainClick?: (pos: Position) => void;
 }
 
 export function PitchDiagram({
@@ -39,6 +42,8 @@ export function PitchDiagram({
   ballPosition,
   ballTrail = [],
   attackDirection,
+  chainModeEnabled = false,
+  onChainClick,
 }: PitchDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverPosition, setHoverPosition] = useState<Position | null>(null);
@@ -60,12 +65,18 @@ export function PitchDiagram({
     const pos = getPositionFromEvent(e);
     if (!pos) return;
 
+    // Chain mode: clicking logs a pass from current position to clicked position
+    if (chainModeEnabled && onChainClick) {
+      onChainClick(pos);
+      return;
+    }
+
     if (!startPosition) {
       onStartClick(pos);
     } else if (requiresEndPosition && !endPosition) {
       onEndClick(pos);
     }
-  }, [startPosition, endPosition, requiresEndPosition, onStartClick, onEndClick, getPositionFromEvent]);
+  }, [startPosition, endPosition, requiresEndPosition, onStartClick, onEndClick, getPositionFromEvent, chainModeEnabled, onChainClick]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     const pos = getPositionFromEvent(e);
@@ -105,7 +116,9 @@ export function PitchDiagram({
 
       {/* Instructions */}
       <div className="absolute bottom-2 left-2 z-10 bg-background/90 px-2 py-1 rounded text-xs">
-        {!startPosition ? (
+        {chainModeEnabled ? (
+          <span className="text-green-600 font-medium">⚡ Chain Mode: Click to log pass</span>
+        ) : !startPosition ? (
           <span className="text-green-600">Click to set START position</span>
         ) : requiresEndPosition && !endPosition ? (
           <span className="text-red-600">Click to set END position</span>
