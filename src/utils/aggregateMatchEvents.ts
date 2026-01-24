@@ -40,13 +40,13 @@ function isInPenaltyArea(x: number, y: number): boolean {
 }
 
 // Events that count as passes for pass count
-const PASS_EVENTS = ['pass', 'key_pass', 'assist', 'cross', 'penalty_area_pass', 'long_ball', 'through_ball'];
+const PASS_EVENTS = ['pass', 'key_pass', 'assist', 'cross', 'penalty_area_pass', 'long_ball', 'through_ball', 'throw_in'];
 
 // Events that should not be counted as passes
 const NON_PASS_EVENTS = ['shot', 'goal', 'tackle', 'tackle_won', 'interception', 'clearance', 'save', 
   'foul_committed', 'foul_won', 'card', 'aerial_duel', 'block', 'offside', 'run_in_behind', 
   'overlap', 'carry', 'dribble', 'defensive_error', 'substitution', 'penalty_area_entry',
-  'corner', 'throw_in', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'cut_back'];
+  'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'cut_back'];
 
 export function aggregateEventsToPlayerStats(
   events: MatchEvent[],
@@ -187,8 +187,15 @@ export function aggregateEventsToPlayerStats(
 
       case 'throw_in':
         stats.throwIns++;
-        if (successful) stats.tiSuccess++;
-        else stats.tiFailed++;
+        stats.passCount++;
+        if (successful) {
+          stats.tiSuccess++;
+          stats.successfulPass++;
+          stats.forwardPass++;
+        } else {
+          stats.tiFailed++;
+          stats.missPass++;
+        }
         break;
 
       case 'free_kick':
