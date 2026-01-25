@@ -53,10 +53,9 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, onCr
   });
   const eventIndexMap = new Map(chronologicalEvents.map((e, idx) => [e.id, idx + 1]));
 
-  // Helper to format time with half context (2nd half shows 45+ minutes)
-  const formatMatchTime = (half: number, minute: number, seconds: number) => {
-    const displayMinute = half === 2 ? minute + 45 : minute;
-    return `${String(displayMinute).padStart(2, '0')}:${String(seconds ?? 0).padStart(2, '0')}`;
+  // Helper to format time - minutes are stored as actual match time (2nd half starts at 45+)
+  const formatMatchTime = (minute: number, seconds: number) => {
+    return `${String(minute).padStart(2, '0')}:${String(seconds ?? 0).padStart(2, '0')}`;
   };
 
   // Group events by half for visual separation
@@ -250,7 +249,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, onCr
                         </span>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {formatMatchTime(event.half, event.minute, event.seconds ?? 0)}
+                        {formatMatchTime(event.minute, event.seconds ?? 0)}
                       </TableCell>
                       <TableCell className="text-sm">
                         <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isHomeTeam ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
@@ -346,7 +345,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, onCr
                         </span>
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {formatMatchTime(event.half, event.minute, event.seconds ?? 0)}
+                        {formatMatchTime(event.minute, event.seconds ?? 0)}
                       </TableCell>
                       <TableCell className="text-sm">
                         <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isHomeTeam ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
