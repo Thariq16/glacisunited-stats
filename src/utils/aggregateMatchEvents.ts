@@ -303,34 +303,57 @@ export function createEmptyPlayerStats(
   };
 }
 
+// Helper to fetch all events with pagination (Supabase limits to 1000 per request)
+async function fetchAllMatchEvents(matchId: string): Promise<any[]> {
+  const PAGE_SIZE = 1000;
+  let allEvents: any[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data: events, error } = await supabase
+      .from('match_events')
+      .select(`
+        id,
+        player_id,
+        event_type,
+        x,
+        y,
+        end_x,
+        end_y,
+        successful,
+        shot_outcome,
+        aerial_outcome,
+        half,
+        minute,
+        seconds,
+        player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
+      `)
+      .eq('match_id', matchId)
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) throw error;
+    
+    if (events && events.length > 0) {
+      allEvents = [...allEvents, ...events];
+      offset += events.length;
+      hasMore = events.length === PAGE_SIZE;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allEvents;
+}
+
 // Fetch match events and aggregate for a specific match
 export async function fetchAndAggregateMatchEvents(
   matchId: string,
   homeTeamId?: string,
   awayTeamId?: string
 ): Promise<{ homePlayers: PlayerStats[]; awayPlayers: PlayerStats[]; homeGoals: number; awayGoals: number }> {
-  const { data: events, error } = await supabase
-    .from('match_events')
-    .select(`
-      id,
-      player_id,
-      event_type,
-      x,
-      y,
-      end_x,
-      end_y,
-      successful,
-      shot_outcome,
-      aerial_outcome,
-      half,
-      minute,
-      seconds,
-      player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
-    `)
-    .eq('match_id', matchId)
-    .limit(10000);
+  const events = await fetchAllMatchEvents(matchId);
 
-  if (error) throw error;
   if (!events || events.length === 0) {
     return { homePlayers: [], awayPlayers: [], homeGoals: 0, awayGoals: 0 };
   }
@@ -358,6 +381,49 @@ export async function fetchAndAggregateMatchEvents(
   };
 }
 
+// Helper to fetch all events for multiple matches with pagination
+async function fetchAllEventsForMatches(matchIds: string[]): Promise<any[]> {
+  const PAGE_SIZE = 1000;
+  let allEvents: any[] = [];
+  let offset = 0;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data: events, error } = await supabase
+      .from('match_events')
+      .select(`
+        id,
+        player_id,
+        event_type,
+        x,
+        y,
+        end_x,
+        end_y,
+        successful,
+        shot_outcome,
+        aerial_outcome,
+        half,
+        minute,
+        seconds,
+        player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
+      `)
+      .in('match_id', matchIds)
+      .range(offset, offset + PAGE_SIZE - 1);
+
+    if (error) throw error;
+    
+    if (events && events.length > 0) {
+      allEvents = [...allEvents, ...events];
+      offset += events.length;
+      hasMore = events.length === PAGE_SIZE;
+    } else {
+      hasMore = false;
+    }
+  }
+
+  return allEvents;
+}
+
 // Fetch and aggregate events for multiple matches for a specific team
 export async function fetchAndAggregateEventsForTeam(
   matchIds: string[],
@@ -365,28 +431,8 @@ export async function fetchAndAggregateEventsForTeam(
 ): Promise<Map<string, PlayerStats>> {
   if (matchIds.length === 0) return new Map();
 
-  const { data: events, error } = await supabase
-    .from('match_events')
-    .select(`
-      id,
-      player_id,
-      event_type,
-      x,
-      y,
-      end_x,
-      end_y,
-      successful,
-      shot_outcome,
-      aerial_outcome,
-      half,
-      minute,
-      seconds,
-      player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
-    `)
-    .in('match_id', matchIds)
-    .limit(10000);
+  const events = await fetchAllEventsForMatches(matchIds);
 
-  if (error) throw error;
   if (!events || events.length === 0) return new Map();
 
   // Filter to only team's events
