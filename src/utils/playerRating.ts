@@ -1,4 +1,5 @@
 import { PlayerStats } from './parseCSV';
+import { PlayerXGStats } from './xGCalculation';
 
 /**
  * Player Rating System
@@ -6,6 +7,7 @@ import { PlayerStats } from './parseCSV';
  * Provides a unified, normalized 1-10 rating system with:
  * - Per-90 minute normalization for fair comparison between starters and substitutes
  * - Position-based weighting for role-appropriate evaluation
+ * - xG integration for more accurate attacking ratings
  * - Detailed component breakdown for transparency
  */
 
@@ -26,12 +28,20 @@ export interface Per90Stats {
   aerialWinsP90: number;
 }
 
+export interface XGRatingInfo {
+  totalXG: number;
+  actualGoals: number;
+  overperformance: number;
+  xGContribution: number; // How much xG affected the rating
+}
+
 export interface PlayerRatingResult {
   overall: number;
   components: RatingComponents;
   minutesPlayed: number;
   minutesAdjustment: number;
   per90Stats: Per90Stats;
+  xgInfo?: XGRatingInfo;
 }
 
 // Minimum minutes to calculate a meaningful rating
@@ -81,7 +91,13 @@ function calculatePassingScore(player: PlayerStats, minutes: number): number {
 }
 
 // Calculate attacking component score
-function calculateAttackingScore(player: PlayerStats, minutes: number, positionGroup: string): number {
+// Now supports xG data for more accurate ratings
+function calculateAttackingScore(
+  player: PlayerStats, 
+  minutes: number, 
+  positionGroup: string,
+  xgStats?: PlayerXGStats
+): { score: number; xgContribution: number } {
   const goalsP90 = normalizePer90(player.goals, minutes);
   const shotsOnTargetP90 = normalizePer90(player.shotsOnTarget, minutes);
   const penaltyAreaEntryP90 = normalizePer90(player.penaltyAreaEntry, minutes);
@@ -89,24 +105,43 @@ function calculateAttackingScore(player: PlayerStats, minutes: number, positionG
   const runsInBehindP90 = normalizePer90(player.runInBehind, minutes);
   
   let rawScore: number;
+  let xgContribution = 0;
   
-  if (positionGroup === 'FWD') {
-    // Forwards expected to contribute more offensively
-    rawScore = (goalsP90 * 8) + (shotsOnTargetP90 * 3) + (penaltyAreaEntryP90 * 2) + (cutBacksP90 * 1.5) + (runsInBehindP90 * 2);
-  } else if (positionGroup === 'MID') {
-    // Midfielders balance attacking with creation
-    rawScore = (goalsP90 * 10) + (shotsOnTargetP90 * 2) + (penaltyAreaEntryP90 * 3) + (cutBacksP90 * 2);
-  } else if (positionGroup === 'DEF' || positionGroup === 'GK') {
-    // Defenders/GKs not expected to attack much
-    rawScore = (goalsP90 * 15) + (shotsOnTargetP90 * 3) + (penaltyAreaEntryP90 * 2);
-  } else {
-    rawScore = (goalsP90 * 10) + (shotsOnTargetP90 * 2.5) + (penaltyAreaEntryP90 * 2) + (cutBacksP90 * 1.5);
+  // If we have xG data, use it to enhance the attacking rating
+  if (xgStats && xgStats.shotCount > 0) {
+    // xG overperformance bonus/penalty (scoring more/less than expected)
+    // Normalize overperformance to a -2 to +2 scale
+    const overperformanceBonus = Math.max(-2, Math.min(2, xgStats.overperformance));
+    
+    // xG quality bonus (taking good chances)
+    const xgQualityBonus = xgStats.xGPerShot > 0.15 ? 1 : xgStats.xGPerShot > 0.1 ? 0.5 : 0;
+    
+    // Volume bonus (creating/taking chances)
+    const xgVolumeP90 = normalizePer90(xgStats.totalXG, minutes);
+    
+    xgContribution = overperformanceBonus + xgQualityBonus + xgVolumeP90;
   }
   
-  // Scale baselines based on position expectations
+  if (positionGroup === 'FWD') {
+    rawScore = (goalsP90 * 8) + (shotsOnTargetP90 * 3) + (penaltyAreaEntryP90 * 2) + (cutBacksP90 * 1.5) + (runsInBehindP90 * 2);
+    rawScore += xgContribution * 1.5; // xG matters most for forwards
+  } else if (positionGroup === 'MID') {
+    rawScore = (goalsP90 * 10) + (shotsOnTargetP90 * 2) + (penaltyAreaEntryP90 * 3) + (cutBacksP90 * 2);
+    rawScore += xgContribution * 1.0;
+  } else if (positionGroup === 'DEF' || positionGroup === 'GK') {
+    rawScore = (goalsP90 * 15) + (shotsOnTargetP90 * 3) + (penaltyAreaEntryP90 * 2);
+    rawScore += xgContribution * 0.5; // xG less important for defenders
+  } else {
+    rawScore = (goalsP90 * 10) + (shotsOnTargetP90 * 2.5) + (penaltyAreaEntryP90 * 2) + (cutBacksP90 * 1.5);
+    rawScore += xgContribution * 1.0;
+  }
+  
   const baseline = positionGroup === 'FWD' ? 3 : positionGroup === 'MID' ? 2 : 0.5;
   
-  return normalizeToScale(rawScore, baseline, baseline * 2 + 1);
+  return {
+    score: normalizeToScale(rawScore, baseline, baseline * 2 + 1),
+    xgContribution: Math.round(xgContribution * 100) / 100,
+  };
 }
 
 // Calculate defending component score
@@ -172,16 +207,22 @@ function getMinutesAdjustment(minutesPlayed: number, matchDuration: number = 90)
  * 
  * @param player - Player statistics object
  * @param matchDuration - Duration of match in minutes (default 90)
+ * @param xgStats - Optional xG statistics for more accurate attacking rating
  * @returns PlayerRatingResult with overall rating, components, and per-90 stats
  */
-export function calculatePlayerRating(player: PlayerStats, matchDuration: number = 90): PlayerRatingResult {
+export function calculatePlayerRating(
+  player: PlayerStats, 
+  matchDuration: number = 90,
+  xgStats?: PlayerXGStats
+): PlayerRatingResult {
   const minutes = Math.max(player.minutesPlayed, MIN_MINUTES_THRESHOLD);
   const positionGroup = detectPositionGroup(player.role);
   const minutesAdjustment = getMinutesAdjustment(player.minutesPlayed, matchDuration);
   
   // Calculate component scores
   const passingScore = calculatePassingScore(player, minutes);
-  const attackingScore = calculateAttackingScore(player, minutes, positionGroup);
+  const attackingResult = calculateAttackingScore(player, minutes, positionGroup, xgStats);
+  const attackingScore = attackingResult.score;
   const defendingScore = calculateDefendingScore(player, minutes, positionGroup);
   const disciplineScore = calculateDisciplineScore(player, minutes);
   
@@ -227,6 +268,17 @@ export function calculatePlayerRating(player: PlayerStats, matchDuration: number
     aerialWinsP90: Math.round(normalizePer90(player.aerialDuelsWon, minutes) * 10) / 10,
   };
   
+  // Build xG info if available
+  let xgInfo: XGRatingInfo | undefined;
+  if (xgStats && xgStats.shotCount > 0) {
+    xgInfo = {
+      totalXG: xgStats.totalXG,
+      actualGoals: xgStats.actualGoals,
+      overperformance: xgStats.overperformance,
+      xGContribution: attackingResult.xgContribution,
+    };
+  }
+  
   return {
     overall: Math.round(overall * 10) / 10,
     components: {
@@ -238,6 +290,7 @@ export function calculatePlayerRating(player: PlayerStats, matchDuration: number
     minutesPlayed: player.minutesPlayed,
     minutesAdjustment,
     per90Stats,
+    xgInfo,
   };
 }
 
