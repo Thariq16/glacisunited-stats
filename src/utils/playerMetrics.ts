@@ -66,12 +66,11 @@ export function calculateAdvancedMetrics(player: PlayerStats): AdvancedMetrics {
     ? player.foulWon / player.fouls
     : player.foulWon;
 
-  // Calculate position-based performance rating
-  const passAccuracy = player.passCount > 0 
-    ? (player.successfulPass / player.passCount) * 100 
-    : 0;
-  
-  const performanceRating = calculatePerformanceRating(player, passAccuracy);
+  // Use the unified player rating system for performance rating
+  // Import dynamically to avoid circular dependencies
+  const { calculatePlayerRating } = require('./playerRating');
+  const ratingResult = calculatePlayerRating(player);
+  const performanceRating = ratingResult.overall;
 
   return {
     shotConversionRate: Math.round(shotConversionRate * 10) / 10,
@@ -89,62 +88,7 @@ export function calculateAdvancedMetrics(player: PlayerStats): AdvancedMetrics {
   };
 }
 
-function calculatePerformanceRating(player: PlayerStats, passAccuracy: number): number {
-  const role = player.role?.toUpperCase() || '';
-  
-  if (role.includes('GK')) {
-    // Goalkeeper rating
-    return (
-      (player.saves * 3) +
-      (passAccuracy * 0.3) -
-      (player.defensiveErrors * 5) +
-      (player.successfulPass * 0.5)
-    ) / 5;
-  } else if (role.includes('CB') || role.includes('LB') || role.includes('RB') || role === 'DEFENSE') {
-    // Defender rating
-    return (
-      (player.tackles * 2) +
-      (player.clearance * 1.5) +
-      (player.aerialDuelsWon * 2) +
-      (passAccuracy * 0.4) -
-      (player.defensiveErrors * 5) -
-      (player.fouls * 0.5)
-    ) / 6;
-  } else if (role.includes('CM') || role.includes('CAM') || role === 'MIDFIELD') {
-    // Midfielder rating
-    return (
-      (passAccuracy * 0.5) +
-      (player.forwardPass * 0.3) +
-      (player.penaltyAreaPass * 2) +
-      (player.tackles * 1.5) +
-      (player.goals * 5) +
-      (player.shotsOnTarget * 1.5) -
-      (player.fouls * 0.3)
-    ) / 7;
-  } else if (role.includes('FW') || role.includes('LW') || role.includes('RW') || role === 'FORWARD' || role.includes('CF')) {
-    // Forward/Winger rating
-    return (
-      (player.goals * 8) +
-      (player.shotsOnTarget * 2) +
-      (player.penaltyAreaEntry * 2) +
-      (player.cutBacks * 1.5) +
-      (player.crosses * 1) +
-      (player.runInBehind * 2) +
-      (player.overlaps * 1.5) +
-      (passAccuracy * 0.3) -
-      (player.offside * 0.5)
-    ) / 10;
-  } else {
-    // General player rating
-    return (
-      (passAccuracy * 0.4) +
-      (player.goals * 5) +
-      (player.tackles * 1.5) +
-      (player.successfulPass * 0.2) -
-      (player.defensiveErrors * 3)
-    ) / 5;
-  }
-}
+// Legacy function removed - now using unified playerRating.ts
 
 export interface TacticalProfile {
   attackingThreat: number;

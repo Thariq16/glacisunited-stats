@@ -16,31 +16,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Star } from "lucide-react";
-
-// Simple match rating calculation based on stats
-function calculateMatchRating(player: any): number {
-  let rating = 6.0;
-  rating += player.goals * 0.5;
-  rating += player.shotsOnTarget * 0.1;
-  rating += (player.successfulPass / Math.max(player.passCount, 1)) * 1.5;
-  rating += player.tackles * 0.1;
-  rating += player.aerialDuelsWon * 0.1;
-  rating += player.penaltyAreaEntry * 0.1;
-  rating += player.penaltyAreaPass * 0.15;
-  rating -= player.missPass * 0.02;
-  rating -= player.defensiveErrors * 0.3;
-  rating -= player.fouls * 0.1;
-  return Math.max(1, Math.min(10, rating));
-}
-
-function getRatingColor(rating: number): string {
-  if (rating >= 8) return "text-green-500";
-  if (rating >= 7) return "text-emerald-500";
-  if (rating >= 6) return "text-yellow-500";
-  if (rating >= 5) return "text-orange-500";
-  return "text-red-500";
-}
+import { Star, Info } from "lucide-react";
+import { calculatePlayerRating, getRatingColor } from "@/utils/playerRating";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Players() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
@@ -144,7 +127,7 @@ export default function Players() {
                   </TableHeader>
                   <TableBody>
                     {tableData.map(player => {
-                      const rating = calculateMatchRating(player);
+                      const ratingResult = calculatePlayerRating(player);
                       const successRate = player.passCount > 0 
                         ? ((player.successfulPass / player.passCount) * 100).toFixed(0)
                         : '0';
@@ -160,12 +143,43 @@ export default function Players() {
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <Star className="h-3 w-3 text-yellow-500" />
-                              <span className={`font-bold ${getRatingColor(rating)}`}>
-                                {rating.toFixed(1)}
-                              </span>
-                            </div>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="flex items-center justify-center gap-1 cursor-help">
+                                    <Star className="h-3 w-3 text-yellow-500" />
+                                    <span className={`font-bold ${getRatingColor(ratingResult.overall)}`}>
+                                      {ratingResult.overall.toFixed(1)}
+                                    </span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="left" className="text-xs">
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between gap-3">
+                                      <span>Passing:</span>
+                                      <span className={getRatingColor(ratingResult.components.passing)}>{ratingResult.components.passing.toFixed(1)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-3">
+                                      <span>Attacking:</span>
+                                      <span className={getRatingColor(ratingResult.components.attacking)}>{ratingResult.components.attacking.toFixed(1)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-3">
+                                      <span>Defending:</span>
+                                      <span className={getRatingColor(ratingResult.components.defending)}>{ratingResult.components.defending.toFixed(1)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-3">
+                                      <span>Discipline:</span>
+                                      <span className={getRatingColor(ratingResult.components.discipline)}>{ratingResult.components.discipline.toFixed(1)}</span>
+                                    </div>
+                                    {ratingResult.minutesAdjustment < 1 && (
+                                      <div className="text-muted-foreground pt-1 border-t">
+                                        *Adjusted for {ratingResult.minutesPlayed}min
+                                      </div>
+                                    )}
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </TableCell>
                           <TableCell className="text-right font-medium">{player.passCount}</TableCell>
                           <TableCell className="text-right">{successRate}%</TableCell>
