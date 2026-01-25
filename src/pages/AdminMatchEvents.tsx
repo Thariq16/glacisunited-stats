@@ -763,10 +763,20 @@ function AdminMatchEventsContent() {
     autoAdvanceSeconds,
   ]);
 
-  // Chain Mode: save a pass from current ball position to clicked position
-  const saveChainPass = useCallback(async (endPos: Position) => {
+  // Chain Mode: save an event from current ball position to clicked position
+  const saveChainEvent = useCallback(async (endPos: Position) => {
     if (!matchId || !selectedPlayerId) {
       toast.error('Select a player first');
+      return;
+    }
+    
+    // Use selected event type or default to pass
+    const eventType = selectedEventType || 'pass';
+    const config = EVENT_CONFIG[eventType];
+    
+    // Only allow events that require end position for chain mode
+    if (!config.requiresEndPosition) {
+      toast.error(`${config.label} doesn't support Chain Mode (no end position)`);
       return;
     }
     
@@ -777,7 +787,7 @@ function AdminMatchEventsContent() {
       await saveEventMutation.mutateAsync({
         match_id: matchId,
         player_id: selectedPlayerId,
-        event_type: 'pass',
+        event_type: eventType,
         half: selectedHalf,
         minute,
         seconds,
@@ -792,7 +802,7 @@ function AdminMatchEventsContent() {
       
       // Check for penalty area entry
       checkPenaltyAreaEntry(
-        'pass',
+        eventType,
         startPos.x,
         startPos.y,
         endPos.x,
@@ -835,13 +845,13 @@ function AdminMatchEventsContent() {
       // Reset unsuccessful flag
       setIsUnsuccessful(false);
       
-      toast.success('Chain pass saved');
+      toast.success(`Chain ${config.label.toLowerCase()} saved`);
     } catch (error) {
-      toast.error('Failed to save chain pass');
+      toast.error(`Failed to save chain ${config.label.toLowerCase()}`);
       console.error(error);
     }
   }, [
-    matchId, selectedPlayerId, startPosition, suggestedStartPosition,
+    matchId, selectedPlayerId, selectedEventType, startPosition, suggestedStartPosition,
     selectedHalf, minute, seconds, isUnsuccessful, targetPlayerId, currentPhase,
     saveEventMutation, checkPenaltyAreaEntry, autoAdvanceSeconds
   ]);
@@ -1549,7 +1559,7 @@ function AdminMatchEventsContent() {
                 currentHalf: selectedHalf,
               }}
               chainModeEnabled={chainModeEnabled}
-              onChainClick={saveChainPass}
+              onChainClick={saveChainEvent}
             />
             
             {/* Goal mouth diagram for shots */}
