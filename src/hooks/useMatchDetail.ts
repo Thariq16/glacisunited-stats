@@ -154,11 +154,10 @@ export function useMatchDetail(matchId: string | undefined) {
         homePlayers = aggregatedData.homePlayers;
         awayPlayers = aggregatedData.awayPlayers;
 
-        // If match scores are 0, use calculated scores from events
-        if (match.home_score === 0 && match.away_score === 0) {
-          calculatedHomeScore = aggregatedData.homeGoals;
-          calculatedAwayScore = aggregatedData.awayGoals;
-        }
+        // Always use calculated scores from events when we have event data
+        // The database trigger keeps scores in sync, but this ensures UI consistency
+        calculatedHomeScore = aggregatedData.homeGoals;
+        calculatedAwayScore = aggregatedData.awayGoals;
       }
 
       return {

@@ -45,11 +45,23 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, onCr
   
   // Create a chronological index map (first entry = #1, second = #2, etc.)
   const chronologicalEvents = [...events].sort((a, b) => {
+    // First sort by half, then by time within each half
+    if (a.half !== b.half) return a.half - b.half;
     const timeA = a.minute * 60 + (a.seconds ?? 0);
     const timeB = b.minute * 60 + (b.seconds ?? 0);
     return timeA - timeB; // Ascending order for numbering
   });
   const eventIndexMap = new Map(chronologicalEvents.map((e, idx) => [e.id, idx + 1]));
+
+  // Helper to format time with half context (2nd half shows 45+ minutes)
+  const formatMatchTime = (half: number, minute: number, seconds: number) => {
+    const displayMinute = half === 2 ? minute + 45 : minute;
+    return `${String(displayMinute).padStart(2, '0')}:${String(seconds ?? 0).padStart(2, '0')}`;
+  };
+
+  // Group events by half for visual separation
+  const firstHalfEvents = sortedEvents.filter(e => e.half === 1);
+  const secondHalfEvents = sortedEvents.filter(e => e.half === 2);
 
   // Get events that are not already part of a phase
   const availableEvents = sortedEvents.filter(e => !e.phaseId);
@@ -187,6 +199,7 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, onCr
                 />
               </TableHead>
               <TableHead className="w-12">#</TableHead>
+              <TableHead className="w-12">Half</TableHead>
               <TableHead className="w-16">Time</TableHead>
               <TableHead>Team</TableHead>
               <TableHead>Player</TableHead>
@@ -199,110 +212,197 @@ export function EventList({ events, phases, players = [], onDelete, onEdit, onCr
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedEvents.map((event) => {
-              const phase = getPhaseForEvent(event.id);
-              const config = EVENT_CONFIG[event.eventType];
-              const targetPlayer = getTargetPlayer(event.targetPlayerId);
-              const showReceiver = EVENTS_WITH_TARGET_PLAYER.includes(event.eventType);
-              const isSelected = selectedEventIds.has(event.id);
-              const isInPhase = !!phase;
-              
-              // Determine team name based on event's teamId
-              const isHomeTeam = event.teamId === homeTeamId;
-              const teamName = isHomeTeam ? homeTeamName : awayTeamName;
-
-              return (
-                <TableRow
-                  key={event.id}
-                  className={`${phase ? `border-l-4 ${getPhaseColor(phase.phaseNumber)}` : ''} ${isSelected ? 'bg-accent/50' : ''}`}
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleEventSelection(event.id)}
-                      disabled={isInPhase}
-                      aria-label={`Select event ${eventIndexMap.get(event.id)}`}
-                    />
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">{eventIndexMap.get(event.id)}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {String(event.minute).padStart(2, '0')}:{String(event.seconds ?? 0).padStart(2, '0')}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isHomeTeam ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
-                      {teamName || (isHomeTeam ? 'Home' : 'Away')}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <span className="font-medium">#{event.jerseyNumber}</span>{' '}
-                    <span className="text-muted-foreground">
-                      {event.playerName.split(' ')[0]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {config.label}
-                    {event.eventType === 'substitution' && event.substitutePlayerName && (
-                      <span className="text-xs text-muted-foreground ml-1">
-                        → #{event.substituteJerseyNumber} {event.substitutePlayerName.split(' ')[0]}
-                      </span>
-                    )}
-                    {isInPhase && (
-                      <span className="text-xs text-muted-foreground ml-1">
-                        (Phase #{phase.phaseNumber})
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {showReceiver && targetPlayer ? (
-                      <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                        <ArrowRight className="h-3 w-3" />
-                        <span className="font-medium">#{targetPlayer.jersey_number}</span>
-                        <span className="text-muted-foreground text-xs">
-                          {targetPlayer.name.split(' ')[0]}
-                        </span>
-                      </span>
-                    ) : showReceiver ? (
-                      <span className="text-muted-foreground text-xs">-</span>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">N/A</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    ({event.x}, {event.y})
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {event.endX !== undefined ? `(${event.endX}, ${event.endY})` : '-'}
-                  </TableCell>
-                  <TableCell>
-                    {event.successful ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <X className="h-4 w-4 text-red-500" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => onEdit(event.id)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-destructive hover:text-destructive"
-                        onClick={() => onDelete(event.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+            {/* 2nd Half Events (shown first since sorted descending) */}
+            {secondHalfEvents.length > 0 && (
+              <>
+                <TableRow className="bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                  <TableCell colSpan={12} className="text-center font-semibold py-2 text-sm text-purple-700 dark:text-purple-400">
+                    — 2nd Half —
                   </TableCell>
                 </TableRow>
-              );
-            })}
+                {secondHalfEvents.map((event) => {
+                  const phase = getPhaseForEvent(event.id);
+                  const config = EVENT_CONFIG[event.eventType];
+                  const targetPlayer = getTargetPlayer(event.targetPlayerId);
+                  const showReceiver = EVENTS_WITH_TARGET_PLAYER.includes(event.eventType);
+                  const isSelected = selectedEventIds.has(event.id);
+                  const isInPhase = !!phase;
+                  const isHomeTeam = event.teamId === homeTeamId;
+                  const teamName = isHomeTeam ? homeTeamName : awayTeamName;
+
+                  return (
+                    <TableRow
+                      key={event.id}
+                      className={`${phase ? `border-l-4 ${getPhaseColor(phase.phaseNumber)}` : ''} ${isSelected ? 'bg-accent/50' : ''}`}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleEventSelection(event.id)}
+                          disabled={isInPhase}
+                          aria-label={`Select event ${eventIndexMap.get(event.id)}`}
+                        />
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{eventIndexMap.get(event.id)}</TableCell>
+                      <TableCell>
+                        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                          2nd
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {formatMatchTime(event.half, event.minute, event.seconds ?? 0)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isHomeTeam ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
+                          {teamName || (isHomeTeam ? 'Home' : 'Away')}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <span className="font-medium">#{event.jerseyNumber}</span>{' '}
+                        <span className="text-muted-foreground">{event.playerName.split(' ')[0]}</span>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {config.label}
+                        {event.eventType === 'substitution' && event.substitutePlayerName && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            → #{event.substituteJerseyNumber} {event.substitutePlayerName.split(' ')[0]}
+                          </span>
+                        )}
+                        {isInPhase && (
+                          <span className="text-xs text-muted-foreground ml-1">(Phase #{phase.phaseNumber})</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {showReceiver && targetPlayer ? (
+                          <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                            <ArrowRight className="h-3 w-3" />
+                            <span className="font-medium">#{targetPlayer.jersey_number}</span>
+                            <span className="text-muted-foreground text-xs">{targetPlayer.name.split(' ')[0]}</span>
+                          </span>
+                        ) : showReceiver ? (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">N/A</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">({event.x}, {event.y})</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {event.endX !== undefined ? `(${event.endX}, ${event.endY})` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {event.successful ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-red-500" />}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(event.id)}>
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onDelete(event.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </>
+            )}
+            
+            {/* 1st Half Events */}
+            {firstHalfEvents.length > 0 && (
+              <>
+                <TableRow className="bg-green-50 dark:bg-green-900/20 hover:bg-green-50 dark:hover:bg-green-900/20">
+                  <TableCell colSpan={12} className="text-center font-semibold py-2 text-sm text-green-700 dark:text-green-400">
+                    — 1st Half —
+                  </TableCell>
+                </TableRow>
+                {firstHalfEvents.map((event) => {
+                  const phase = getPhaseForEvent(event.id);
+                  const config = EVENT_CONFIG[event.eventType];
+                  const targetPlayer = getTargetPlayer(event.targetPlayerId);
+                  const showReceiver = EVENTS_WITH_TARGET_PLAYER.includes(event.eventType);
+                  const isSelected = selectedEventIds.has(event.id);
+                  const isInPhase = !!phase;
+                  const isHomeTeam = event.teamId === homeTeamId;
+                  const teamName = isHomeTeam ? homeTeamName : awayTeamName;
+
+                  return (
+                    <TableRow
+                      key={event.id}
+                      className={`${phase ? `border-l-4 ${getPhaseColor(phase.phaseNumber)}` : ''} ${isSelected ? 'bg-accent/50' : ''}`}
+                    >
+                      <TableCell>
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleEventSelection(event.id)}
+                          disabled={isInPhase}
+                          aria-label={`Select event ${eventIndexMap.get(event.id)}`}
+                        />
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">{eventIndexMap.get(event.id)}</TableCell>
+                      <TableCell>
+                        <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          1st
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {formatMatchTime(event.half, event.minute, event.seconds ?? 0)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isHomeTeam ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
+                          {teamName || (isHomeTeam ? 'Home' : 'Away')}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <span className="font-medium">#{event.jerseyNumber}</span>{' '}
+                        <span className="text-muted-foreground">{event.playerName.split(' ')[0]}</span>
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {config.label}
+                        {event.eventType === 'substitution' && event.substitutePlayerName && (
+                          <span className="text-xs text-muted-foreground ml-1">
+                            → #{event.substituteJerseyNumber} {event.substitutePlayerName.split(' ')[0]}
+                          </span>
+                        )}
+                        {isInPhase && (
+                          <span className="text-xs text-muted-foreground ml-1">(Phase #{phase.phaseNumber})</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {showReceiver && targetPlayer ? (
+                          <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                            <ArrowRight className="h-3 w-3" />
+                            <span className="font-medium">#{targetPlayer.jersey_number}</span>
+                            <span className="text-muted-foreground text-xs">{targetPlayer.name.split(' ')[0]}</span>
+                          </span>
+                        ) : showReceiver ? (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">N/A</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">({event.x}, {event.y})</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {event.endX !== undefined ? `(${event.endX}, ${event.endY})` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {event.successful ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-red-500" />}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(event.id)}>
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => onDelete(event.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </>
+            )}
           </TableBody>
         </Table>
       </ScrollArea>
