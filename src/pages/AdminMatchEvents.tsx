@@ -80,9 +80,9 @@ function AdminMatchEventsContent() {
     enabled: !!matchId,
   });
 
-  // Load existing events from database
-  const { data: savedEvents = [], isLoading: eventsLoading } = useQuery({
-    queryKey: ['match-events', matchId],
+  // Load 1st half events from database
+  const { data: firstHalfEvents = [], isLoading: firstHalfLoading } = useQuery({
+    queryKey: ['match-events-half1', matchId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('match_events')
@@ -93,13 +93,38 @@ function AdminMatchEventsContent() {
           target:players!match_events_target_player_id_fkey(id, name, jersey_number)
         `)
         .eq('match_id', matchId)
-        .order('created_at', { ascending: true })
-        .limit(10000);
+        .eq('half', 1)
+        .order('created_at', { ascending: true });
       if (error) throw error;
       return data;
     },
     enabled: !!matchId,
   });
+
+  // Load 2nd half events from database
+  const { data: secondHalfEvents = [], isLoading: secondHalfLoading } = useQuery({
+    queryKey: ['match-events-half2', matchId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('match_events')
+        .select(`
+          *,
+          player:players!match_events_player_id_fkey(id, name, jersey_number, team_id),
+          substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number),
+          target:players!match_events_target_player_id_fkey(id, name, jersey_number)
+        `)
+        .eq('match_id', matchId)
+        .eq('half', 2)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!matchId,
+  });
+
+  // Combine events for internal calculations
+  const savedEvents = useMemo(() => [...firstHalfEvents, ...secondHalfEvents], [firstHalfEvents, secondHalfEvents]);
+  const eventsLoading = firstHalfLoading || secondHalfLoading;
 
   // State management
   const [selectedHalf, setSelectedHalf] = useState<1 | 2>(1);
@@ -384,7 +409,8 @@ function AdminMatchEventsContent() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['match-events-half1', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['match-events-half2', matchId] });
     },
   });
 
@@ -398,7 +424,8 @@ function AdminMatchEventsContent() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['match-events-half1', matchId] });
+      queryClient.invalidateQueries({ queryKey: ['match-events-half2', matchId] });
     },
   });
 
@@ -1647,7 +1674,8 @@ function AdminMatchEventsContent() {
             Logged Events ({events.length})
           </h3>
           <EventList
-            events={events}
+            firstHalfEvents={events.filter(e => e.half === 1)}
+            secondHalfEvents={events.filter(e => e.half === 2)}
             phases={phases}
             players={players}
             onDelete={handleDeleteEvent}
