@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { User } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Player {
   id: string;
@@ -16,7 +16,7 @@ interface Player {
 interface PlayerSelectorProps {
   players: Player[];
   selectedPlayerId: string | null;
-  recentPlayerIds: string[];
+  recentPlayerIds: string[]; // Keep for keyboard shortcut compatibility
   onSelect: (playerId: string) => void;
   stickyPlayer: boolean;
   onStickyChange: (sticky: boolean) => void;
@@ -25,35 +25,32 @@ interface PlayerSelectorProps {
 export function PlayerSelector({
   players,
   selectedPlayerId,
-  recentPlayerIds,
   onSelect,
   stickyPlayer,
   onStickyChange,
 }: PlayerSelectorProps) {
-  const recentPlayers = recentPlayerIds
-    .map((id) => players.find((p) => p.id === id))
-    .filter((p): p is Player => p !== undefined)
-    .slice(0, 5);
-
   const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
 
-  // Sort players: starting XI first, then substitutes, then by jersey number
-  const sortedPlayers = [...players].sort((a, b) => {
-    if (a.status === 'starting' && b.status !== 'starting') return -1;
-    if (a.status !== 'starting' && b.status === 'starting') return 1;
-    return a.jersey_number - b.jersey_number;
-  });
+  // Split players by status and sort by jersey number
+  const starters = players
+    .filter((p) => p.status === 'starting')
+    .sort((a, b) => a.jersey_number - b.jersey_number);
+  
+  const substitutes = players
+    .filter((p) => p.status === 'substitute')
+    .sort((a, b) => a.jersey_number - b.jersey_number);
 
-  const formatPlayerDisplay = (player: Player, short = false) => {
+  // All players sorted for dropdown
+  const allPlayersSorted = [...players].sort((a, b) => a.jersey_number - b.jersey_number);
+
+  const formatPlayerDisplay = (player: Player) => {
     const role = player.role ? ` (${player.role})` : '';
-    if (short) {
-      return `#${player.jersey_number} ${player.name.split(' ')[0]}`;
-    }
     return `${player.jersey_number} - ${player.name}${role}`;
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Header with sticky toggle */}
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
           Player
@@ -64,53 +61,92 @@ export function PlayerSelector({
             checked={stickyPlayer}
             onCheckedChange={onStickyChange}
           />
-          <Label htmlFor="sticky-player" className="text-xs">
-            Sticky
-          </Label>
+          <Label htmlFor="sticky-player" className="text-xs">Sticky</Label>
         </div>
       </div>
 
-      {/* Recent players */}
-      {recentPlayers.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">Recent:</p>
+      {/* Starting XI grid */}
+      {starters.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground">Starting XI:</p>
           <div className="flex flex-wrap gap-1">
-            {recentPlayers.map((player) => (
-              <Button
-                key={player.id}
-                variant={selectedPlayerId === player.id ? 'default' : 'outline'}
-                size="sm"
-                className="text-xs"
-                onClick={() => onSelect(player.id)}
-              >
-                {formatPlayerDisplay(player, true)}
-              </Button>
+            {starters.map((player) => (
+              <Tooltip key={player.id}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={selectedPlayerId === player.id ? 'default' : 'secondary'}
+                    size="sm"
+                    className={`w-9 h-9 p-0 text-sm font-bold ${
+                      selectedPlayerId === player.id 
+                        ? 'ring-2 ring-offset-1 ring-primary' 
+                        : ''
+                    }`}
+                    onClick={() => onSelect(player.id)}
+                  >
+                    {player.jersey_number}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {player.name}{player.role ? ` (${player.role})` : ''}
+                </TooltipContent>
+              </Tooltip>
             ))}
           </div>
         </div>
       )}
 
-      {/* Full dropdown */}
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">Squad players:</p>
+      {/* Substitutes grid */}
+      {substitutes.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground">Subs:</p>
+          <div className="flex flex-wrap gap-1">
+            {substitutes.map((player) => (
+              <Tooltip key={player.id}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={selectedPlayerId === player.id ? 'default' : 'outline'}
+                    size="sm"
+                    className={`w-9 h-9 p-0 text-sm ${
+                      selectedPlayerId === player.id 
+                        ? 'ring-2 ring-offset-1 ring-primary' 
+                        : 'text-muted-foreground'
+                    }`}
+                    onClick={() => onSelect(player.id)}
+                  >
+                    {player.jersey_number}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {player.name}{player.role ? ` (${player.role})` : ''}
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Compact dropdown for edge cases */}
+      <div className="space-y-1.5">
+        <p className="text-xs text-muted-foreground">All players:</p>
         <Select value={selectedPlayerId || ''} onValueChange={onSelect}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full h-9">
             <SelectValue placeholder="Select player">
               {selectedPlayer && (
-                <span className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  {formatPlayerDisplay(selectedPlayer)}
+                <span className="flex items-center gap-2 text-sm">
+                  <span className="font-mono font-bold">{selectedPlayer.jersey_number}</span>
+                  <span>{selectedPlayer.name}</span>
                 </span>
               )}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {sortedPlayers.map((player) => (
+            {allPlayersSorted.map((player) => (
               <SelectItem key={player.id} value={player.id}>
                 <span className="flex items-center gap-2">
-                  <span>{formatPlayerDisplay(player)}</span>
+                  <span className="font-mono font-bold w-6">{player.jersey_number}</span>
+                  <span>{player.name}</span>
                   {player.status === 'substitute' && (
-                    <Badge variant="outline" className="text-[10px] h-4 px-1">SUB</Badge>
+                    <Badge variant="outline" className="text-[10px] h-4 px-1 ml-auto">SUB</Badge>
                   )}
                 </span>
               </SelectItem>
