@@ -2,6 +2,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { EventType, ShotOutcome, AerialOutcome, EVENTS_WITH_UNSUCCESSFUL, EVENTS_WITH_TARGET_PLAYER, EVENT_CONFIG } from './types';
 
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ interface EventModifiersProps {
   onSubstitutePlayerChange: (value: string | null) => void;
   players: Player[];
   substitutes?: Player[];
+  recentTargetPlayerIds?: string[];
 }
 
 export function EventModifiers({
@@ -43,6 +45,7 @@ export function EventModifiers({
   onSubstitutePlayerChange,
   players,
   substitutes = [],
+  recentTargetPlayerIds = [],
 }: EventModifiersProps) {
   if (!selectedEventType) {
     return (
@@ -139,6 +142,31 @@ export function EventModifiers({
           <Label className="text-sm">
             Target Player {isTargetRequired ? <span className="text-destructive">*</span> : '(optional)'}
           </Label>
+          
+          {/* Recent target players */}
+          {recentTargetPlayerIds.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Recent:</p>
+              <div className="flex flex-wrap gap-1">
+                {recentTargetPlayerIds
+                  .map((id) => players.find((p) => p.id === id))
+                  .filter((p): p is Player => p !== undefined)
+                  .slice(0, 5)
+                  .map((player) => (
+                    <Button
+                      key={player.id}
+                      variant={targetPlayerId === player.id ? 'default' : 'outline'}
+                      size="sm"
+                      className="text-xs h-7 px-2"
+                      onClick={() => onTargetPlayerChange(player.id)}
+                    >
+                      #{player.jersey_number} {player.name.split(' ')[0]}
+                    </Button>
+                  ))}
+              </div>
+            </div>
+          )}
+          
           <Select
             value={targetPlayerId || 'none'}
             onValueChange={(value) => onTargetPlayerChange(value === 'none' ? null : value)}
