@@ -3,7 +3,8 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Calendar, MapPin } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Calendar, MapPin, BarChart3, MessageSquare, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -16,12 +17,17 @@ import { MatchStatsTable } from "@/components/MatchStatsTable";
 import { useMatchDetail } from "@/hooks/useMatchDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MatchComments } from "@/components/MatchComments";
+import { MatchVisualizationsTab } from "@/components/match-visualizations/MatchVisualizationsTab";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const { data: match, isLoading, error } = useMatchDetail(matchId);
+  const { isAdmin, isCoach } = useAuth();
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null);
+
+  const showTabs = isAdmin || isCoach;
 
   if (isLoading) {
     return (
@@ -53,8 +59,8 @@ export default function MatchDetail() {
     );
   }
 
-  const homeTeam = match.home_team;
-  const awayTeam = match.away_team;
+  const homeTeam = match.home_team as { id: string; name: string; slug: string } | null;
+  const awayTeam = match.away_team as { id: string; name: string; slug: string } | null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -125,22 +131,59 @@ export default function MatchDetail() {
           </CardContent>
         </Card>
 
-        {/* Overall Match Stats */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Overall Match Statistics</h2>
-          
-          <MatchStatsTable 
-            homeTeam={homeTeam?.name || 'Home Team'}
-            awayTeam={awayTeam?.name || 'Away Team'}
-            homePlayers={match.homePlayers}
-            awayPlayers={match.awayPlayers}
-          />
-        </div>
+        {/* Tabs for coaches and admins, otherwise just show stats */}
+        {showTabs ? (
+          <Tabs defaultValue="stats" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+              <TabsTrigger value="stats" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Overall</span> Statistics
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Notes
+              </TabsTrigger>
+              <TabsTrigger value="visualizations" className="gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Visualizations
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Coach Notes - visible to admins and coaches only */}
-        <div className="mb-8">
-          <MatchComments matchId={matchId!} />
-        </div>
+            <TabsContent value="stats" className="space-y-6">
+              <h2 className="text-2xl font-bold text-foreground">Overall Match Statistics</h2>
+              <MatchStatsTable 
+                homeTeam={homeTeam?.name || 'Home Team'}
+                awayTeam={awayTeam?.name || 'Away Team'}
+                homePlayers={match.homePlayers}
+                awayPlayers={match.awayPlayers}
+              />
+            </TabsContent>
+
+            <TabsContent value="notes">
+              <MatchComments matchId={matchId!} />
+            </TabsContent>
+
+            <TabsContent value="visualizations">
+              <MatchVisualizationsTab
+                matchId={matchId!}
+                homeTeamId={homeTeam?.id}
+                awayTeamId={awayTeam?.id}
+                homeTeamName={homeTeam?.name || 'Home Team'}
+                awayTeamName={awayTeam?.name || 'Away Team'}
+              />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-foreground">Overall Match Statistics</h2>
+            <MatchStatsTable 
+              homeTeam={homeTeam?.name || 'Home Team'}
+              awayTeam={awayTeam?.name || 'Away Team'}
+              homePlayers={match.homePlayers}
+              awayPlayers={match.awayPlayers}
+            />
+          </div>
+        )}
 
         {/* Player Performance Modal */}
         <Dialog open={!!selectedTeam} onOpenChange={() => setSelectedTeam(null)}>
