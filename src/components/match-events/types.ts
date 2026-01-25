@@ -13,6 +13,7 @@ export type EventType =
   | 'aerial_duel'
   | 'save'
   | 'cross'
+  | 'cutback'
   | 'corner'
   | 'throw_in'
   | 'free_kick'
@@ -113,10 +114,11 @@ export const EVENT_CONFIG: Record<EventType, {
   clearance: { label: 'Clearance', requiresEndPosition: true, category: 'defensive' },
   aerial_duel: { label: 'Aerial Duel', requiresEndPosition: false, category: 'defensive' },
   save: { label: 'Save', requiresEndPosition: false, category: 'defensive' },
-  cross: { label: 'Cross', requiresEndPosition: true, category: 'passing' },
-  corner: { label: 'Corner', requiresEndPosition: false, category: 'set_piece' },
+  cross: { label: 'Cross', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
+  cutback: { label: 'Cutback', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
+  corner: { label: 'Corner', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   throw_in: { label: 'Throw In', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
-  free_kick: { label: 'Free Kick', requiresEndPosition: false, category: 'set_piece' },
+  free_kick: { label: 'Free Kick', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   run_in_behind: { label: 'Run in Behind', requiresEndPosition: true, category: 'movement' },
   overlap: { label: 'Overlap', requiresEndPosition: true, category: 'movement' },
   penalty_area_entry: { label: 'Penalty Area Entry', requiresEndPosition: false, category: 'movement' },
@@ -127,28 +129,28 @@ export const EVENT_CONFIG: Record<EventType, {
   red_card: { label: 'Red Card', requiresEndPosition: false, category: 'without_ball' },
   penalty: { label: 'Penalty', requiresEndPosition: false, category: 'set_piece' },
   offside: { label: 'Offside', requiresEndPosition: false, category: 'movement' },
-  goal_kick: { label: 'Goal Kick', requiresEndPosition: false, category: 'set_piece' },
-  kick_off: { label: 'Kick Off', requiresEndPosition: false, category: 'set_piece' },
-  goal_restart: { label: 'Goal Restart', requiresEndPosition: false, category: 'set_piece' },
+  goal_kick: { label: 'Goal Kick', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
+  kick_off: { label: 'Kick Off', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
+  goal_restart: { label: 'Goal Restart', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   block: { label: 'Block', requiresEndPosition: false, category: 'defensive' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
-  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'corner', 'throw_in', 'penalty_area_pass'
+  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'cutback', 'corner', 'throw_in', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_pass'
 ];
 
 export const EVENTS_WITH_TARGET_PLAYER: EventType[] = [
-  'pass', 'key_pass', 'assist', 'throw_in', 'cross', 'penalty_area_pass'
+  'pass', 'key_pass', 'assist', 'throw_in', 'cross', 'cutback', 'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_pass'
 ];
 
 // Events where the ball moves to the end position (for ball tracking)
 export const BALL_MOVEMENT_EVENTS: EventType[] = [
-  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'throw_in', 'penalty_area_pass', 'run_in_behind', 'overlap', 'clearance'
+  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'cutback', 'throw_in', 'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_pass', 'run_in_behind', 'overlap', 'clearance'
 ];
 
 // Events where the player has the ball at start position
 export const BALL_POSSESSION_EVENTS: EventType[] = [
-  'pass', 'key_pass', 'assist', 'shot', 'carry', 'dribble', 'clearance', 'cross', 'corner', 'throw_in', 'free_kick', 'penalty_area_entry', 'penalty_area_pass'
+  'pass', 'key_pass', 'assist', 'shot', 'carry', 'dribble', 'clearance', 'cross', 'cutback', 'corner', 'throw_in', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_entry', 'penalty_area_pass'
 ];
 
 // Events that break ball continuity (next event should NOT auto-inherit position)
@@ -162,14 +164,9 @@ export const CONTINUITY_BREAKING_EVENTS: EventType[] = [
   'foul_committed', // Play stops, free kick at different position
   'foul_won',       // Play stops, free kick position
   'defensive_error', // Turnover
-  'corner',         // Set piece, fixed position
-  'throw_in',       // Set piece, sideline position
-  'free_kick',      // Set piece, position of foul
   'save',           // Keeper action
   'offside',        // Loses possession, free kick to opponent
-  'goal_kick',      // Set piece, keeper restart
-  'kick_off',       // Set piece, center restart
-  'goal_restart',   // Set piece, kick off after goal
+  'penalty',        // Shot goes to goal
   'block',          // Ball deflected, unpredictable position
 ];
 
@@ -193,7 +190,7 @@ export type EventCategory = 'passing' | 'movement' | 'shooting' | 'defensive' | 
 export const EVENT_CATEGORIES: Record<EventCategory, { label: string; events: EventType[] }> = {
   passing: {
     label: 'Passing',
-    events: ['pass', 'key_pass', 'assist', 'cross', 'penalty_area_pass'],
+    events: ['pass', 'key_pass', 'assist', 'cross', 'cutback', 'penalty_area_pass'],
   },
   movement: {
     label: 'Movement',

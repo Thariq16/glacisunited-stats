@@ -55,6 +55,7 @@ const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>
   aerial_duel: ArrowUp,
   save: Hand,
   cross: CornerUpRight,
+  cutback: CornerUpRight,
   corner: Flag,
   throw_in: LogOut,
   free_kick: Circle,
