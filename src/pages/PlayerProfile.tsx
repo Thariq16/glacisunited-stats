@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { StatCard } from "@/components/StatCard";
 import { useTeamWithPlayers } from "@/hooks/useTeams";
 import { useMatches, MatchFilter } from "@/hooks/usePlayerStats";
+import { useSinglePlayerPassEvents } from "@/hooks/usePlayerPassEvents";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Target, TrendingUp, Shield, Activity, Users, AlertCircle, Flag } from "lucide-react";
 import { PlayerEfficiencyMetrics } from "@/components/PlayerEfficiencyMetrics";
 import { TacticalInsightsCard } from "@/components/TacticalInsightsCard";
+import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
+import { PlayerPassThirdMap } from "@/components/PlayerPassThirdMap";
 import { calculateAdvancedMetrics, calculateTacticalProfile, analyzePositioning } from "@/utils/playerMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
@@ -23,6 +26,11 @@ export default function PlayerProfile() {
   
   const { data: team, isLoading: teamLoading } = useTeamWithPlayers(teamId, matchFilter);
   const { data: matches } = useMatches(teamId);
+  const { data: passData, isLoading: passLoading } = useSinglePlayerPassEvents(
+    teamId || '', 
+    playerName, 
+    matchFilter
+  );
   
   const player = useMemo(() => {
     if (!team || !playerName) return null;
@@ -189,6 +197,17 @@ export default function PlayerProfile() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Pass Visualizations */}
+            {passData && passData.totalPasses > 0 && (
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-foreground mb-4">Pass Visualizations</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <PlayerPassPositionMap passData={passData} />
+                  <PlayerPassThirdMap passData={passData} />
+                </div>
+              </div>
+            )}
 
             {/* Attacking Stats */}
             <Card className="mb-8">
