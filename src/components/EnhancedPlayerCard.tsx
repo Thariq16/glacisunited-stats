@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -8,16 +8,8 @@ import { PlayerPassStats } from "@/components/PlayerPassStats";
 import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
 import { PlayerPassThirdMap } from "@/components/PlayerPassThirdMap";
 import { useNavigate } from "react-router-dom";
-import { Target, TrendingUp, Clock, Star, ChevronRight, Info, Crosshair } from "lucide-react";
+import { Target, TrendingUp, Clock, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { calculatePlayerRating, getRatingColor, PlayerRatingResult } from "@/utils/playerRating";
-import { usePlayerXGStats } from "@/hooks/usePlayerXGStats";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface EnhancedPlayerCardProps {
   player: PlayerStats;
@@ -26,59 +18,9 @@ interface EnhancedPlayerCardProps {
   matchIds?: string[];
 }
 
-function RatingBreakdown({ rating }: { rating: PlayerRatingResult }) {
-  return (
-    <div className="space-y-2 text-sm">
-      <div className="font-semibold border-b pb-1 mb-2">Rating Breakdown</div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-        <span className="text-muted-foreground">Passing:</span>
-        <span className={getRatingColor(rating.components.passing)}>{rating.components.passing.toFixed(1)}</span>
-        <span className="text-muted-foreground">Attacking:</span>
-        <span className={getRatingColor(rating.components.attacking)}>{rating.components.attacking.toFixed(1)}</span>
-        <span className="text-muted-foreground">Defending:</span>
-        <span className={getRatingColor(rating.components.defending)}>{rating.components.defending.toFixed(1)}</span>
-        <span className="text-muted-foreground">Discipline:</span>
-        <span className={getRatingColor(rating.components.discipline)}>{rating.components.discipline.toFixed(1)}</span>
-      </div>
-      {rating.xgInfo && (
-        <div className="pt-2 mt-2 border-t space-y-1">
-          <div className="font-semibold text-xs">xG Stats</div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs">
-            <span className="text-muted-foreground">xG:</span>
-            <span>{rating.xgInfo.totalXG.toFixed(2)}</span>
-            <span className="text-muted-foreground">Goals:</span>
-            <span>{rating.xgInfo.actualGoals}</span>
-            <span className="text-muted-foreground">vs Expected:</span>
-            <span className={rating.xgInfo.overperformance >= 0 ? "text-green-500" : "text-red-500"}>
-              {rating.xgInfo.overperformance >= 0 ? '+' : ''}{rating.xgInfo.overperformance.toFixed(2)}
-            </span>
-          </div>
-        </div>
-      )}
-      {rating.minutesAdjustment < 1 && (
-        <div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
-          * Adjusted for {rating.minutesPlayed} min played
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function EnhancedPlayerCard({ player, teamId, passData, matchIds }: EnhancedPlayerCardProps) {
+export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerCardProps) {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
-  
-  // Fetch xG stats for this player
-  const { data: xgStats } = usePlayerXGStats({
-    playerName: player.playerName,
-    teamSlug: teamId,
-    matchIds,
-  });
-  
-  // Calculate rating with xG data
-  const ratingResult = useMemo(() => {
-    return calculatePlayerRating(player, 90, xgStats || undefined);
-  }, [player, xgStats]);
   
   const successRate = player.passCount > 0 
     ? ((player.successfulPass / player.passCount) * 100).toFixed(0)
@@ -101,26 +43,9 @@ export function EnhancedPlayerCard({ player, teamId, passData, matchIds }: Enhan
                   #{player.jerseyNumber}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                {player.role && (
-                  <Badge variant="secondary" className="text-xs">{player.role}</Badge>
-                )}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md cursor-help">
-                        <Star className="h-3 w-3 text-yellow-500" />
-                        <span className={`font-bold ${getRatingColor(ratingResult.overall)}`}>
-                          {ratingResult.overall.toFixed(1)}
-                        </span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="w-48">
-                      <RatingBreakdown rating={ratingResult} />
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              {player.role && (
+                <Badge variant="secondary" className="text-xs">{player.role}</Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -146,20 +71,6 @@ export function EnhancedPlayerCard({ player, teamId, passData, matchIds }: Enhan
                 </div>
                 <span className="font-semibold">{player.goals}</span>
               </div>
-              {xgStats && xgStats.shotCount > 0 && (
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Crosshair className="h-4 w-4 text-primary" />
-                    <span className="text-muted-foreground">xG</span>
-                  </div>
-                  <span className="font-semibold">
-                    {xgStats.totalXG.toFixed(2)}
-                    <span className={`ml-1 text-xs ${xgStats.overperformance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      ({xgStats.overperformance >= 0 ? '+' : ''}{xgStats.overperformance.toFixed(2)})
-                    </span>
-                  </span>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -170,22 +81,6 @@ export function EnhancedPlayerCard({ player, teamId, passData, matchIds }: Enhan
           <DialogTitle className="flex items-center gap-3">
             <span>#{player.jerseyNumber} {player.playerName}</span>
             {player.role && <Badge variant="secondary">{player.role}</Badge>}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md ml-auto cursor-help">
-                    <Star className="h-4 w-4 text-yellow-500" />
-                    <span className={`text-lg font-bold ${getRatingColor(ratingResult.overall)}`}>
-                      {ratingResult.overall.toFixed(1)}
-                    </span>
-                    <Info className="h-3 w-3 text-muted-foreground ml-1" />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="left" className="w-48">
-                  <RatingBreakdown rating={ratingResult} />
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </DialogTitle>
         </DialogHeader>
         

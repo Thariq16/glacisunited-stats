@@ -7,7 +7,7 @@ import { usePlayerStats, MatchFilter } from "@/hooks/usePlayerStats";
 import { usePlayerPassEvents } from "@/hooks/usePlayerPassEvents";
 import { Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -16,14 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Star, Info } from "lucide-react";
-import { calculatePlayerRating, getRatingColor } from "@/utils/playerRating";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export default function Players() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
@@ -116,7 +108,6 @@ export default function Players() {
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
                       <TableHead>Player</TableHead>
-                      <TableHead className="text-center">Rating</TableHead>
                       <TableHead className="text-right">Passes</TableHead>
                       <TableHead className="text-right">Pass %</TableHead>
                       <TableHead className="text-right">Forward</TableHead>
@@ -127,7 +118,6 @@ export default function Players() {
                   </TableHeader>
                   <TableBody>
                     {tableData.map(player => {
-                      const ratingResult = calculatePlayerRating(player);
                       const successRate = player.passCount > 0 
                         ? ((player.successfulPass / player.passCount) * 100).toFixed(0)
                         : '0';
@@ -141,45 +131,6 @@ export default function Players() {
                                 <span className="text-xs text-muted-foreground ml-2">({player.role})</span>
                               )}
                             </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="flex items-center justify-center gap-1 cursor-help">
-                                    <Star className="h-3 w-3 text-yellow-500" />
-                                    <span className={`font-bold ${getRatingColor(ratingResult.overall)}`}>
-                                      {ratingResult.overall.toFixed(1)}
-                                    </span>
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="left" className="text-xs">
-                                  <div className="space-y-1">
-                                    <div className="flex justify-between gap-3">
-                                      <span>Passing:</span>
-                                      <span className={getRatingColor(ratingResult.components.passing)}>{ratingResult.components.passing.toFixed(1)}</span>
-                                    </div>
-                                    <div className="flex justify-between gap-3">
-                                      <span>Attacking:</span>
-                                      <span className={getRatingColor(ratingResult.components.attacking)}>{ratingResult.components.attacking.toFixed(1)}</span>
-                                    </div>
-                                    <div className="flex justify-between gap-3">
-                                      <span>Defending:</span>
-                                      <span className={getRatingColor(ratingResult.components.defending)}>{ratingResult.components.defending.toFixed(1)}</span>
-                                    </div>
-                                    <div className="flex justify-between gap-3">
-                                      <span>Discipline:</span>
-                                      <span className={getRatingColor(ratingResult.components.discipline)}>{ratingResult.components.discipline.toFixed(1)}</span>
-                                    </div>
-                                    {ratingResult.minutesAdjustment < 1 && (
-                                      <div className="text-muted-foreground pt-1 border-t">
-                                        *Adjusted for {ratingResult.minutesPlayed}min
-                                      </div>
-                                    )}
-                                  </div>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
                           </TableCell>
                           <TableCell className="text-right font-medium">{player.passCount}</TableCell>
                           <TableCell className="text-right">{successRate}%</TableCell>
