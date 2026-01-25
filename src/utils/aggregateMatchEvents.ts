@@ -327,7 +327,8 @@ export async function fetchAndAggregateMatchEvents(
       seconds,
       player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
     `)
-    .eq('match_id', matchId);
+    .eq('match_id', matchId)
+    .limit(10000);
 
   if (error) throw error;
   if (!events || events.length === 0) {
@@ -382,7 +383,8 @@ export async function fetchAndAggregateEventsForTeam(
       seconds,
       player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
     `)
-    .in('match_id', matchIds);
+    .in('match_id', matchIds)
+    .limit(10000);
 
   if (error) throw error;
   if (!events || events.length === 0) return new Map();

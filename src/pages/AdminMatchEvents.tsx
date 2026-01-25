@@ -93,7 +93,8 @@ function AdminMatchEventsContent() {
           target:players!match_events_target_player_id_fkey(id, name, jersey_number)
         `)
         .eq('match_id', matchId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true })
+        .limit(10000);
       if (error) throw error;
       return data;
     },
