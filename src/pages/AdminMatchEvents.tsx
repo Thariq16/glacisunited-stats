@@ -620,7 +620,7 @@ function AdminMatchEventsContent() {
     setSelectedEventType(null);
   }, [stickyPlayer]);
 
-  // Time adjustment helper
+  // Time adjustment helper - respects half minimum (2nd half starts at 45)
   const adjustTime = useCallback((delta: number) => {
     setSeconds(prev => {
       let newSeconds = prev + delta;
@@ -636,11 +636,14 @@ function AdminMatchEventsContent() {
       }
       
       if (minuteChange !== 0) {
-        setMinute(m => Math.max(0, m + minuteChange));
+        setMinute(m => {
+          const minMinute = selectedHalf === 2 ? 45 : 0;
+          return Math.max(minMinute, m + minuteChange);
+        });
       }
       return Math.max(0, newSeconds);
     });
-  }, []);
+  }, [selectedHalf]);
 
   // Handle player selection
   const handlePlayerSelect = useCallback((playerId: string) => {
@@ -1436,7 +1439,15 @@ function AdminMatchEventsContent() {
 
         {/* Controls row */}
         <div className="flex flex-wrap items-center gap-4 mb-4">
-          <Tabs value={String(selectedHalf)} onValueChange={(v) => setSelectedHalf(Number(v) as 1 | 2)}>
+          <Tabs value={String(selectedHalf)} onValueChange={(v) => {
+            const newHalf = Number(v) as 1 | 2;
+            setSelectedHalf(newHalf);
+            // When switching to 2nd half, ensure minute is at least 45
+            if (newHalf === 2 && minute < 45) {
+              setMinute(45);
+              setSeconds(0);
+            }
+          }}>
             <TabsList>
               <TabsTrigger value="1">1st Half</TabsTrigger>
               <TabsTrigger value="2">2nd Half</TabsTrigger>
@@ -1465,10 +1476,14 @@ function AdminMatchEventsContent() {
               <Input
                 id="minute"
                 type="number"
-                min={0}
+                min={selectedHalf === 2 ? 45 : 0}
                 max={120}
                 value={minute}
-                onChange={(e) => setMinute(Number(e.target.value))}
+                onChange={(e) => {
+                  const newMinute = Number(e.target.value);
+                  // Enforce minimum of 45 for 2nd half
+                  setMinute(selectedHalf === 2 ? Math.max(45, newMinute) : newMinute);
+                }}
                 className="w-16"
               />
             </div>
