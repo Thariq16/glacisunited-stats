@@ -1,4 +1,5 @@
 import { PlayerStats } from './parseCSV';
+import { calculatePlayerRating } from './playerRating';
 
 export interface AdvancedMetrics {
   shotConversionRate: number;
@@ -67,8 +68,6 @@ export function calculateAdvancedMetrics(player: PlayerStats): AdvancedMetrics {
     : player.foulWon;
 
   // Use the unified player rating system for performance rating
-  // Import dynamically to avoid circular dependencies
-  const { calculatePlayerRating } = require('./playerRating');
   const ratingResult = calculatePlayerRating(player);
   const performanceRating = ratingResult.overall;
 
