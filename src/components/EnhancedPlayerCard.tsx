@@ -8,8 +8,15 @@ import { PlayerPassStats } from "@/components/PlayerPassStats";
 import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
 import { PlayerPassThirdMap } from "@/components/PlayerPassThirdMap";
 import { useNavigate } from "react-router-dom";
-import { Target, TrendingUp, Clock, Star, ChevronRight } from "lucide-react";
+import { Target, TrendingUp, Clock, Star, ChevronRight, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { calculatePlayerRating, getRatingColor, PlayerRatingResult } from "@/utils/playerRating";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface EnhancedPlayerCardProps {
   player: PlayerStats;
@@ -17,41 +24,34 @@ interface EnhancedPlayerCardProps {
   passData?: PlayerPassData;
 }
 
-// Simple match rating calculation based on stats
-function calculateMatchRating(player: PlayerStats): number {
-  let rating = 6.0; // Base rating
-
-  // Positive contributions
-  rating += player.goals * 0.5;
-  rating += player.shotsOnTarget * 0.1;
-  rating += (player.successfulPass / Math.max(player.passCount, 1)) * 1.5;
-  rating += player.tackles * 0.1;
-  rating += player.aerialDuelsWon * 0.1;
-  rating += player.penaltyAreaEntry * 0.1;
-  rating += player.penaltyAreaPass * 0.15;
-
-  // Negative contributions
-  rating -= player.missPass * 0.02;
-  rating -= player.defensiveErrors * 0.3;
-  rating -= player.fouls * 0.1;
-
-  // Clamp between 1 and 10
-  return Math.max(1, Math.min(10, rating));
-}
-
-function getRatingColor(rating: number): string {
-  if (rating >= 8) return "text-green-500";
-  if (rating >= 7) return "text-emerald-500";
-  if (rating >= 6) return "text-yellow-500";
-  if (rating >= 5) return "text-orange-500";
-  return "text-red-500";
+function RatingBreakdown({ rating }: { rating: PlayerRatingResult }) {
+  return (
+    <div className="space-y-2 text-sm">
+      <div className="font-semibold border-b pb-1 mb-2">Rating Breakdown</div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+        <span className="text-muted-foreground">Passing:</span>
+        <span className={getRatingColor(rating.components.passing)}>{rating.components.passing.toFixed(1)}</span>
+        <span className="text-muted-foreground">Attacking:</span>
+        <span className={getRatingColor(rating.components.attacking)}>{rating.components.attacking.toFixed(1)}</span>
+        <span className="text-muted-foreground">Defending:</span>
+        <span className={getRatingColor(rating.components.defending)}>{rating.components.defending.toFixed(1)}</span>
+        <span className="text-muted-foreground">Discipline:</span>
+        <span className={getRatingColor(rating.components.discipline)}>{rating.components.discipline.toFixed(1)}</span>
+      </div>
+      {rating.minutesAdjustment < 1 && (
+        <div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+          * Adjusted for {rating.minutesPlayed} min played
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerCardProps) {
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   
-  const matchRating = calculateMatchRating(player);
+  const ratingResult = calculatePlayerRating(player);
   const successRate = player.passCount > 0 
     ? ((player.successfulPass / player.passCount) * 100).toFixed(0)
     : '0';
@@ -77,12 +77,21 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
                 {player.role && (
                   <Badge variant="secondary" className="text-xs">{player.role}</Badge>
                 )}
-                <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md">
-                  <Star className="h-3 w-3 text-yellow-500" />
-                  <span className={`font-bold ${getRatingColor(matchRating)}`}>
-                    {matchRating.toFixed(1)}
-                  </span>
-                </div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md cursor-help">
+                        <Star className="h-3 w-3 text-yellow-500" />
+                        <span className={`font-bold ${getRatingColor(ratingResult.overall)}`}>
+                          {ratingResult.overall.toFixed(1)}
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="w-48">
+                      <RatingBreakdown rating={ratingResult} />
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </CardHeader>
@@ -119,12 +128,22 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
           <DialogTitle className="flex items-center gap-3">
             <span>#{player.jerseyNumber} {player.playerName}</span>
             {player.role && <Badge variant="secondary">{player.role}</Badge>}
-            <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md ml-auto">
-              <Star className="h-4 w-4 text-yellow-500" />
-              <span className={`text-lg font-bold ${getRatingColor(matchRating)}`}>
-                {matchRating.toFixed(1)}
-              </span>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 px-2 py-1 bg-muted rounded-md ml-auto cursor-help">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    <span className={`text-lg font-bold ${getRatingColor(ratingResult.overall)}`}>
+                      {ratingResult.overall.toFixed(1)}
+                    </span>
+                    <Info className="h-3 w-3 text-muted-foreground ml-1" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="w-48">
+                  <RatingBreakdown rating={ratingResult} />
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </DialogTitle>
         </DialogHeader>
         
