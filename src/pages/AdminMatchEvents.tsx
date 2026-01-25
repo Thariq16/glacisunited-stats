@@ -380,6 +380,30 @@ function AdminMatchEventsContent() {
     ? (homeSquad.length > 0 ? homeSquad : allPlayers)
     : (awaySquad.length > 0 ? awaySquad : allPlayers);
 
+  // Calculate substitution status from events
+  const { subbedOffPlayerIds, subbedOnPlayerIds } = useMemo(() => {
+    const subbedOff: string[] = [];
+    const subbedOn: string[] = [];
+    
+    // Find all substitution events for the current team
+    const teamPlayerIds = new Set(players.map(p => p.id));
+    
+    events.forEach(event => {
+      if (event.eventType === 'substitution') {
+        // The player_id is the one going OFF
+        if (teamPlayerIds.has(event.playerId)) {
+          subbedOff.push(event.playerId);
+        }
+        // The substitute_player_id is the one coming ON
+        if (event.substitutePlayerId && teamPlayerIds.has(event.substitutePlayerId)) {
+          subbedOn.push(event.substitutePlayerId);
+        }
+      }
+    });
+    
+    return { subbedOffPlayerIds: subbedOff, subbedOnPlayerIds: subbedOn };
+  }, [events, players]);
+
   // Save event mutation
   const saveEventMutation = useMutation({
     mutationFn: async (event: {
@@ -1568,6 +1592,8 @@ function AdminMatchEventsContent() {
               onSelect={handlePlayerSelect}
               stickyPlayer={stickyPlayer}
               onStickyChange={setStickyPlayer}
+              subbedOffPlayerIds={subbedOffPlayerIds}
+              subbedOnPlayerIds={subbedOnPlayerIds}
             />
 
             <EventModifiers
