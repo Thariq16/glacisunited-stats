@@ -101,7 +101,7 @@ export const EVENT_CONFIG: Record<EventType, {
   requiresSubstitutePlayer?: boolean;
   category: 'passing' | 'shooting' | 'defensive' | 'set_piece' | 'movement' | 'without_ball';
 }> = {
-  pass: { label: 'Pass', requiresEndPosition: true, category: 'passing' },
+  pass: { label: 'Pass', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
   key_pass: { label: 'Key Pass', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
   assist: { label: 'Assist', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
   shot: { label: 'Shot', requiresEndPosition: false, category: 'shooting' },

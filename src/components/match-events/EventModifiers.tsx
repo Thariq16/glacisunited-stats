@@ -3,14 +3,15 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { EventType, ShotOutcome, AerialOutcome, EVENTS_WITH_UNSUCCESSFUL, EVENTS_WITH_TARGET_PLAYER, EVENT_CONFIG } from './types';
-
 import { Badge } from '@/components/ui/badge';
 
 interface Player {
   id: string;
   name: string;
   jersey_number: number;
+  role?: string | null;
   status?: 'starting' | 'substitute';
 }
 
@@ -66,6 +67,24 @@ export function EventModifiers({
   const showTargetPlayer = EVENTS_WITH_TARGET_PLAYER.includes(selectedEventType);
   const showSubstitutePlayer = selectedEventType === 'substitution';
   const isTargetRequired = selectedEventType ? EVENT_CONFIG[selectedEventType]?.requiresTargetPlayer : false;
+
+  // Split players by status for target player grid
+  const starters = players
+    .filter((p) => p.status === 'starting')
+    .sort((a, b) => a.jersey_number - b.jersey_number);
+  
+  const targetSubstitutes = players
+    .filter((p) => p.status === 'substitute')
+    .sort((a, b) => a.jersey_number - b.jersey_number);
+
+  // All players sorted for dropdown
+  const allPlayersSorted = [...players].sort((a, b) => {
+    if (a.status === 'starting' && b.status !== 'starting') return -1;
+    if (a.status !== 'starting' && b.status === 'starting') return 1;
+    return a.jersey_number - b.jersey_number;
+  });
+
+  const selectedTargetPlayer = players.find((p) => p.id === targetPlayerId);
 
   return (
     <div className="space-y-4">
@@ -137,64 +156,108 @@ export function EventModifiers({
         </div>
       )}
 
+      {/* Target player - hybrid selection */}
       {showTargetPlayer && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Label className="text-sm">
             Target Player {isTargetRequired ? <span className="text-destructive">*</span> : '(optional)'}
           </Label>
-          
-          {/* Recent target players */}
-          {recentTargetPlayerIds.length > 0 && (
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Recent:</p>
+
+          {/* Starting XI grid */}
+          {starters.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">Starting XI:</p>
               <div className="flex flex-wrap gap-1">
-                {recentTargetPlayerIds
-                  .map((id) => players.find((p) => p.id === id))
-                  .filter((p): p is Player => p !== undefined)
-                  .slice(0, 5)
-                  .map((player) => (
-                    <Button
-                      key={player.id}
-                      variant={targetPlayerId === player.id ? 'default' : 'outline'}
-                      size="sm"
-                      className="text-xs h-7 px-2"
-                      onClick={() => onTargetPlayerChange(player.id)}
-                    >
-                      #{player.jersey_number} {player.name.split(' ')[0]}
-                    </Button>
-                  ))}
+                {starters.map((player) => (
+                  <Tooltip key={player.id}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={targetPlayerId === player.id ? 'default' : 'secondary'}
+                        size="sm"
+                        className={`w-9 h-9 p-0 text-sm font-bold ${
+                          targetPlayerId === player.id 
+                            ? 'ring-2 ring-offset-1 ring-primary' 
+                            : ''
+                        }`}
+                        onClick={() => onTargetPlayerChange(player.id)}
+                      >
+                        {player.jersey_number}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      {player.name}{player.role ? ` (${player.role})` : ''}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
               </div>
             </div>
           )}
-          
-          <Select
-            value={targetPlayerId || 'none'}
-            onValueChange={(value) => onTargetPlayerChange(value === 'none' ? null : value)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select target player" />
-            </SelectTrigger>
-            <SelectContent>
-              {!isTargetRequired && <SelectItem value="none">No target specified</SelectItem>}
-              {[...players]
-                .sort((a, b) => {
-                  // Starting XI first, then substitutes, then by jersey number
-                  if (a.status === 'starting' && b.status !== 'starting') return -1;
-                  if (a.status !== 'starting' && b.status === 'starting') return 1;
-                  return a.jersey_number - b.jersey_number;
-                })
-                .map((player) => (
+
+          {/* Substitutes grid */}
+          {targetSubstitutes.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">Subs:</p>
+              <div className="flex flex-wrap gap-1">
+                {targetSubstitutes.map((player) => (
+                  <Tooltip key={player.id}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={targetPlayerId === player.id ? 'default' : 'outline'}
+                        size="sm"
+                        className={`w-9 h-9 p-0 text-sm ${
+                          targetPlayerId === player.id 
+                            ? 'ring-2 ring-offset-1 ring-primary' 
+                            : 'text-muted-foreground'
+                        }`}
+                        onClick={() => onTargetPlayerChange(player.id)}
+                      >
+                        {player.jersey_number}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      {player.name}{player.role ? ` (${player.role})` : ''}
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Compact dropdown for all players */}
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground">All players:</p>
+            <Select
+              value={targetPlayerId || 'none'}
+              onValueChange={(value) => onTargetPlayerChange(value === 'none' ? null : value)}
+            >
+              <SelectTrigger className="w-full h-9">
+                <SelectValue placeholder="Select target player">
+                  {selectedTargetPlayer ? (
+                    <span className="flex items-center gap-2 text-sm">
+                      <span className="font-mono font-bold">{selectedTargetPlayer.jersey_number}</span>
+                      <span>{selectedTargetPlayer.name}</span>
+                    </span>
+                  ) : (
+                    !isTargetRequired ? 'No target specified' : 'Select target player'
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {!isTargetRequired && <SelectItem value="none">No target specified</SelectItem>}
+                {allPlayersSorted.map((player) => (
                   <SelectItem key={player.id} value={player.id}>
                     <span className="flex items-center gap-2">
-                      <span>#{player.jersey_number} {player.name}</span>
+                      <span className="font-mono font-bold w-6">{player.jersey_number}</span>
+                      <span>{player.name}</span>
                       {player.status === 'substitute' && (
-                        <Badge variant="outline" className="text-[10px] h-4 px-1">SUB</Badge>
+                        <Badge variant="outline" className="text-[10px] h-4 px-1 ml-auto">SUB</Badge>
                       )}
                     </span>
                   </SelectItem>
                 ))}
-            </SelectContent>
-          </Select>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
 
