@@ -165,3 +165,156 @@ export function usePlayerPassEvents(teamSlug: string, matchFilter: 'last1' | 'la
     },
   });
 }
+
+// Hook to fetch pass events for a single player by name
+export function useSinglePlayerPassEvents(
+  teamSlug: string, 
+  playerName: string | undefined, 
+  matchFilter: 'last1' | 'last3' | 'all' | string = 'last1'
+) {
+  return useQuery({
+    queryKey: ['single-player-pass-events', teamSlug, playerName, matchFilter],
+    enabled: !!playerName,
+    queryFn: async (): Promise<PlayerPassData | null> => {
+      if (!playerName) return null;
+
+      const decodedName = decodeURIComponent(playerName);
+
+      // Get team
+      const { data: team } = await supabase
+        .from('teams')
+        .select('id, name')
+        .eq('slug', teamSlug)
+        .single();
+
+      if (!team) throw new Error('Team not found');
+
+      // Get player
+      const { data: playerData } = await supabase
+        .from('players')
+        .select('id, name, jersey_number')
+        .eq('team_id', team.id)
+        .eq('name', decodedName)
+        .single();
+
+      if (!playerData) return null;
+
+      // Determine match IDs
+      let matchIds: string[] = [];
+      const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
+
+      if (isSpecificMatch) {
+        matchIds = [matchFilter];
+      } else {
+        const matchesQuery = supabase
+          .from('matches')
+          .select('id, match_date')
+          .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
+          .order('match_date', { ascending: false });
+
+        if (matchFilter === 'last1') {
+          matchesQuery.limit(1);
+        } else if (matchFilter === 'last3') {
+          matchesQuery.limit(3);
+        }
+
+        const { data: matches } = await matchesQuery;
+        if (!matches || matches.length === 0) return null;
+        matchIds = matches.map(m => m.id);
+      }
+
+      // Fetch pass events for this player with pagination
+      const PAGE_SIZE = 1000;
+      let allEvents: any[] = [];
+      let offset = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data: events, error } = await supabase
+          .from('match_events')
+          .select(`
+            id,
+            event_type,
+            x,
+            y,
+            end_x,
+            end_y,
+            successful
+          `)
+          .eq('player_id', playerData.id)
+          .in('match_id', matchIds)
+          .in('event_type', PASS_EVENT_TYPES)
+          .range(offset, offset + PAGE_SIZE - 1);
+
+        if (error) throw error;
+
+        if (events && events.length > 0) {
+          allEvents = [...allEvents, ...events];
+          offset += events.length;
+          hasMore = events.length === PAGE_SIZE;
+        } else {
+          hasMore = false;
+        }
+      }
+
+      // Build the pass data
+      const result: PlayerPassData = {
+        playerId: playerData.id,
+        playerName: playerData.name,
+        jerseyNumber: playerData.jersey_number,
+        passes: [],
+        totalPasses: 0,
+        successfulPasses: 0,
+        unsuccessfulPasses: 0,
+        forwardPasses: 0,
+        backwardPasses: 0,
+        passesDefensiveThird: 0,
+        passesMiddleThird: 0,
+        passesFinalThird: 0,
+      };
+
+      allEvents.forEach((event) => {
+        const x = Number(event.x) || 0;
+        const y = Number(event.y) || 0;
+        const endX = event.end_x !== null ? Number(event.end_x) : null;
+        const endY = event.end_y !== null ? Number(event.end_y) : null;
+
+        result.passes.push({
+          id: event.id,
+          x,
+          y,
+          endX,
+          endY,
+          successful: event.successful,
+          eventType: event.event_type,
+        });
+
+        result.totalPasses++;
+
+        if (event.successful) {
+          result.successfulPasses++;
+        } else {
+          result.unsuccessfulPasses++;
+        }
+
+        if (endX !== null) {
+          if (endX > x) {
+            result.forwardPasses++;
+          } else if (endX < x) {
+            result.backwardPasses++;
+          }
+        }
+
+        if (x <= 33) {
+          result.passesDefensiveThird++;
+        } else if (x <= 66) {
+          result.passesMiddleThird++;
+        } else {
+          result.passesFinalThird++;
+        }
+      });
+
+      return result;
+    },
+  });
+}
