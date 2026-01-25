@@ -183,11 +183,9 @@ export function PitchDiagram({
 
         {/* Attack direction indicator - top banner only */}
         {attackDirection && (() => {
-          // In first half: home attacks left if homeAttacksLeft is true
-          // In second half: directions swap
-          const homeAttacksLeftThisHalf = attackDirection.currentHalf === 1 
-            ? attackDirection.homeAttacksLeft 
-            : !attackDirection.homeAttacksLeft;
+          // homeAttacksLeft is already computed for the current half by the parent
+          // No need to flip again here
+          const homeAttacksLeftThisHalf = attackDirection.homeAttacksLeft;
           
           // Team attacking right (towards right goal)
           const teamAttackingRight = homeAttacksLeftThisHalf ? attackDirection.awayTeamName : attackDirection.homeTeamName;
