@@ -132,6 +132,7 @@ function AdminMatchEventsContent() {
   // Events state (local display only, DB is source of truth)
   const [events, setEvents] = useState<LocalEvent[]>([]);
   const [recentPlayerIds, setRecentPlayerIds] = useState<string[]>([]);
+  const [recentTargetPlayerIds, setRecentTargetPlayerIds] = useState<string[]>([]);
   const [notesOpen, setNotesOpen] = useState(false);
 
   // Penalty area suggestion state - tracks both passer and receiver
@@ -724,6 +725,14 @@ function AdminMatchEventsContent() {
         );
       }
 
+      // Update recent target players if target was specified
+      if (targetPlayerId) {
+        setRecentTargetPlayerIds(prev => {
+          const filtered = prev.filter(id => id !== targetPlayerId);
+          return [targetPlayerId, ...filtered].slice(0, 5);
+        });
+      }
+
       // Auto-advance time by configured seconds
       setSeconds(prev => {
         const newSeconds = prev + autoAdvanceSeconds;
@@ -834,6 +843,12 @@ function AdminMatchEventsContent() {
       
       // If target player was set, make them the new selected player
       if (targetPlayerId) {
+        // Update recent target players
+        setRecentTargetPlayerIds(prev => {
+          const filtered = prev.filter(id => id !== targetPlayerId);
+          return [targetPlayerId, ...filtered].slice(0, 5);
+        });
+        
         setSelectedPlayerId(targetPlayerId);
         setRecentPlayerIds(prev => {
           const filtered = prev.filter(id => id !== targetPlayerId);
@@ -1526,6 +1541,7 @@ function AdminMatchEventsContent() {
               onSubstitutePlayerChange={setSubstitutePlayerId}
               players={players}
               substitutes={players.filter(p => p.id !== selectedPlayerId)}
+              recentTargetPlayerIds={recentTargetPlayerIds}
             />
 
             {/* Action buttons */}
