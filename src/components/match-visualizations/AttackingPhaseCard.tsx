@@ -7,11 +7,13 @@ interface AttackingPhaseCardProps {
 }
 
 export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
-  const pitchWidth = 240;
-  const pitchHeight = 160;
+  // Use real pitch proportions (100x68) for consistent coordinates
+  const pitchWidth = 100;
+  const pitchHeight = 68;
 
-  // Scale coordinates from 0-100 to pitch dimensions
-  const scaleX = (x: number) => (x / 100) * pitchWidth;
+  // Coordinates are stored as 0-100 for both X and Y
+  // X maps directly to 0-100, Y needs to be scaled from 0-100 to 0-68
+  const scaleX = (x: number) => x;
   const scaleY = (y: number) => (y / 100) * pitchHeight;
 
   // Sort events by minute and seconds
@@ -62,30 +64,30 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
       <CardContent className="p-2">
         <svg viewBox={`0 0 ${pitchWidth} ${pitchHeight}`} className="w-full h-auto border rounded bg-green-800/90">
           {/* Pitch markings */}
-          <rect x="0" y="0" width={pitchWidth} height={pitchHeight} fill="none" stroke="white" strokeWidth="1" opacity="0.5" />
+          <rect x="0" y="0" width={pitchWidth} height={pitchHeight} fill="none" stroke="white" strokeWidth="0.5" opacity="0.5" />
           
           {/* Center line */}
-          <line x1={pitchWidth / 2} y1="0" x2={pitchWidth / 2} y2={pitchHeight} stroke="white" strokeWidth="1" opacity="0.5" />
+          <line x1={pitchWidth / 2} y1="0" x2={pitchWidth / 2} y2={pitchHeight} stroke="white" strokeWidth="0.3" opacity="0.5" />
           
           {/* Center circle */}
-          <circle cx={pitchWidth / 2} cy={pitchHeight / 2} r="15" fill="none" stroke="white" strokeWidth="1" opacity="0.5" />
+          <circle cx={pitchWidth / 2} cy={pitchHeight / 2} r="9.15" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
           
           {/* Left penalty area */}
-          <rect x="0" y={pitchHeight / 2 - 30} width="30" height="60" fill="none" stroke="white" strokeWidth="1" opacity="0.5" />
+          <rect x="0" y={(pitchHeight - 40.32) / 2} width="16.5" height="40.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
           
           {/* Right penalty area */}
-          <rect x={pitchWidth - 30} y={pitchHeight / 2 - 30} width="30" height="60" fill="none" stroke="white" strokeWidth="1" opacity="0.5" />
+          <rect x={pitchWidth - 16.5} y={(pitchHeight - 40.32) / 2} width="16.5" height="40.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
           
           {/* Goal areas */}
-          <rect x="0" y={pitchHeight / 2 - 15} width="12" height="30" fill="none" stroke="white" strokeWidth="1" opacity="0.5" />
-          <rect x={pitchWidth - 12} y={pitchHeight / 2 - 15} width="12" height="30" fill="none" stroke="white" strokeWidth="1" opacity="0.5" />
+          <rect x="0" y={(pitchHeight - 18.32) / 2} width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
+          <rect x={pitchWidth - 5.5} y={(pitchHeight - 18.32) / 2} width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
 
           {/* Third dividers */}
-          <line x1={pitchWidth / 3} y1="0" x2={pitchWidth / 3} y2={pitchHeight} stroke="white" strokeWidth="0.5" strokeDasharray="4,4" opacity="0.3" />
-          <line x1={(pitchWidth / 3) * 2} y1="0" x2={(pitchWidth / 3) * 2} y2={pitchHeight} stroke="white" strokeWidth="0.5" strokeDasharray="4,4" opacity="0.3" />
+          <line x1={pitchWidth / 3} y1="0" x2={pitchWidth / 3} y2={pitchHeight} stroke="white" strokeWidth="0.2" strokeDasharray="2,2" opacity="0.3" />
+          <line x1={(pitchWidth / 3) * 2} y1="0" x2={(pitchWidth / 3) * 2} y2={pitchHeight} stroke="white" strokeWidth="0.2" strokeDasharray="2,2" opacity="0.3" />
 
           {/* Draw pass lines connecting events */}
-          {sortedEvents.map((event, index) => {
+          {sortedEvents.map((event) => {
             // Draw line from this event to end position (for passes) or to next event
             if (event.end_x !== null && event.end_y !== null) {
               const isShot = event.event_type === 'shot';
@@ -99,7 +101,7 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
                   x2={scaleX(event.end_x)}
                   y2={scaleY(event.end_y)}
                   stroke={isGoal ? "#22c55e" : isShot ? "#f59e0b" : event.successful ? "#3b82f6" : "#ef4444"}
-                  strokeWidth={isShot ? "2" : "1.5"}
+                  strokeWidth={isShot ? "0.8" : "0.5"}
                   opacity="0.7"
                   markerEnd={isShot ? "url(#arrowhead)" : undefined}
                 />
@@ -112,18 +114,18 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
           <defs>
             <marker
               id="arrowhead"
-              markerWidth="6"
-              markerHeight="6"
-              refX="5"
-              refY="3"
+              markerWidth="3"
+              markerHeight="3"
+              refX="2.5"
+              refY="1.5"
               orient="auto"
             >
-              <polygon points="0 0, 6 3, 0 6" fill="#f59e0b" />
+              <polygon points="0 0, 3 1.5, 0 3" fill="#f59e0b" />
             </marker>
           </defs>
 
           {/* Draw event points with jersey numbers */}
-          {sortedEvents.map((event, index) => {
+          {sortedEvents.map((event) => {
             const isShot = event.event_type === 'shot';
             const isGoal = event.shot_outcome === 'goal';
             
@@ -132,18 +134,18 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
                 <circle
                   cx={scaleX(event.x)}
                   cy={scaleY(event.y)}
-                  r={isShot ? "6" : "4"}
+                  r={isShot ? "2.5" : "1.8"}
                   fill={isGoal ? "#22c55e" : isShot ? "#f59e0b" : event.successful ? "#3b82f6" : "#ef4444"}
                   stroke="white"
-                  strokeWidth="1"
+                  strokeWidth="0.3"
                 />
                 <text
                   x={scaleX(event.x)}
-                  y={scaleY(event.y) + 1}
+                  y={scaleY(event.y) + 0.5}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fill="white"
-                  fontSize="5"
+                  fontSize="2"
                   fontWeight="bold"
                 >
                   {event.player?.jersey_number || '?'}
