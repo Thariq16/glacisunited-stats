@@ -9,9 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePlayerStats } from "@/hooks/usePlayerStats";
+import { useTeams } from "@/hooks/useTeams";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Edit, ArrowLeft, EyeOff } from "lucide-react";
+import { Users, Edit, ArrowLeft, EyeOff, Plus } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -21,8 +22,11 @@ function AdminPlayersContent() {
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: '', jersey_number: '', role: '', hidden: false });
   const [showHidden, setShowHidden] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({ name: '', jersey_number: '', role: '', team_id: '' });
   
   const { data: players, refetch } = usePlayerStats(selectedTeam, 'all', showHidden);
+  const { data: teams } = useTeams();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -78,6 +82,42 @@ function AdminPlayersContent() {
     }
   };
 
+  const handleCreatePlayer = async () => {
+    if (!createForm.name.trim() || !createForm.jersey_number || !createForm.team_id) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('players')
+      .insert({
+        name: createForm.name.trim(),
+        jersey_number: parseInt(createForm.jersey_number),
+        role: createForm.role.trim() || null,
+        team_id: createForm.team_id,
+      });
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Success',
+        description: 'Player created successfully',
+      });
+      setIsCreateOpen(false);
+      setCreateForm({ name: '', jersey_number: '', role: '', team_id: '' });
+      refetch();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -89,21 +129,28 @@ function AdminPlayersContent() {
             Back to Admin
           </Button>
           
-          <div className="flex items-center gap-3 mb-4">
-            <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Manage Players</h1>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Users className="h-8 w-8 text-primary" />
+              <h1 className="text-4xl font-bold text-foreground">Manage Players</h1>
+            </div>
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Player
+            </Button>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 max-w-xs">
-              <Label>Select Team</Label>
+              <Label>Filter by Team</Label>
               <Select value={selectedTeam} onValueChange={setSelectedTeam}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="glacis-united-fc">Glacis United</SelectItem>
-                  <SelectItem value="europa-point-fc">Europa Point FC</SelectItem>
+                  {teams?.map(team => (
+                    <SelectItem key={team.id} value={team.slug}>{team.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -199,6 +246,64 @@ function AdminPlayersContent() {
             
             <Button onClick={handleSave} className="w-full">
               Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Player Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Player</DialogTitle>
+            <DialogDescription>Add a new player to any team</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label>Team *</Label>
+              <Select value={createForm.team_id} onValueChange={(value) => setCreateForm({ ...createForm, team_id: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams?.map(team => (
+                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Player Name *</Label>
+              <Input
+                value={createForm.name}
+                onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                placeholder="e.g., John Smith"
+              />
+            </div>
+            
+            <div>
+              <Label>Jersey Number *</Label>
+              <Input
+                type="number"
+                value={createForm.jersey_number}
+                onChange={(e) => setCreateForm({ ...createForm, jersey_number: e.target.value })}
+                placeholder="e.g., 10"
+              />
+            </div>
+            
+            <div>
+              <Label>Position/Role</Label>
+              <Input
+                value={createForm.role}
+                onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
+                placeholder="e.g., GK, CB, CM, FW"
+              />
+            </div>
+            
+            <Button onClick={handleCreatePlayer} className="w-full">
+              Create Player
             </Button>
           </div>
         </DialogContent>
