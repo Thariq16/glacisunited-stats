@@ -12,7 +12,17 @@ import { usePlayerStats } from "@/hooks/usePlayerStats";
 import { useTeams } from "@/hooks/useTeams";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Edit, ArrowLeft, EyeOff, Plus } from "lucide-react";
+import { Users, Edit, ArrowLeft, EyeOff, Plus, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +34,7 @@ function AdminPlayersContent() {
   const [showHidden, setShowHidden] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ name: '', jersey_number: '', role: '', team_id: '' });
+  const [deletePlayer, setDeletePlayer] = useState<{ id: string; name: string } | null>(null);
   
   const { data: players, refetch } = usePlayerStats(selectedTeam, 'all', showHidden);
   const { data: teams } = useTeams();
@@ -118,6 +129,47 @@ function AdminPlayersContent() {
     }
   };
 
+  const handleDeleteClick = async (player: any) => {
+    // Fetch player ID from database
+    const { data: teams } = await supabase.from('teams').select('id').eq('slug', selectedTeam).single();
+    if (!teams) return;
+
+    const { data: playerData } = await supabase
+      .from('players')
+      .select('id, name')
+      .eq('team_id', teams.id)
+      .eq('name', player.playerName)
+      .single();
+
+    if (playerData) {
+      setDeletePlayer({ id: playerData.id, name: playerData.name });
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletePlayer) return;
+
+    const { error } = await supabase
+      .from('players')
+      .update({ hidden: true })
+      .eq('id', deletePlayer.id);
+
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Success',
+        description: `${deletePlayer.name} has been removed`,
+      });
+      setDeletePlayer(null);
+      refetch();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -184,9 +236,16 @@ function AdminPlayersContent() {
                       </Badge>
                     )}
                   </span>
-                  <Button size="sm" variant="outline" onClick={() => handleEditClick(player)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" onClick={() => handleEditClick(player)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    {!player.hidden && (
+                      <Button size="sm" variant="outline" className="text-destructive hover:text-destructive" onClick={() => handleDeleteClick(player)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -308,6 +367,26 @@ function AdminPlayersContent() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletePlayer} onOpenChange={() => setDeletePlayer(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Player</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove <strong>{deletePlayer?.name}</strong>? 
+              The player data will be preserved but hidden from all views. 
+              You can restore them later by toggling "Show hidden players".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Footer />
     </div>
