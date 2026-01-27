@@ -48,18 +48,32 @@ export function PitchDiagram({
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverPosition, setHoverPosition] = useState<Position | null>(null);
 
+  // SVG viewBox dimensions - pitch is 100 wide x 68 tall (real pitch proportions)
+  const PITCH_WIDTH = 100;
+  const PITCH_HEIGHT = 68;
+
+  // Convert stored Y coordinate (0-100 normalized) to SVG Y coordinate (0-68)
+  const toSvgY = useCallback((storedY: number) => (storedY / 100) * PITCH_HEIGHT, []);
+  
+  // Convert SVG Y coordinate (0-68) to stored/display Y coordinate (0-100 normalized)
+  const toNormalizedY = useCallback((svgY: number) => (svgY / PITCH_HEIGHT) * 100, []);
+
   const getPositionFromEvent = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!svgRef.current) return null;
     
     const rect = svgRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    // Scale click position to match SVG viewBox coordinates (0-100 for X, 0-68 for Y)
+    const svgX = ((e.clientX - rect.left) / rect.width) * PITCH_WIDTH;
+    const svgY = ((e.clientY - rect.top) / rect.height) * PITCH_HEIGHT;
+    
+    // Normalize Y to 0-100 range for storage and display (consistent with X)
+    const normalizedY = toNormalizedY(svgY);
     
     return {
-      x: Math.max(0, Math.min(100, Math.round(x * 10) / 10)),
-      y: Math.max(0, Math.min(100, Math.round(y * 10) / 10)),
+      x: Math.max(0, Math.min(100, Math.round(svgX * 10) / 10)),
+      y: Math.max(0, Math.min(100, Math.round(normalizedY * 10) / 10)),
     };
-  }, []);
+  }, [toNormalizedY]);
 
   const handleClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     const pos = getPositionFromEvent(e);
@@ -259,9 +273,9 @@ export function PitchDiagram({
               {/* Trail line */}
               <line
                 x1={trail.x}
-                y1={trail.y}
+                y1={toSvgY(trail.y)}
                 x2={hasEnd ? trail.endX! : trail.x}
-                y2={hasEnd ? trail.endY! : trail.y}
+                y2={hasEnd ? toSvgY(trail.endY!) : toSvgY(trail.y)}
                 stroke={trailColor}
                 strokeWidth="0.4"
                 opacity={opacity}
@@ -271,7 +285,7 @@ export function PitchDiagram({
               {/* Start point marker */}
               <circle
                 cx={trail.x}
-                cy={trail.y}
+                cy={toSvgY(trail.y)}
                 r="1.2"
                 fill={trailColor}
                 opacity={opacity}
@@ -279,7 +293,7 @@ export function PitchDiagram({
               {/* Jersey number label */}
               <text
                 x={trail.x}
-                y={trail.y - 2}
+                y={toSvgY(trail.y) - 2}
                 fill="white"
                 fontSize="1.8"
                 textAnchor="middle"
@@ -291,7 +305,7 @@ export function PitchDiagram({
               {hasEnd && trail.targetJerseyNumber && (
                 <text
                   x={trail.endX!}
-                  y={trail.endY! + 3}
+                  y={toSvgY(trail.endY!) + 3}
                   fill="white"
                   fontSize="1.6"
                   textAnchor="middle"
@@ -322,9 +336,9 @@ export function PitchDiagram({
             </defs>
             <line
               x1={startPosition.x}
-              y1={startPosition.y}
+              y1={toSvgY(startPosition.y)}
               x2={endPosition.x}
-              y2={endPosition.y}
+              y2={toSvgY(endPosition.y)}
               stroke={isForward ? '#22C55E' : '#F97316'}
               strokeWidth="0.5"
               markerEnd="url(#arrowhead)"
@@ -336,9 +350,9 @@ export function PitchDiagram({
         {startPosition && !endPosition && requiresEndPosition && hoverPosition && (
           <line
             x1={startPosition.x}
-            y1={startPosition.y}
+            y1={toSvgY(startPosition.y)}
             x2={hoverPosition.x}
-            y2={hoverPosition.y}
+            y2={toSvgY(hoverPosition.y)}
             stroke="rgba(255,255,255,0.5)"
             strokeWidth="0.3"
             strokeDasharray="1,1"
@@ -350,7 +364,7 @@ export function PitchDiagram({
           <g>
             <circle
               cx={startPosition.x}
-              cy={startPosition.y}
+              cy={toSvgY(startPosition.y)}
               r="2"
               fill="#22C55E"
               stroke="white"
@@ -365,7 +379,7 @@ export function PitchDiagram({
             </circle>
             <text
               x={startPosition.x}
-              y={startPosition.y - 3}
+              y={toSvgY(startPosition.y) - 3}
               fill="white"
               fontSize="2"
               textAnchor="middle"
@@ -380,7 +394,7 @@ export function PitchDiagram({
           <g>
             <circle
               cx={endPosition.x}
-              cy={endPosition.y}
+              cy={toSvgY(endPosition.y)}
               r="2"
               fill="#EF4444"
               stroke="white"
@@ -388,7 +402,7 @@ export function PitchDiagram({
             />
             <text
               x={endPosition.x}
-              y={endPosition.y - 3}
+              y={toSvgY(endPosition.y) - 3}
               fill="white"
               fontSize="2"
               textAnchor="middle"
@@ -402,7 +416,7 @@ export function PitchDiagram({
         {hoverPosition && !startPosition && (
           <circle
             cx={hoverPosition.x}
-            cy={hoverPosition.y}
+            cy={toSvgY(hoverPosition.y)}
             r="1.5"
             fill="rgba(34, 197, 94, 0.5)"
             stroke="white"
@@ -412,7 +426,7 @@ export function PitchDiagram({
         {hoverPosition && startPosition && !endPosition && requiresEndPosition && (
           <circle
             cx={hoverPosition.x}
-            cy={hoverPosition.y}
+            cy={toSvgY(hoverPosition.y)}
             r="1.5"
             fill="rgba(239, 68, 68, 0.5)"
             stroke="white"
@@ -426,7 +440,7 @@ export function PitchDiagram({
             {/* Outer glow effect */}
             <circle
               cx={ballPosition.x}
-              cy={ballPosition.y}
+              cy={toSvgY(ballPosition.y)}
               r="4"
               fill="rgba(255, 215, 0, 0.3)"
             >
@@ -447,7 +461,7 @@ export function PitchDiagram({
             {/* Football/soccer ball icon */}
             <circle
               cx={ballPosition.x}
-              cy={ballPosition.y}
+              cy={toSvgY(ballPosition.y)}
               r="2.5"
               fill="white"
               stroke="#333"
@@ -456,31 +470,31 @@ export function PitchDiagram({
             {/* Pentagon pattern on ball */}
             <circle
               cx={ballPosition.x}
-              cy={ballPosition.y}
+              cy={toSvgY(ballPosition.y)}
               r="1"
               fill="#333"
             />
             <circle
               cx={ballPosition.x - 1.2}
-              cy={ballPosition.y - 0.8}
+              cy={toSvgY(ballPosition.y) - 0.8}
               r="0.5"
               fill="#333"
             />
             <circle
               cx={ballPosition.x + 1.2}
-              cy={ballPosition.y - 0.8}
+              cy={toSvgY(ballPosition.y) - 0.8}
               r="0.5"
               fill="#333"
             />
             <circle
               cx={ballPosition.x - 0.8}
-              cy={ballPosition.y + 1.2}
+              cy={toSvgY(ballPosition.y) + 1.2}
               r="0.5"
               fill="#333"
             />
             <circle
               cx={ballPosition.x + 0.8}
-              cy={ballPosition.y + 1.2}
+              cy={toSvgY(ballPosition.y) + 1.2}
               r="0.5"
               fill="#333"
             />
@@ -489,7 +503,7 @@ export function PitchDiagram({
             <g>
               <rect
                 x={ballPosition.x + 2.5}
-                y={ballPosition.y - 4}
+                y={toSvgY(ballPosition.y) - 4}
                 width="6"
                 height="4"
                 rx="1"
@@ -499,7 +513,7 @@ export function PitchDiagram({
               />
               <text
                 x={ballPosition.x + 5.5}
-                y={ballPosition.y - 1.5}
+                y={toSvgY(ballPosition.y) - 1.5}
                 fill="#333"
                 fontSize="2.5"
                 fontWeight="bold"
