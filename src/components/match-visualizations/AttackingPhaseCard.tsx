@@ -63,6 +63,50 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
       </CardHeader>
       <CardContent className="p-2">
         <svg viewBox={`0 0 ${pitchWidth} ${pitchHeight}`} className="w-full h-auto border rounded bg-green-800/90">
+          {/* Arrow marker for passes and shots */}
+          <defs>
+            <marker
+              id="arrow-pass-success"
+              markerWidth="3"
+              markerHeight="3"
+              refX="2.5"
+              refY="1.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 3 1.5, 0 3" fill="#3b82f6" />
+            </marker>
+            <marker
+              id="arrow-pass-fail"
+              markerWidth="3"
+              markerHeight="3"
+              refX="2.5"
+              refY="1.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 3 1.5, 0 3" fill="#f97316" />
+            </marker>
+            <marker
+              id="arrow-shot"
+              markerWidth="3"
+              markerHeight="3"
+              refX="2.5"
+              refY="1.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 3 1.5, 0 3" fill="#f59e0b" />
+            </marker>
+            <marker
+              id="arrow-goal"
+              markerWidth="3"
+              markerHeight="3"
+              refX="2.5"
+              refY="1.5"
+              orient="auto"
+            >
+              <polygon points="0 0, 3 1.5, 0 3" fill="#22c55e" />
+            </marker>
+          </defs>
+
           {/* Pitch markings */}
           <rect x="0" y="0" width={pitchWidth} height={pitchHeight} fill="none" stroke="white" strokeWidth="0.5" opacity="0.5" />
           
@@ -86,12 +130,15 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
           <line x1={pitchWidth / 3} y1="0" x2={pitchWidth / 3} y2={pitchHeight} stroke="white" strokeWidth="0.2" strokeDasharray="2,2" opacity="0.3" />
           <line x1={(pitchWidth / 3) * 2} y1="0" x2={(pitchWidth / 3) * 2} y2={pitchHeight} stroke="white" strokeWidth="0.2" strokeDasharray="2,2" opacity="0.3" />
 
-          {/* Draw pass lines connecting events */}
+          {/* Draw pass lines with direction arrows */}
           {sortedEvents.map((event) => {
-            // Draw line from this event to end position (for passes) or to next event
             if (event.end_x !== null && event.end_y !== null) {
               const isShot = event.event_type === 'shot';
               const isGoal = event.shot_outcome === 'goal';
+              const isSuccess = event.successful;
+              
+              let strokeColor = isGoal ? "#22c55e" : isShot ? "#f59e0b" : isSuccess ? "#3b82f6" : "#f97316";
+              let markerEnd = isGoal ? "url(#arrow-goal)" : isShot ? "url(#arrow-shot)" : isSuccess ? "url(#arrow-pass-success)" : "url(#arrow-pass-fail)";
               
               return (
                 <line
@@ -100,42 +147,32 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
                   y1={scaleY(event.y)}
                   x2={scaleX(event.end_x)}
                   y2={scaleY(event.end_y)}
-                  stroke={isGoal ? "#22c55e" : isShot ? "#f59e0b" : event.successful ? "#3b82f6" : "#ef4444"}
+                  stroke={strokeColor}
                   strokeWidth={isShot ? "0.8" : "0.5"}
                   opacity="0.7"
-                  markerEnd={isShot ? "url(#arrowhead)" : undefined}
+                  markerEnd={markerEnd}
                 />
               );
             }
             return null;
           })}
 
-          {/* Arrow marker for shots */}
-          <defs>
-            <marker
-              id="arrowhead"
-              markerWidth="3"
-              markerHeight="3"
-              refX="2.5"
-              refY="1.5"
-              orient="auto"
-            >
-              <polygon points="0 0, 3 1.5, 0 3" fill="#f59e0b" />
-            </marker>
-          </defs>
-
           {/* Draw event points with jersey numbers */}
           {sortedEvents.map((event) => {
             const isShot = event.event_type === 'shot';
             const isGoal = event.shot_outcome === 'goal';
+            const isSuccess = event.successful;
+            
+            // Determine fill color based on event type and success
+            let fillColor = isGoal ? "#22c55e" : isShot ? "#f59e0b" : isSuccess ? "#3b82f6" : "#f97316";
             
             return (
               <g key={`point-${event.id}`}>
                 <circle
                   cx={scaleX(event.x)}
                   cy={scaleY(event.y)}
-                  r={isShot ? "2.5" : "1.8"}
-                  fill={isGoal ? "#22c55e" : isShot ? "#f59e0b" : event.successful ? "#3b82f6" : "#ef4444"}
+                  r={isShot ? "2.5" : "2"}
+                  fill={fillColor}
                   stroke="white"
                   strokeWidth="0.3"
                 />
@@ -151,6 +188,26 @@ export function AttackingPhaseCard({ phase }: AttackingPhaseCardProps) {
                   {event.player?.jersey_number || '?'}
                 </text>
               </g>
+            );
+          })}
+
+          {/* End position markers for unsuccessful passes (red dot) */}
+          {sortedEvents.map((event) => {
+            if (event.end_x === null || event.end_y === null) return null;
+            if (event.successful) return null;
+            const isShot = event.event_type === 'shot';
+            if (isShot) return null; // Don't show red end marker for shots
+            
+            return (
+              <circle
+                key={`end-${event.id}`}
+                cx={scaleX(event.end_x)}
+                cy={scaleY(event.end_y)}
+                r="1.2"
+                fill="#ef4444"
+                stroke="white"
+                strokeWidth="0.2"
+              />
             );
           })}
         </svg>

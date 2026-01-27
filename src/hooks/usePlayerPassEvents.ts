@@ -9,6 +9,20 @@ export interface PassEvent {
   endY: number | null;
   successful: boolean;
   eventType: string;
+  half: number;
+}
+
+export interface HalfPassData {
+  half: number;
+  passes: PassEvent[];
+  totalPasses: number;
+  successfulPasses: number;
+  unsuccessfulPasses: number;
+  forwardPasses: number;
+  backwardPasses: number;
+  passesDefensiveThird: number;
+  passesMiddleThird: number;
+  passesFinalThird: number;
 }
 
 export interface PlayerPassData {
@@ -24,6 +38,7 @@ export interface PlayerPassData {
   passesDefensiveThird: number;
   passesMiddleThird: number;
   passesFinalThird: number;
+  byHalf: HalfPassData[];
 }
 
 const PASS_EVENT_TYPES = ['pass', 'key_pass', 'assist', 'cross', 'cutback', 'penalty_area_pass', 'throw_in', 'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart'];
@@ -77,6 +92,7 @@ export function usePlayerPassEvents(teamSlug: string, matchFilter: 'last1' | 'la
             end_x,
             end_y,
             successful,
+            half,
             player:players!match_events_player_id_fkey(id, name, jersey_number, team_id)
           `)
           .in('match_id', matchIds)
@@ -115,6 +131,10 @@ export function usePlayerPassEvents(teamSlug: string, matchFilter: 'last1' | 'la
             passesDefensiveThird: 0,
             passesMiddleThird: 0,
             passesFinalThird: 0,
+            byHalf: [
+              { half: 1, passes: [], totalPasses: 0, successfulPasses: 0, unsuccessfulPasses: 0, forwardPasses: 0, backwardPasses: 0, passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0 },
+              { half: 2, passes: [], totalPasses: 0, successfulPasses: 0, unsuccessfulPasses: 0, forwardPasses: 0, backwardPasses: 0, passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0 },
+            ],
           });
         }
 
@@ -123,8 +143,10 @@ export function usePlayerPassEvents(teamSlug: string, matchFilter: 'last1' | 'la
         const y = Number(event.y) || 0;
         const endX = event.end_x !== null ? Number(event.end_x) : null;
         const endY = event.end_y !== null ? Number(event.end_y) : null;
+        const half = event.half || 1;
+        const halfIndex = half === 1 ? 0 : 1;
 
-        playerData.passes.push({
+        const passEvent: PassEvent = {
           id: event.id,
           x,
           y,
@@ -132,32 +154,44 @@ export function usePlayerPassEvents(teamSlug: string, matchFilter: 'last1' | 'la
           endY,
           successful: event.successful,
           eventType: event.event_type,
-        });
+          half,
+        };
+
+        playerData.passes.push(passEvent);
+        playerData.byHalf[halfIndex].passes.push(passEvent);
 
         playerData.totalPasses++;
+        playerData.byHalf[halfIndex].totalPasses++;
 
         if (event.successful) {
           playerData.successfulPasses++;
+          playerData.byHalf[halfIndex].successfulPasses++;
         } else {
           playerData.unsuccessfulPasses++;
+          playerData.byHalf[halfIndex].unsuccessfulPasses++;
         }
 
         // Determine forward/backward based on end position
         if (endX !== null) {
           if (endX > x) {
             playerData.forwardPasses++;
+            playerData.byHalf[halfIndex].forwardPasses++;
           } else if (endX < x) {
             playerData.backwardPasses++;
+            playerData.byHalf[halfIndex].backwardPasses++;
           }
         }
 
         // Determine which third the pass originated from (0-33: defensive, 34-66: middle, 67-100: final)
         if (x <= 33) {
           playerData.passesDefensiveThird++;
+          playerData.byHalf[halfIndex].passesDefensiveThird++;
         } else if (x <= 66) {
           playerData.passesMiddleThird++;
+          playerData.byHalf[halfIndex].passesMiddleThird++;
         } else {
           playerData.passesFinalThird++;
+          playerData.byHalf[halfIndex].passesFinalThird++;
         }
       });
 
@@ -239,7 +273,8 @@ export function useSinglePlayerPassEvents(
             y,
             end_x,
             end_y,
-            successful
+            successful,
+            half
           `)
           .eq('player_id', playerData.id)
           .in('match_id', matchIds)
@@ -271,6 +306,10 @@ export function useSinglePlayerPassEvents(
         passesDefensiveThird: 0,
         passesMiddleThird: 0,
         passesFinalThird: 0,
+        byHalf: [
+          { half: 1, passes: [], totalPasses: 0, successfulPasses: 0, unsuccessfulPasses: 0, forwardPasses: 0, backwardPasses: 0, passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0 },
+          { half: 2, passes: [], totalPasses: 0, successfulPasses: 0, unsuccessfulPasses: 0, forwardPasses: 0, backwardPasses: 0, passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0 },
+        ],
       };
 
       allEvents.forEach((event) => {
@@ -278,8 +317,10 @@ export function useSinglePlayerPassEvents(
         const y = Number(event.y) || 0;
         const endX = event.end_x !== null ? Number(event.end_x) : null;
         const endY = event.end_y !== null ? Number(event.end_y) : null;
+        const half = event.half || 1;
+        const halfIndex = half === 1 ? 0 : 1;
 
-        result.passes.push({
+        const passEvent: PassEvent = {
           id: event.id,
           x,
           y,
@@ -287,30 +328,42 @@ export function useSinglePlayerPassEvents(
           endY,
           successful: event.successful,
           eventType: event.event_type,
-        });
+          half,
+        };
+
+        result.passes.push(passEvent);
+        result.byHalf[halfIndex].passes.push(passEvent);
 
         result.totalPasses++;
+        result.byHalf[halfIndex].totalPasses++;
 
         if (event.successful) {
           result.successfulPasses++;
+          result.byHalf[halfIndex].successfulPasses++;
         } else {
           result.unsuccessfulPasses++;
+          result.byHalf[halfIndex].unsuccessfulPasses++;
         }
 
         if (endX !== null) {
           if (endX > x) {
             result.forwardPasses++;
+            result.byHalf[halfIndex].forwardPasses++;
           } else if (endX < x) {
             result.backwardPasses++;
+            result.byHalf[halfIndex].backwardPasses++;
           }
         }
 
         if (x <= 33) {
           result.passesDefensiveThird++;
+          result.byHalf[halfIndex].passesDefensiveThird++;
         } else if (x <= 66) {
           result.passesMiddleThird++;
+          result.byHalf[halfIndex].passesMiddleThird++;
         } else {
           result.passesFinalThird++;
+          result.byHalf[halfIndex].passesFinalThird++;
         }
       });
 
