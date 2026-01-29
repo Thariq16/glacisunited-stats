@@ -30,6 +30,8 @@ interface EventModifiersProps {
   players: Player[];
   substitutes?: Player[];
   recentTargetPlayerIds?: string[];
+  subbedOffPlayerIds?: string[]; // Players who have been substituted off
+  subbedOnPlayerIds?: string[]; // Players who have come on as substitutes
 }
 
 export function EventModifiers({
@@ -47,6 +49,8 @@ export function EventModifiers({
   players,
   substitutes = [],
   recentTargetPlayerIds = [],
+  subbedOffPlayerIds = [],
+  subbedOnPlayerIds = [],
 }: EventModifiersProps) {
   if (!selectedEventType) {
     return (
@@ -72,7 +76,7 @@ export function EventModifiers({
   const starters = players
     .filter((p) => p.status === 'starting')
     .sort((a, b) => a.jersey_number - b.jersey_number);
-  
+
   const targetSubstitutes = players
     .filter((p) => p.status === 'substitute')
     .sort((a, b) => a.jersey_number - b.jersey_number);
@@ -168,27 +172,40 @@ export function EventModifiers({
             <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">Starting XI:</p>
               <div className="flex flex-wrap gap-1">
-                {starters.map((player) => (
-                  <Tooltip key={player.id}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={targetPlayerId === player.id ? 'default' : 'secondary'}
-                        size="sm"
-                        className={`w-9 h-9 p-0 text-sm font-bold ${
-                          targetPlayerId === player.id 
-                            ? 'ring-2 ring-offset-1 ring-primary' 
-                            : ''
-                        }`}
-                        onClick={() => onTargetPlayerChange(player.id)}
-                      >
-                        {player.jersey_number}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="text-xs">
-                      {player.name}{player.role ? ` (${player.role})` : ''}
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
+                {starters.map((player) => {
+                  const isSubbedOff = subbedOffPlayerIds.includes(player.id);
+                  const isSubbedOn = subbedOnPlayerIds.includes(player.id);
+
+                  return (
+                    <Tooltip key={player.id}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={targetPlayerId === player.id ? 'default' : isSubbedOn ? 'default' : 'secondary'}
+                          size="sm"
+                          disabled={isSubbedOff}
+                          className={`w-9 h-9 p-0 text-sm font-bold ${targetPlayerId === player.id
+                              ? 'ring-2 ring-offset-1 ring-primary'
+                              : ''
+                            } ${isSubbedOff
+                              ? 'opacity-40 cursor-not-allowed line-through'
+                              : ''
+                            } ${isSubbedOn && targetPlayerId !== player.id
+                              ? 'bg-green-600 hover:bg-green-700 text-white border-green-600'
+                              : ''
+                            }`}
+                          onClick={() => !isSubbedOff && onTargetPlayerChange(player.id)}
+                        >
+                          {player.jersey_number}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        {player.name}{player.role ? ` (${player.role})` : ''}
+                        {isSubbedOff && ' (OFF)'}
+                        {isSubbedOn && ' (ON)'}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -198,27 +215,40 @@ export function EventModifiers({
             <div className="space-y-1.5">
               <p className="text-xs text-muted-foreground">Subs:</p>
               <div className="flex flex-wrap gap-1">
-                {targetSubstitutes.map((player) => (
-                  <Tooltip key={player.id}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={targetPlayerId === player.id ? 'default' : 'outline'}
-                        size="sm"
-                        className={`w-9 h-9 p-0 text-sm ${
-                          targetPlayerId === player.id 
-                            ? 'ring-2 ring-offset-1 ring-primary' 
-                            : 'text-muted-foreground'
-                        }`}
-                        onClick={() => onTargetPlayerChange(player.id)}
-                      >
-                        {player.jersey_number}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" className="text-xs">
-                      {player.name}{player.role ? ` (${player.role})` : ''}
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
+                {targetSubstitutes.map((player) => {
+                  const isSubbedOff = subbedOffPlayerIds.includes(player.id);
+                  const isSubbedOn = subbedOnPlayerIds.includes(player.id);
+
+                  return (
+                    <Tooltip key={player.id}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={targetPlayerId === player.id ? 'default' : isSubbedOn ? 'default' : 'outline'}
+                          size="sm"
+                          disabled={isSubbedOff}
+                          className={`w-9 h-9 p-0 text-sm ${targetPlayerId === player.id
+                              ? 'ring-2 ring-offset-1 ring-primary'
+                              : !isSubbedOn ? 'text-muted-foreground' : ''
+                            } ${isSubbedOff
+                              ? 'opacity-40 cursor-not-allowed line-through'
+                              : ''
+                            } ${isSubbedOn && targetPlayerId !== player.id
+                              ? 'bg-green-600 hover:bg-green-700 text-white border-green-600'
+                              : ''
+                            }`}
+                          onClick={() => !isSubbedOff && onTargetPlayerChange(player.id)}
+                        >
+                          {player.jersey_number}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" className="text-xs">
+                        {player.name}{player.role ? ` (${player.role})` : ''}
+                        {isSubbedOff && ' (OFF)'}
+                        {isSubbedOn && ' (ON)'}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -15,18 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Plus, Users, UserPlus, Check, Loader2, Shirt } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Player {
-  id: string;
-  name: string;
-  jersey_number: number;
-  role: string | null;
-  team_id: string;
-}
-
-interface SquadPlayer extends Player {
-  status: 'starting' | 'substitute';
-}
+import { useSquadSelectionQueries, useSquadSelectionMutations, Player, SquadPlayer } from './admin-squad-selection/hooks';
 
 interface Team {
   id: string;
@@ -39,140 +27,47 @@ function AdminSquadSelectionContent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Use extracted hooks
+  const {
+    match,
+    homePlayers,
+    awayPlayers,
+    matchLoading,
+    homePlayersLoading,
+    awayPlayersLoading,
+  } = useSquadSelectionQueries(matchId);
+
+  const {
+    createPlayerMutation,
+    createTeamMutation,
+    saveSquadMutation,
+    saveAndProceed,
+  } = useSquadSelectionMutations(matchId);
+
   const [homeSquad, setHomeSquad] = useState<SquadPlayer[]>([]);
   const [awaySquad, setAwaySquad] = useState<SquadPlayer[]>([]);
   const [newPlayerDialogOpen, setNewPlayerDialogOpen] = useState(false);
   const [newTeamDialogOpen, setNewTeamDialogOpen] = useState(false);
   const [activeTeamTab, setActiveTeamTab] = useState<'home' | 'away'>('home');
-  
+
   const [newPlayerForm, setNewPlayerForm] = useState({
     name: '',
     jerseyNumber: '',
     role: '',
     teamId: '',
   });
-  
+
   const [newTeamForm, setNewTeamForm] = useState({
     name: '',
     slug: '',
   });
 
-  // Fetch match details
-  const { data: match, isLoading: matchLoading } = useQuery({
-    queryKey: ['match', matchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          home_team:teams!matches_home_team_id_fkey(id, name, slug),
-          away_team:teams!matches_away_team_id_fkey(id, name, slug)
-        `)
-        .eq('id', matchId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!matchId,
-  });
-
-  // Fetch home team players (excluding hidden)
-  const { data: homePlayers, isLoading: homePlayersLoading } = useQuery({
-    queryKey: ['players', match?.home_team_id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('players')
-        .select('*')
-        .eq('team_id', match?.home_team_id)
-        .eq('hidden', false)
-        .order('jersey_number');
-      
-      if (error) throw error;
-      return data as Player[];
-    },
-    enabled: !!match?.home_team_id,
-  });
-
-  // Fetch away team players (excluding hidden)
-  const { data: awayPlayers, isLoading: awayPlayersLoading } = useQuery({
-    queryKey: ['players', match?.away_team_id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('players')
-        .select('*')
-        .eq('team_id', match?.away_team_id)
-        .eq('hidden', false)
-        .order('jersey_number');
-      
-      if (error) throw error;
-      return data as Player[];
-    },
-    enabled: !!match?.away_team_id,
-  });
-
-  // Create player mutation
-  const createPlayerMutation = useMutation({
-    mutationFn: async (data: { name: string; jersey_number: number; role: string | null; team_id: string }) => {
-      const { data: newPlayer, error } = await supabase
-        .from('players')
-        .insert(data)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return newPlayer;
-    },
-    onSuccess: (newPlayer) => {
-      queryClient.invalidateQueries({ queryKey: ['players'] });
-      toast.success('Player created successfully');
-      setNewPlayerDialogOpen(false);
-      setNewPlayerForm({ name: '', jerseyNumber: '', role: '', teamId: '' });
-      
-      // Auto-add to squad
-      const squadPlayer: SquadPlayer = { ...newPlayer, status: 'substitute' };
-      if (newPlayer.team_id === match?.home_team_id) {
-        setHomeSquad(prev => [...prev, squadPlayer]);
-      } else {
-        setAwaySquad(prev => [...prev, squadPlayer]);
-      }
-    },
-    onError: (error) => {
-      console.error('Error creating player:', error);
-      toast.error('Failed to create player');
-    },
-  });
-
-  // Create team mutation
-  const createTeamMutation = useMutation({
-    mutationFn: async (data: { name: string; slug: string }) => {
-      const { data: newTeam, error } = await supabase
-        .from('teams')
-        .insert(data)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return newTeam;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teams'] });
-      toast.success('Team created successfully');
-      setNewTeamDialogOpen(false);
-      setNewTeamForm({ name: '', slug: '' });
-    },
-    onError: (error) => {
-      console.error('Error creating team:', error);
-      toast.error('Failed to create team');
-    },
-  });
-
   const togglePlayerInSquad = (player: Player, teamType: 'home' | 'away') => {
     const squad = teamType === 'home' ? homeSquad : awaySquad;
     const setSquad = teamType === 'home' ? setHomeSquad : setAwaySquad;
-    
+
     const existingIndex = squad.findIndex(p => p.id === player.id);
-    
+
     if (existingIndex >= 0) {
       // Remove from squad
       setSquad(prev => prev.filter(p => p.id !== player.id));
@@ -186,7 +81,7 @@ function AdminSquadSelectionContent() {
 
   const togglePlayerStatus = (playerId: string, teamType: 'home' | 'away') => {
     const setSquad = teamType === 'home' ? setHomeSquad : setAwaySquad;
-    
+
     setSquad(prev => prev.map(p => {
       if (p.id === playerId) {
         return { ...p, status: p.status === 'starting' ? 'substitute' : 'starting' };
@@ -195,18 +90,34 @@ function AdminSquadSelectionContent() {
     }));
   };
 
-  const handleCreatePlayer = () => {
+  const handleCreatePlayer = async () => {
     if (!newPlayerForm.name || !newPlayerForm.jerseyNumber || !newPlayerForm.teamId) {
       toast.error('Please fill in all required fields');
       return;
     }
-    
-    createPlayerMutation.mutate({
-      name: newPlayerForm.name,
-      jersey_number: parseInt(newPlayerForm.jerseyNumber),
-      role: newPlayerForm.role || null,
-      team_id: newPlayerForm.teamId,
-    });
+
+    try {
+      const newPlayer = await createPlayerMutation.mutateAsync({
+        name: newPlayerForm.name,
+        jersey_number: parseInt(newPlayerForm.jerseyNumber),
+        role: newPlayerForm.role || null,
+        team_id: newPlayerForm.teamId,
+      });
+
+      toast.success('Player created successfully');
+      setNewPlayerDialogOpen(false);
+      setNewPlayerForm({ name: '', jerseyNumber: '', role: '', teamId: '' });
+
+      // Auto-add to squad
+      const squadPlayer: SquadPlayer = { ...newPlayer, status: 'substitute' };
+      if (newPlayer.team_id === match?.home_team_id) {
+        setHomeSquad(prev => [...prev, squadPlayer]);
+      } else {
+        setAwaySquad(prev => [...prev, squadPlayer]);
+      }
+    } catch {
+      // Error handled by mutation
+    }
   };
 
   const handleCreateTeam = () => {
@@ -214,76 +125,36 @@ function AdminSquadSelectionContent() {
       toast.error('Please enter a team name');
       return;
     }
-    
+
     createTeamMutation.mutate({
       name: newTeamForm.name,
       slug: newTeamForm.slug || newTeamForm.name.toLowerCase().replace(/\s+/g, '-'),
+    }, {
+      onSuccess: () => {
+        setNewTeamDialogOpen(false);
+        setNewTeamForm({ name: '', slug: '' });
+      }
     });
   };
-
-  // Save squad to database mutation
-  const saveSquadMutation = useMutation({
-    mutationFn: async (squadData: { homeSquad: SquadPlayer[]; awaySquad: SquadPlayer[] }) => {
-      // Delete existing squad entries for this match
-      const { error: deleteError } = await supabase
-        .from('match_squad')
-        .delete()
-        .eq('match_id', matchId);
-      
-      if (deleteError) throw deleteError;
-
-      // Prepare all squad entries
-      const entries = [
-        ...squadData.homeSquad.map(p => ({
-          match_id: matchId!,
-          player_id: p.id,
-          team_type: 'home' as const,
-          status: p.status,
-        })),
-        ...squadData.awaySquad.map(p => ({
-          match_id: matchId!,
-          player_id: p.id,
-          team_type: 'away' as const,
-          status: p.status,
-        })),
-      ];
-
-      if (entries.length > 0) {
-        const { error: insertError } = await supabase
-          .from('match_squad')
-          .insert(entries);
-        
-        if (insertError) throw insertError;
-      }
-    },
-  });
 
   const handleProceed = async () => {
     const homeStarting = homeSquad.filter(p => p.status === 'starting').length;
     const awayStarting = awaySquad.filter(p => p.status === 'starting').length;
-    
+
     if (homeStarting !== 11) {
       toast.error(`Home team needs exactly 11 starting players (currently ${homeStarting})`);
       return;
     }
-    
+
     if (awayStarting !== 11) {
       toast.error(`Away team needs exactly 11 starting players (currently ${awayStarting})`);
       return;
     }
-    
+
     try {
-      // Save squad to database
-      await saveSquadMutation.mutateAsync({ homeSquad, awaySquad });
-      
-      // Also store in session storage for immediate access
-      sessionStorage.setItem(`match-${matchId}-home-squad`, JSON.stringify(homeSquad));
-      sessionStorage.setItem(`match-${matchId}-away-squad`, JSON.stringify(awaySquad));
-      
-      navigate(`/admin/match-events/${matchId}`);
-    } catch (error) {
-      console.error('Failed to save squad:', error);
-      toast.error('Failed to save squad selection');
+      await saveAndProceed(homeSquad, awaySquad);
+    } catch {
+      // Error handled by hook
     }
   };
 
@@ -312,11 +183,11 @@ function AdminSquadSelectionContent() {
 
   const renderPlayerList = (players: Player[] | undefined, squad: SquadPlayer[], teamType: 'home' | 'away', team: Team | null) => {
     const isLoading = teamType === 'home' ? homePlayersLoading : awayPlayersLoading;
-    
+
     if (isLoading) {
       return <div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin" /></div>;
     }
-    
+
     if (!players || players.length === 0) {
       return (
         <div className="text-center py-8">
@@ -334,22 +205,22 @@ function AdminSquadSelectionContent() {
         </div>
       );
     }
-    
+
     // Sort players: Starting XI first, then Substitutes, then Unselected
     const sortedPlayers = [...players].sort((a, b) => {
       const aInSquad = squad.find(p => p.id === a.id);
       const bInSquad = squad.find(p => p.id === b.id);
-      
+
       // Priority: starting (0) > substitute (1) > unselected (2)
       const getPriority = (player: Player) => {
         const inSquad = squad.find(p => p.id === player.id);
         if (!inSquad) return 2;
         return inSquad.status === 'starting' ? 0 : 1;
       };
-      
+
       const priorityDiff = getPriority(a) - getPriority(b);
       if (priorityDiff !== 0) return priorityDiff;
-      
+
       // Within same priority, sort by jersey number
       return a.jersey_number - b.jersey_number;
     });
@@ -360,13 +231,12 @@ function AdminSquadSelectionContent() {
 
     const renderPlayerItem = (player: Player) => {
       const inSquad = squad.find(p => p.id === player.id);
-      
+
       return (
         <div
           key={player.id}
-          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-            inSquad ? 'bg-primary/10 border-primary' : 'hover:bg-muted'
-          }`}
+          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${inSquad ? 'bg-primary/10 border-primary' : 'hover:bg-muted'
+            }`}
           onClick={() => togglePlayerInSquad(player, teamType)}
         >
           <div className="flex items-center gap-3">
@@ -427,7 +297,7 @@ function AdminSquadSelectionContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-8 flex-1">
         <Button
           variant="ghost"
@@ -525,8 +395,8 @@ function AdminSquadSelectionContent() {
 
         {/* Action Bar */}
         <div className="mt-8 flex justify-end">
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             onClick={handleProceed}
             disabled={homeStartingCount !== 11 || awayStartingCount !== 11 || saveSquadMutation.isPending}
           >

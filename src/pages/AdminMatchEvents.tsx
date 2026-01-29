@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { MatchComments } from '@/components/MatchComments';
@@ -39,6 +39,8 @@ import {
 } from '@/components/match-events/types';
 import { BallPosition } from '@/components/match-events/PitchDiagram';
 import { GoalMouthDiagram, ShotPlacement } from '@/components/match-events/GoalMouthDiagram';
+import { useMatchEventQueries } from './admin-match-events/hooks';
+import { useMatchEventMutations } from './admin-match-events/hooks';
 
 function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -46,85 +48,32 @@ function AdminMatchEventsContent() {
   const queryClient = useQueryClient();
   const hasSetInProgress = useRef(false);
 
-  // Match and teams data
-  const { data: matchData, isLoading: matchLoading } = useQuery({
-    queryKey: ['match-for-events', matchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          *,
-          home_team:teams!matches_home_team_id_fkey(id, name),
-          away_team:teams!matches_away_team_id_fkey(id, name)
-        `)
-        .eq('id', matchId)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!matchId,
-  });
+  // Use extracted queries hook
+  const {
+    matchData,
+    savedPhases,
+    firstHalfEvents,
+    secondHalfEvents,
+    dbSquad,
+    matchLoading,
+    phasesLoading,
+    eventsLoading,
+    squadLoading,
+  } = useMatchEventQueries(matchId);
 
-  // Load existing phases from database
-  const { data: savedPhases = [], isLoading: phasesLoading } = useQuery({
-    queryKey: ['attacking-phases', matchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('attacking_phases')
-        .select('*')
-        .eq('match_id', matchId)
-        .order('phase_number');
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!matchId,
-  });
-
-  // Load 1st half events from database
-  const { data: firstHalfEvents = [], isLoading: firstHalfLoading } = useQuery({
-    queryKey: ['match-events-half1', matchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('match_events')
-        .select(`
-          *,
-          player:players!match_events_player_id_fkey(id, name, jersey_number, team_id),
-          substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number),
-          target:players!match_events_target_player_id_fkey(id, name, jersey_number)
-        `)
-        .eq('match_id', matchId)
-        .eq('half', 1)
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!matchId,
-  });
-
-  // Load 2nd half events from database
-  const { data: secondHalfEvents = [], isLoading: secondHalfLoading } = useQuery({
-    queryKey: ['match-events-half2', matchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('match_events')
-        .select(`
-          *,
-          player:players!match_events_player_id_fkey(id, name, jersey_number, team_id),
-          substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number),
-          target:players!match_events_target_player_id_fkey(id, name, jersey_number)
-        `)
-        .eq('match_id', matchId)
-        .eq('half', 2)
-        .order('created_at', { ascending: true });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!matchId,
-  });
+  // Use extracted mutations hook
+  const {
+    saveEventMutation,
+    deleteEventMutation,
+    completeMatchMutation,
+    createPhaseMutation,
+    updatePhaseMutation,
+    deletePhaseMutation,
+    updateDirectionMutation,
+  } = useMatchEventMutations(matchId);
 
   // Combine events for internal calculations
   const savedEvents = useMemo(() => [...firstHalfEvents, ...secondHalfEvents], [firstHalfEvents, secondHalfEvents]);
-  const eventsLoading = firstHalfLoading || secondHalfLoading;
 
   // State management
   const [selectedHalf, setSelectedHalf] = useState<1 | 2>(1);
@@ -142,7 +91,7 @@ function AdminMatchEventsContent() {
   const [minute, setMinute] = useState(1);
   const [seconds, setSeconds] = useState(0);
   const [stickyPlayer, setStickyPlayer] = useState(false);
-  
+
   // Chain mode and auto-advance settings
   const [chainModeEnabled, setChainModeEnabled] = useState(false);
   const autoAdvanceSeconds = 2; // Auto-advance time by 2 seconds per event
@@ -203,7 +152,7 @@ function AdminMatchEventsContent() {
         phaseId: e.phase_id,
       }));
       setEvents(localEvents);
-      
+
       // Cache events to sessionStorage for faster access on reload
       if (matchId) {
         sessionStorage.setItem(`match-${matchId}-events`, JSON.stringify(localEvents));
@@ -225,7 +174,7 @@ function AdminMatchEventsContent() {
           .map((e: LocalEvent) => e.id),
       }));
       setPhases(reconstructedPhases);
-      
+
       // Cache phases to sessionStorage
       if (matchId) {
         sessionStorage.setItem(`match-${matchId}-phases`, JSON.stringify(reconstructedPhases));
@@ -264,8 +213,8 @@ function AdminMatchEventsContent() {
   }, [matchId, matchData]);
 
   // Get selected team ID
-  const selectedTeamId = selectedTeamType === 'home' 
-    ? matchData?.home_team?.id 
+  const selectedTeamId = selectedTeamType === 'home'
+    ? matchData?.home_team?.id
     : matchData?.away_team?.id;
 
   // Squad state
@@ -285,30 +234,13 @@ function AdminMatchEventsContent() {
   }>>([]);
   const [squadSource, setSquadSource] = useState<'session' | 'database' | 'fallback' | null>(null);
 
-  // Fetch squad from database
-  const { data: dbSquad, isLoading: squadLoading } = useQuery({
-    queryKey: ['match-squad', matchId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('match_squad')
-        .select(`
-          *,
-          player:players!match_squad_player_id_fkey(id, name, jersey_number, role)
-        `)
-        .eq('match_id', matchId);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!matchId,
-  });
-
   // Load squad: session storage first, then database, then fallback to all players
   useEffect(() => {
     if (matchId) {
       // Try session storage first
       const homeData = sessionStorage.getItem(`match-${matchId}-home-squad`);
       const awayData = sessionStorage.getItem(`match-${matchId}-away-squad`);
-      
+
       if (homeData && awayData) {
         try {
           setHomeSquad(JSON.parse(homeData));
@@ -319,7 +251,7 @@ function AdminMatchEventsContent() {
           console.error('Failed to parse squad from session:', e);
         }
       }
-      
+
       // Try database
       if (dbSquad && dbSquad.length > 0) {
         const homeFromDb = dbSquad
@@ -340,19 +272,19 @@ function AdminMatchEventsContent() {
             role: s.player.role,
             status: s.status as 'starting' | 'substitute',
           }));
-        
+
         if (homeFromDb.length > 0 || awayFromDb.length > 0) {
           setHomeSquad(homeFromDb);
           setAwaySquad(awayFromDb);
           setSquadSource('database');
-          
+
           // Cache to session storage for faster access
           sessionStorage.setItem(`match-${matchId}-home-squad`, JSON.stringify(homeFromDb));
           sessionStorage.setItem(`match-${matchId}-away-squad`, JSON.stringify(awayFromDb));
           return;
         }
       }
-      
+
       // No squad found - will fallback to all players
       if (!squadLoading && dbSquad !== undefined) {
         setSquadSource('fallback');
@@ -376,7 +308,7 @@ function AdminMatchEventsContent() {
   });
 
   // Use squad players if available, otherwise use all players
-  const players = selectedTeamType === 'home' 
+  const players = selectedTeamType === 'home'
     ? (homeSquad.length > 0 ? homeSquad : allPlayers)
     : (awaySquad.length > 0 ? awaySquad : allPlayers);
 
@@ -384,10 +316,10 @@ function AdminMatchEventsContent() {
   const { subbedOffPlayerIds, subbedOnPlayerIds } = useMemo(() => {
     const subbedOff: string[] = [];
     const subbedOn: string[] = [];
-    
+
     // Find all substitution events for the current team
     const teamPlayerIds = new Set(players.map(p => p.id));
-    
+
     events.forEach(event => {
       if (event.eventType === 'substitution') {
         // The player_id is the one going OFF
@@ -400,73 +332,9 @@ function AdminMatchEventsContent() {
         }
       }
     });
-    
+
     return { subbedOffPlayerIds: subbedOff, subbedOnPlayerIds: subbedOn };
   }, [events, players]);
-
-  // Save event mutation
-  const saveEventMutation = useMutation({
-    mutationFn: async (event: {
-      match_id: string;
-      player_id: string;
-      event_type: string;
-      half: number;
-      minute: number;
-      seconds?: number;
-      x: number;
-      y: number;
-      end_x?: number;
-      end_y?: number;
-      successful: boolean;
-      shot_outcome?: string;
-      aerial_outcome?: string;
-      target_player_id?: string;
-      substitute_player_id?: string;
-      phase_id?: string;
-    }) => {
-      const { data, error } = await supabase
-        .from('match_events')
-        .insert(event)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['match-events-half1', matchId] });
-      queryClient.invalidateQueries({ queryKey: ['match-events-half2', matchId] });
-    },
-  });
-
-  // Delete event mutation
-  const deleteEventMutation = useMutation({
-    mutationFn: async (eventId: string) => {
-      const { error } = await supabase
-        .from('match_events')
-        .delete()
-        .eq('id', eventId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['match-events-half1', matchId] });
-      queryClient.invalidateQueries({ queryKey: ['match-events-half2', matchId] });
-    },
-  });
-
-  // Complete match mutation
-  const completeMatchMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('matches')
-        .update({ status: 'completed' })
-        .eq('id', matchId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success('Match marked as completed');
-      navigate('/admin/matches');
-    },
-  });
 
   // Event type config
   const requiresEndPosition = selectedEventType
@@ -481,20 +349,20 @@ function AdminMatchEventsContent() {
     if (events.length === 0) return null;
 
     // Get successful ball-related events only
-    const ballEvents = events.filter(e => 
+    const ballEvents = events.filter(e =>
       e.successful && BALL_POSSESSION_EVENTS.includes(e.eventType)
     );
 
     if (ballEvents.length === 0) return null;
 
     const lastBallEvent = ballEvents[ballEvents.length - 1];
-    
+
     // If the event has a target player and end position (like a pass), 
     // the ball is at end position with target player
-    if (BALL_MOVEMENT_EVENTS.includes(lastBallEvent.eventType) && 
-        lastBallEvent.endX !== undefined && 
-        lastBallEvent.endY !== undefined) {
-      
+    if (BALL_MOVEMENT_EVENTS.includes(lastBallEvent.eventType) &&
+      lastBallEvent.endX !== undefined &&
+      lastBallEvent.endY !== undefined) {
+
       // For events with target player, show target player's jersey
       if (EVENTS_WITH_TARGET_PLAYER.includes(lastBallEvent.eventType) && lastBallEvent.targetPlayerId) {
         const targetPlayer = players.find(p => p.id === lastBallEvent.targetPlayerId);
@@ -507,7 +375,7 @@ function AdminMatchEventsContent() {
           };
         }
       }
-      
+
       // For movement events like carry/dribble, same player has the ball at end position
       return {
         x: lastBallEvent.endX,
@@ -531,7 +399,7 @@ function AdminMatchEventsContent() {
     if (events.length === 0) return [];
 
     // Get ball-related events (both successful and unsuccessful for trail)
-    const ballEvents = events.filter(e => 
+    const ballEvents = events.filter(e =>
       BALL_POSSESSION_EVENTS.includes(e.eventType)
     );
 
@@ -539,7 +407,7 @@ function AdminMatchEventsContent() {
     const trailEvents = ballEvents.slice(-5);
 
     return trailEvents.map(event => {
-      const targetPlayer = event.targetPlayerId 
+      const targetPlayer = event.targetPlayerId
         ? players.find(p => p.id === event.targetPlayerId)
         : null;
 
@@ -564,24 +432,24 @@ function AdminMatchEventsContent() {
     if (events.length === 0) return null;
 
     const lastEvent = events[events.length - 1];
-    
+
     // Don't suggest if last event was unsuccessful (turnover/interception)
     if (!lastEvent.successful) return null;
-    
+
     // Don't suggest if last event breaks continuity
     if (CONTINUITY_BREAKING_EVENTS.includes(lastEvent.eventType)) return null;
-    
+
     // If event has end position, suggest that as next start
     if (lastEvent.endX !== undefined && lastEvent.endY !== undefined) {
       return { x: lastEvent.endX, y: lastEvent.endY };
     }
-    
+
     // For events without end position but with ball (like penalty_area_entry), 
     // suggest the event position
     if (BALL_POSSESSION_EVENTS.includes(lastEvent.eventType)) {
       return { x: lastEvent.x, y: lastEvent.y };
     }
-    
+
     return null;
   }, [events]);
 
@@ -590,19 +458,19 @@ function AdminMatchEventsContent() {
   // Right penalty area: x > 83, y between 14-54
   const isInOpponentPenaltyArea = useCallback((x: number, y: number): boolean => {
     // Get home team's attack direction for this half
-    const homeAttacksLeftThisHalf = selectedHalf === 1 
-      ? matchData?.home_attacks_left 
+    const homeAttacksLeftThisHalf = selectedHalf === 1
+      ? matchData?.home_attacks_left
       : !matchData?.home_attacks_left;
-    
+
     // Determine which penalty area is the "opponent's" based on current team
     // If home team attacks left, their opponent's penalty is on the LEFT
     // If home team attacks right, their opponent's penalty is on the RIGHT
-    const opponentPenaltyOnRight = selectedTeamType === 'home' 
+    const opponentPenaltyOnRight = selectedTeamType === 'home'
       ? !homeAttacksLeftThisHalf  // Home attacks right = opponent penalty on right
       : homeAttacksLeftThisHalf;   // Away attacks opposite direction
-    
+
     const inYRange = y >= 14 && y <= 54;
-    
+
     if (opponentPenaltyOnRight) {
       return x > 83 && inYRange;
     } else {
@@ -626,20 +494,20 @@ function AdminMatchEventsContent() {
     if (!relevantEvents.includes(eventType)) return;
     // Penalty area entries count regardless of whether the pass/cross was successful
     if (endX === undefined || endY === undefined) return;
-    
+
     // Check if movement goes INTO the penalty area
     const startedOutside = !isInOpponentPenaltyArea(startX, startY);
     const endedInside = isInOpponentPenaltyArea(endX, endY);
-    
+
     if (startedOutside && endedInside) {
       // Find the passer
       const passer = players.find(p => p.id === playerId);
       // Find the receiver (if a target player was selected)
       const receiver = targetPlayerIdParam ? players.find(p => p.id === targetPlayerIdParam) : null;
-      
+
       // For carry/dribble, the passer is also the receiver (self-entry)
       const isSelfEntry = ['carry', 'dribble'].includes(eventType);
-      
+
       if (passer) {
         setPenaltyAreaSuggestion({
           visible: true,
@@ -677,7 +545,7 @@ function AdminMatchEventsContent() {
     setSeconds(prev => {
       let newSeconds = prev + delta;
       let minuteChange = 0;
-      
+
       while (newSeconds >= 60) {
         newSeconds -= 60;
         minuteChange++;
@@ -686,7 +554,7 @@ function AdminMatchEventsContent() {
         newSeconds += 60;
         minuteChange--;
       }
-      
+
       if (minuteChange !== 0) {
         setMinute(m => {
           const minMinute = selectedHalf === 2 ? 45 : 0;
@@ -833,20 +701,20 @@ function AdminMatchEventsContent() {
       toast.error('Select a player first');
       return;
     }
-    
+
     // Use selected event type or default to pass
     const eventType = selectedEventType || 'pass';
     const config = EVENT_CONFIG[eventType];
-    
+
     // Only allow events that require end position for chain mode
     if (!config.requiresEndPosition) {
       toast.error(`${config.label} doesn't support Chain Mode (no end position)`);
       return;
     }
-    
+
     // Use current ball position, suggested position, or start position
     const startPos = startPosition || suggestedStartPosition || { x: 50, y: 34 };
-    
+
     try {
       await saveEventMutation.mutateAsync({
         match_id: matchId,
@@ -863,7 +731,7 @@ function AdminMatchEventsContent() {
         target_player_id: targetPlayerId || undefined,
         phase_id: currentPhase?.id,
       });
-      
+
       // Check for penalty area entry
       checkPenaltyAreaEntry(
         eventType,
@@ -875,17 +743,17 @@ function AdminMatchEventsContent() {
         selectedPlayerId,
         targetPlayerId
       );
-      
+
       // Update recent players
       setRecentPlayerIds(prev => {
         const filtered = prev.filter(id => id !== selectedPlayerId);
         return [selectedPlayerId, ...filtered].slice(0, 5);
       });
-      
+
       // Set the end position as next start position for chaining
       setStartPosition(endPos);
       setEndPosition(null);
-      
+
       // Auto-advance time
       setSeconds(prev => {
         const newSeconds = prev + autoAdvanceSeconds;
@@ -895,7 +763,7 @@ function AdminMatchEventsContent() {
         }
         return newSeconds;
       });
-      
+
       // If target player was set, make them the new selected player
       if (targetPlayerId) {
         // Update recent target players
@@ -903,7 +771,7 @@ function AdminMatchEventsContent() {
           const filtered = prev.filter(id => id !== targetPlayerId);
           return [targetPlayerId, ...filtered].slice(0, 5);
         });
-        
+
         setSelectedPlayerId(targetPlayerId);
         setRecentPlayerIds(prev => {
           const filtered = prev.filter(id => id !== targetPlayerId);
@@ -911,10 +779,10 @@ function AdminMatchEventsContent() {
         });
         setTargetPlayerId(null);
       }
-      
+
       // Reset unsuccessful flag
       setIsUnsuccessful(false);
-      
+
       toast.success(`Chain ${config.label.toLowerCase()} saved`);
     } catch (error) {
       toast.error(`Failed to save chain ${config.label.toLowerCase()}`);
@@ -978,7 +846,7 @@ function AdminMatchEventsContent() {
   const handleCreatePhase = useCallback(async (eventIds: string[], outcome: PhaseOutcome, teamId: string) => {
     const phaseId = crypto.randomUUID();
     const phaseNumber = phases.length + 1;
-    
+
     try {
       // 1. Insert into attacking_phases table
       const { error: phaseError } = await supabase
@@ -991,17 +859,17 @@ function AdminMatchEventsContent() {
           outcome,
           team_id: teamId,
         });
-      
+
       if (phaseError) throw phaseError;
-      
+
       // 2. Update events in database with the phase_id
       const { error: eventsError } = await supabase
         .from('match_events')
         .update({ phase_id: phaseId })
         .in('id', eventIds);
-      
+
       if (eventsError) throw eventsError;
-      
+
       // 3. Add to local phases state
       const newPhase: Phase = {
         id: phaseId,
@@ -1012,11 +880,11 @@ function AdminMatchEventsContent() {
         teamId,
       };
       setPhases(prev => [...prev, newPhase]);
-      
+
       // 4. Refresh queries
       queryClient.invalidateQueries({ queryKey: ['attacking-phases', matchId] });
       queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
-      
+
       toast.success(`Phase #${phaseNumber} created: ${outcome.replace('_', ' ')}`);
     } catch (error) {
       console.error('Failed to create phase:', error);
@@ -1031,14 +899,14 @@ function AdminMatchEventsContent() {
         .from('attacking_phases')
         .update({ outcome: newOutcome })
         .eq('id', phaseId);
-      
+
       if (error) throw error;
-      
+
       // Update local state
-      setPhases(prev => prev.map(p => 
+      setPhases(prev => prev.map(p =>
         p.id === phaseId ? { ...p, outcome: newOutcome } : p
       ));
-      
+
       queryClient.invalidateQueries({ queryKey: ['attacking-phases', matchId] });
       toast.success('Phase outcome updated');
     } catch (error) {
@@ -1055,23 +923,23 @@ function AdminMatchEventsContent() {
         .from('match_events')
         .update({ phase_id: null })
         .eq('phase_id', phaseId);
-      
+
       if (eventsError) throw eventsError;
-      
+
       // 2. Delete the phase record
       const { error: phaseError } = await supabase
         .from('attacking_phases')
         .delete()
         .eq('id', phaseId);
-      
+
       if (phaseError) throw phaseError;
-      
+
       // 3. Update local state and renumber
       setPhases(prev => {
         const filtered = prev.filter(p => p.id !== phaseId);
         return filtered.map((p, i) => ({ ...p, phaseNumber: i + 1 }));
       });
-      
+
       // 4. Update phase numbers in database for remaining phases
       const remainingPhases = phases.filter(p => p.id !== phaseId);
       for (let i = 0; i < remainingPhases.length; i++) {
@@ -1080,10 +948,10 @@ function AdminMatchEventsContent() {
           .update({ phase_number: i + 1 })
           .eq('id', remainingPhases[i].id);
       }
-      
+
       queryClient.invalidateQueries({ queryKey: ['attacking-phases', matchId] });
       queryClient.invalidateQueries({ queryKey: ['match-events', matchId] });
-      
+
       toast.success('Phase deleted');
     } catch (error) {
       console.error('Failed to delete phase:', error);
@@ -1276,24 +1144,15 @@ function AdminMatchEventsContent() {
     return selectedHalf === 1 ? baseDirection : !baseDirection;
   }, [matchData, directionConfirmed, pendingHomeAttacksLeft, selectedHalf]);
 
-  // Confirm direction mutation
-  const confirmDirectionMutation = useMutation({
-    mutationFn: async (homeAttacksLeft: boolean) => {
-      const { error } = await supabase
-        .from('matches')
-        .update({ home_attacks_left: homeAttacksLeft })
-        .eq('id', matchId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
+  // Confirm direction handler - wraps the mutation with local state update
+  const confirmDirection = useCallback(async (homeAttacksLeft: boolean) => {
+    try {
+      await updateDirectionMutation.mutateAsync(homeAttacksLeft);
       setDirectionConfirmed(true);
-      queryClient.invalidateQueries({ queryKey: ['match-for-events', matchId] });
-      toast.success('Attack direction confirmed');
-    },
-    onError: () => {
-      toast.error('Failed to save attack direction');
-    },
-  });
+    } catch (error) {
+      // Error is already handled by the mutation
+    }
+  }, [updateDirectionMutation]);
 
   if (matchLoading || eventsLoading) {
     return (
@@ -1321,7 +1180,7 @@ function AdminMatchEventsContent() {
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
-            
+
             <div className="bg-card border rounded-xl p-6 space-y-6">
               <div className="text-center">
                 <h1 className="text-2xl font-bold mb-2">Set Attack Direction</h1>
@@ -1335,10 +1194,9 @@ function AdminMatchEventsContent() {
 
               {/* Visual direction selector */}
               <div className="space-y-4">
-                <div 
-                  className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    pendingHomeAttacksLeft ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
-                  }`}
+                <div
+                  className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${pendingHomeAttacksLeft ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
+                    }`}
                   onClick={() => setPendingHomeAttacksLeft(true)}
                 >
                   <div className="flex items-center justify-between">
@@ -1357,10 +1215,9 @@ function AdminMatchEventsContent() {
                   </div>
                 </div>
 
-                <div 
-                  className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
-                    !pendingHomeAttacksLeft ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
-                  }`}
+                <div
+                  className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${!pendingHomeAttacksLeft ? 'border-primary bg-primary/5' : 'border-muted hover:border-muted-foreground/50'
+                    }`}
                   onClick={() => setPendingHomeAttacksLeft(false)}
                 >
                   <div className="flex items-center justify-between">
@@ -1409,13 +1266,13 @@ function AdminMatchEventsContent() {
                 </div>
               </div>
 
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 size="lg"
-                onClick={() => confirmDirectionMutation.mutate(pendingHomeAttacksLeft)}
-                disabled={confirmDirectionMutation.isPending}
+                onClick={() => confirmDirection(pendingHomeAttacksLeft)}
+                disabled={updateDirectionMutation.isPending}
               >
-                {confirmDirectionMutation.isPending ? 'Saving...' : 'Confirm & Start Logging'}
+                {updateDirectionMutation.isPending ? 'Saving...' : 'Confirm & Start Logging'}
               </Button>
             </div>
           </div>
@@ -1444,8 +1301,8 @@ function AdminMatchEventsContent() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => setNotesOpen(!notesOpen)}
             >
@@ -1453,8 +1310,8 @@ function AdminMatchEventsContent() {
               Notes
               <ChevronDown className={`h-4 w-4 ml-1 transition-transform ${notesOpen ? 'rotate-180' : ''}`} />
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => completeMatchMutation.mutate()}
               disabled={completeMatchMutation.isPending}
             >
@@ -1479,8 +1336,8 @@ function AdminMatchEventsContent() {
                 ⚠️ No squad selection found. Showing all players. For accurate tracking, select your match day squad.
               </span>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => navigate(`/admin/squad-selection/${matchId}`)}
             >
@@ -1611,6 +1468,8 @@ function AdminMatchEventsContent() {
               players={players}
               substitutes={players.filter(p => p.id !== selectedPlayerId)}
               recentTargetPlayerIds={recentTargetPlayerIds}
+              subbedOffPlayerIds={subbedOffPlayerIds}
+              subbedOnPlayerIds={subbedOnPlayerIds}
             />
 
             {/* Action buttons */}
@@ -1646,7 +1505,7 @@ function AdminMatchEventsContent() {
               chainModeEnabled={chainModeEnabled}
               onChainClick={saveChainEvent}
             />
-            
+
             {/* Goal mouth diagram for shots */}
             {selectedEventType === 'shot' && (
               <GoalMouthDiagram
@@ -1719,7 +1578,7 @@ function AdminMatchEventsContent() {
           onAccept={async () => {
             if (penaltyAreaSuggestion && matchId) {
               const isSelfEntry = ['carry', 'dribble'].includes(penaltyAreaSuggestion.eventType);
-              
+
               try {
                 if (isSelfEntry) {
                   // For carry/dribble, only log penalty_area_entry for the player
@@ -1749,7 +1608,7 @@ function AdminMatchEventsContent() {
                     successful: true,
                     target_player_id: penaltyAreaSuggestion.receiverId ?? undefined,
                   });
-                  
+
                   // Log penalty_area_entry for receiver (if exists)
                   if (penaltyAreaSuggestion.receiverId) {
                     await saveEventMutation.mutateAsync({
@@ -1768,7 +1627,7 @@ function AdminMatchEventsContent() {
                     toast.success('Penalty Area Pass logged (no receiver selected)');
                   }
                 }
-                
+
                 setPenaltyAreaSuggestion(null);
               } catch (error) {
                 toast.error('Failed to log penalty area events');

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { matchService, teamService } from '@/services';
 import { PlayerStats } from '@/utils/parseCSV';
 import { fetchAndAggregateEventsForTeam, createEmptyPlayerStats } from '@/utils/aggregateMatchEvents';
 
@@ -12,7 +13,7 @@ export interface MatchFilterOptions {
 
 export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all', includeHidden: boolean = false) {
   const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
-  
+
   return useQuery({
     queryKey: ['player-stats', teamSlug, matchFilter, includeHidden],
     queryFn: async () => {
@@ -128,7 +129,7 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           const stats = (player.player_match_stats || []).filter(
             (stat: any) => matchIds.includes(stat.match_id)
           );
-          
+
           const aggregated = stats.reduce((acc: any, stat: any) => ({
             passCount: acc.passCount + (stat.pass_count || 0),
             successfulPass: acc.successfulPass + (stat.successful_pass || 0),
@@ -170,8 +171,8 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           }), {
             passCount: 0, successfulPass: 0, missPass: 0, forwardPass: 0, backwardPass: 0,
             goals: 0, penaltyAreaPass: 0, penaltyAreaEntry: 0, runInBehind: 0, overlaps: 0,
-            shotsAttempted: 0, shotsOnTarget: 0, saves: 0, defensiveErrors: 0, 
-            aerialDuelsWon: 0, aerialDuelsLost: 0, tackles: 0, clearance: 0, 
+            shotsAttempted: 0, shotsOnTarget: 0, saves: 0, defensiveErrors: 0,
+            aerialDuelsWon: 0, aerialDuelsLost: 0, tackles: 0, clearance: 0,
             fouls: 0, foulsInFinalThird: 0, foulsInMiddleThird: 0, foulsInDefensiveThird: 0,
             foulWon: 0, fwFinalThird: 0, fwMiddleThird: 0, fwDefensiveThird: 0, cutBacks: 0,
             crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
@@ -179,17 +180,17 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           });
 
           // Calculate percentages
-          const successPassPercent = aggregated.passCount > 0 
-            ? `${((aggregated.successfulPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          const successPassPercent = aggregated.passCount > 0
+            ? `${((aggregated.successfulPass / aggregated.passCount) * 100).toFixed(2)}%`
             : '0%';
-          const missPassPercent = aggregated.passCount > 0 
-            ? `${((aggregated.missPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          const missPassPercent = aggregated.passCount > 0
+            ? `${((aggregated.missPass / aggregated.passCount) * 100).toFixed(2)}%`
             : '0%';
-          const forwardPassPercent = aggregated.passCount > 0 
-            ? `${((aggregated.forwardPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          const forwardPassPercent = aggregated.passCount > 0
+            ? `${((aggregated.forwardPass / aggregated.passCount) * 100).toFixed(2)}%`
             : '0%';
-          const backwardPassPercent = aggregated.passCount > 0 
-            ? `${((aggregated.backwardPass / aggregated.passCount) * 100).toFixed(2)}%` 
+          const backwardPassPercent = aggregated.passCount > 0
+            ? `${((aggregated.backwardPass / aggregated.passCount) * 100).toFixed(2)}%`
             : '0%';
 
           return {
@@ -240,33 +241,13 @@ export function useMatches(teamSlug?: string) {
   return useQuery({
     queryKey: ['matches', teamSlug],
     queryFn: async () => {
-      let query = supabase
-        .from('matches')
-        .select(`
-          id,
-          match_date,
-          home_score,
-          away_score,
-          venue,
-          competition,
-          home_team:teams!matches_home_team_id_fkey(id, name, slug),
-          away_team:teams!matches_away_team_id_fkey(id, name, slug)
-        `)
-        .order('match_date', { ascending: false });
-
       if (teamSlug) {
-        const { data: team } = await supabase
-          .from('teams')
-          .select('id')
-          .eq('slug', teamSlug)
-          .single();
-
-        if (team) {
-          query = query.or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`);
-        }
+        const { data, error } = await matchService.getByTeamSlug(teamSlug);
+        if (error) throw error;
+        return data || [];
       }
 
-      const { data, error } = await query;
+      const { data, error } = await matchService.getAll();
       if (error) throw error;
       return data || [];
     },
@@ -277,20 +258,7 @@ export function useAllMatches() {
   return useQuery({
     queryKey: ['all-matches'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('matches')
-        .select(`
-          id,
-          match_date,
-          home_score,
-          away_score,
-          venue,
-          competition,
-          home_team:teams!matches_home_team_id_fkey(id, name, slug),
-          away_team:teams!matches_away_team_id_fkey(id, name, slug)
-        `)
-        .order('match_date', { ascending: false });
-
+      const { data, error } = await matchService.getAll();
       if (error) throw error;
       return data || [];
     },

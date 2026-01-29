@@ -12,7 +12,6 @@ import { useMatchComments, useDeleteMatchComment } from "@/hooks/useMatchComment
 import { MessageSquare, Loader2, Trash2, ArrowLeft, Upload, FileText, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,33 +26,25 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useQueryClient } from "@tanstack/react-query";
-
-type NoteType = '1st_half' | '2nd_half' | 'overall';
-
-interface ParsedComment {
-  minute?: string;
-  comment: string;
-  noteType: NoteType;
-}
+import { useCommentMutations, parseCSV, type NoteType, type ParsedComment } from "./admin-comments/hooks";
 
 function AdminCommentsContent() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: matches, isLoading: matchesLoading } = useMatches();
   const [selectedMatchId, setSelectedMatchId] = useState<string>("");
   const [newComment, setNewComment] = useState("");
-  
+
   // CSV upload state
   const [parsedComments, setParsedComments] = useState<ParsedComment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [csvFileName, setCsvFileName] = useState<string>("");
   const [uploadMatchId, setUploadMatchId] = useState<string>("");
   const [noteType, setNoteType] = useState<NoteType>('1st_half');
-  
+
   const { data: comments, isLoading: commentsLoading } = useMatchComments(selectedMatchId || undefined);
   const deleteComment = useDeleteMatchComment();
+  const { addComment, bulkUploadComments } = useCommentMutations();
 
   const handleAddComment = async () => {
     if (!selectedMatchId) {
@@ -66,23 +57,10 @@ function AdminCommentsContent() {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      
-      const { error } = await supabase
-        .from('match_comments')
-        .insert({
-          match_id: selectedMatchId,
-          comment: newComment.trim(),
-          created_by: user.id,
-        });
-      
-      if (error) throw error;
-      
+      await addComment(selectedMatchId, newComment);
       toast.success("Coach note added");
       setNewComment("");
-      queryClient.invalidateQueries({ queryKey: ['match-comments', selectedMatchId] });
-    } catch (error) {
+    } catch {
       toast.error("Failed to add note");
     }
   };
@@ -91,63 +69,22 @@ function AdminCommentsContent() {
     try {
       await deleteComment.mutateAsync({ id: commentId, matchId: selectedMatchId });
       toast.success("Note deleted");
-    } catch (error) {
+    } catch {
       toast.error("Failed to delete note");
     }
-  };
-
-  const parseCSV = (text: string, type: NoteType): ParsedComment[] => {
-    const lines = text.trim().split('\n');
-    if (lines.length < 2) return [];
-    
-    // Skip header row and filter empty lines
-    const dataLines = lines.slice(1).filter(line => line.trim() && !line.match(/^,+$/));
-    
-    return dataLines.map(line => {
-      // Handle CSV with quoted fields
-      const matches = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g) || [];
-      const values = matches.map(v => v.replace(/^"|"$/g, '').replace(/^\uFEFF/, '').trim());
-      
-      if (type === 'overall') {
-        // Overall format: just "Note & Comment"
-        const comment = values[0] || '';
-        return {
-          comment,
-          noteType: type,
-        };
-      } else {
-        // 1st/2nd half format: "Min,Note & Comment"
-        const [minute, comment] = values;
-        return {
-          minute: minute || '',
-          comment: comment || '',
-          noteType: type,
-        };
-      }
-    }).filter(row => row.comment.trim());
-  };
-
-  const formatCommentWithMinute = (pc: ParsedComment): string => {
-    const prefix = pc.noteType === '1st_half' ? '[1st Half' : 
-                   pc.noteType === '2nd_half' ? '[2nd Half' : '[Overall';
-    
-    if (pc.minute) {
-      return `${prefix} - ${pc.minute}] ${pc.comment}`;
-    }
-    return `${prefix}] ${pc.comment}`;
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     if (!file.name.endsWith('.csv')) {
       toast.error("Please select a CSV file");
       return;
     }
-    
+
     setCsvFileName(file.name);
-    
+
     // Auto-detect note type from filename
     const fileName = file.name.toLowerCase();
     if (fileName.includes('1st') || fileName.includes('first')) {
@@ -157,7 +94,7 @@ function AdminCommentsContent() {
     } else if (fileName.includes('overall') || fileName.includes('match')) {
       setNoteType('overall');
     }
-    
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
@@ -187,38 +124,21 @@ function AdminCommentsContent() {
       toast.error("Please select a match");
       return;
     }
-    
+
     if (parsedComments.length === 0) {
       toast.error("No notes to upload");
       return;
     }
-    
+
     setIsUploading(true);
-    
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      
-      const inserts = parsedComments.map(pc => ({
-        match_id: uploadMatchId,
-        comment: formatCommentWithMinute(pc),
-        created_by: user.id,
-      }));
-      
-      const { error } = await supabase
-        .from('match_comments')
-        .insert(inserts);
-      
-      if (error) throw error;
-      
+      await bulkUploadComments(uploadMatchId, parsedComments);
       toast.success(`Uploaded ${parsedComments.length} coach notes`);
       setParsedComments([]);
       setCsvFileName("");
       if (fileInputRef.current) fileInputRef.current.value = "";
-      queryClient.invalidateQueries({ queryKey: ['match-comments'] });
-      queryClient.invalidateQueries({ queryKey: ['all-match-comments'] });
-    } catch (error) {
-      console.error('Bulk upload error:', error);
+    } catch {
       toast.error("Failed to upload notes");
     } finally {
       setIsUploading(false);
@@ -237,10 +157,10 @@ function AdminCommentsContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-8 flex-1">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => navigate('/admin')}
           className="mb-6"
         >
@@ -333,8 +253,8 @@ function AdminCommentsContent() {
                         {csvFileName || "Click to select CSV file"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {noteType === 'overall' 
-                          ? 'Format: Note & Comment' 
+                        {noteType === 'overall'
+                          ? 'Format: Note & Comment'
                           : 'Format: Min, Note & Comment'}
                       </p>
                     </label>
@@ -346,16 +266,16 @@ function AdminCommentsContent() {
                       <div>
                         <Badge variant="outline" className="mb-1">1st/2nd Half</Badge>
                         <code className="text-xs block bg-background p-2 rounded">
-                          Min,Note & Comment<br/>
-                          13:15,GLA FC - #14 Charles - Weak in holding play<br/>
+                          Min,Note & Comment<br />
+                          13:15,GLA FC - #14 Charles - Weak in holding play<br />
                           21:20,GLA FC - #14 Charles - Body position while receiving...
                         </code>
                       </div>
                       <div>
                         <Badge variant="outline" className="mb-1">Overall</Badge>
                         <code className="text-xs block bg-background p-2 rounded">
-                          Note & Comment<br/>
-                          Players are forcing themselves to find passes...<br/>
+                          Note & Comment<br />
+                          Players are forcing themselves to find passes...<br />
                           #15 was standout player in the match...
                         </code>
                       </div>
@@ -375,7 +295,7 @@ function AdminCommentsContent() {
                       </Badge>
                     </CardTitle>
                     <CardDescription>
-                      {uploadMatch 
+                      {uploadMatch
                         ? `Notes for ${uploadMatch.home_team?.name} vs ${uploadMatch.away_team?.name}`
                         : 'Select a match to upload notes'}
                     </CardDescription>
@@ -405,7 +325,7 @@ function AdminCommentsContent() {
                     </div>
 
                     <div className="flex gap-3 mt-4">
-                      <Button 
+                      <Button
                         onClick={handleBulkUpload}
                         disabled={isUploading || !uploadMatchId || parsedComments.length === 0}
                         className="flex-1"
@@ -466,8 +386,8 @@ function AdminCommentsContent() {
                     />
                   </div>
 
-                  <Button 
-                    onClick={handleAddComment} 
+                  <Button
+                    onClick={handleAddComment}
                     disabled={!selectedMatchId}
                     className="w-full"
                   >
@@ -481,7 +401,7 @@ function AdminCommentsContent() {
                 <CardHeader>
                   <CardTitle>Existing Notes</CardTitle>
                   <CardDescription>
-                    {selectedMatch 
+                    {selectedMatch
                       ? `Notes for ${selectedMatch.home_team?.name} vs ${selectedMatch.away_team?.name}`
                       : "Select a match to view notes"}
                   </CardDescription>
@@ -506,7 +426,7 @@ function AdminCommentsContent() {
                               year: 'numeric',
                             })}
                           </span>
-                          
+
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
