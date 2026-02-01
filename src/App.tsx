@@ -33,6 +33,7 @@ const AdminMatchSelect = lazy(() => import("./pages/AdminMatchSelect"));
 const AdminNewMatch = lazy(() => import("./pages/AdminNewMatch"));
 const AdminSquadSelection = lazy(() => import("./pages/AdminSquadSelection"));
 const AdminMatches = lazy(() => import("./pages/AdminMatches"));
+const DemoLanding = lazy(() => import("./pages/DemoLanding"));
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
               {/* Public routes - eagerly loaded */}
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
               <Route path="/matches" element={<Matches />} />
               <Route path="/match/:matchId" element={<MatchDetail />} />
               <Route path="/players" element={<Players />} />

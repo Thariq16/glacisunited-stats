@@ -104,7 +104,7 @@ export function useMatchVisualizationData(
           .range(offset, offset + PAGE_SIZE - 1);
 
         if (eventsError) throw eventsError;
-        
+
         if (events && events.length > 0) {
           allEvents = [...allEvents, ...events];
           offset += events.length;
@@ -168,19 +168,190 @@ export function useMatchVisualizationData(
         { half: 2, defensive: 0, middle: 0, final: 0 },
       ];
 
-      allEvents.forEach((event) => {
-        if (!PASS_EVENTS.includes(event.event_type)) return;
-        
-        const zone = getZone(event.x);
-        const halfIndex = event.half === 1 ? 0 : 1;
-        const teamId = event.player?.team_id;
+      // New Stats Containers
+      const shots: any[] = [];
+      const defensiveEvents: any[] = [];
+      const possessionLossEvents: any[] = [];
 
-        if (teamId === homeTeamId) {
-          homePassesByThird[halfIndex][zone]++;
-        } else if (teamId === awayTeamId) {
-          awayPassesByThird[halfIndex][zone]++;
+      // Lane Stats (Left, Center, Right) for Attacking Threat
+      const createLaneStats = () => ({
+        left: { passes: 0, xg: 0 },
+        center: { passes: 0, xg: 0 },
+        right: { passes: 0, xg: 0 }
+      });
+
+      const homeLaneStats = {
+        all: createLaneStats(),
+        firstHalf: createLaneStats(),
+        secondHalf: createLaneStats()
+      };
+
+      const awayLaneStats = {
+        all: createLaneStats(),
+        firstHalf: createLaneStats(),
+        secondHalf: createLaneStats()
+      };
+
+      // Enhanced Set Piece Tracking
+      const createSetPieceTracker = () => new Map<string, { name: string, number: number, corners: number, freeKicks: number }>();
+
+      const trackers = {
+        all: createSetPieceTracker(),
+        firstHalf: createSetPieceTracker(),
+        secondHalf: createSetPieceTracker()
+      };
+
+      allEvents.forEach((event) => {
+        const teamId = event.player?.team_id;
+        const isHome = teamId === homeTeamId;
+        const halfKey = event.half === 1 ? 'firstHalf' : 'secondHalf';
+
+        // 1. Process Shots
+        if (event.event_type === 'shot') {
+          shots.push({
+            ...event,
+            team_id: teamId,
+            shot_outcome: event.shot_outcome || (event.successful ? 'goal' : 'miss'), // Basic fallback
+            player: event.player
+          });
+        }
+
+        // 2. Defensive Events
+        if (['tackle', 'interception', 'clearance', 'block', 'aerial_duel', 'recovery'].includes(event.event_type)) {
+          // Only count successful actions typically, but for heatmap show all? Let's show all
+          defensiveEvents.push({
+            id: event.id,
+            type: event.event_type,
+            x: event.x,
+            y: event.y,
+            teamId: teamId,
+            playerId: event.player?.jersey_number,
+            half: event.half
+          });
+        }
+
+        // 3. Possession Loss
+        if (['dispossession', 'turnover', 'bad_touch'].includes(event.event_type)) {
+          possessionLossEvents.push({
+            id: event.id,
+            x: event.x,
+            y: event.y,
+            teamId: teamId,
+            half: event.half
+          });
+        }
+
+        // 4. Attacking Threat (Lane Stats)
+        // Count successful passes in lanes
+        if (PASS_EVENTS.includes(event.event_type) && event.successful) {
+          const lane = event.y < 33.3 ? 'left' : event.y > 66.6 ? 'right' : 'center';
+          const stats = isHome ? homeLaneStats : awayLaneStats;
+
+          // Update All
+          stats.all[lane].passes++;
+          // Update Half (safe check for halfKey)
+          if (stats[halfKey]) stats[halfKey][lane].passes++;
+
+          // Simple Threat/xG Mock based on proximity to goal (x > 70)
+          if (event.x > 70) {
+            const xgVal = 0.02; // Arbitrary small value for threat
+            stats.all[lane].xg += xgVal;
+            if (stats[halfKey]) stats[halfKey][lane].xg += xgVal;
+          }
+        }
+
+        // 5. Player Set Pieces (Updated)
+        if (['corner', 'free_kick'].includes(event.event_type) && isHome && event.player) {
+          const pid = event.player.name + event.player.jersey_number;
+
+          // Update All, and specific Half tracker
+          [trackers.all, trackers[halfKey]].forEach(tracker => {
+            const current = tracker.get(pid) || {
+              name: event.player!.name,
+              number: event.player!.jersey_number,
+              corners: 0,
+              freeKicks: 0
+            };
+
+            if (event.event_type === 'corner') current.corners++;
+            else current.freeKicks++;
+
+            tracker.set(pid, current);
+          });
+        }
+
+        // 6. Passes by Third
+        if (PASS_EVENTS.includes(event.event_type) && event.successful) {
+          const zone = getZone(event.x); // 'defensive' | 'middle' | 'final'
+          const passesByThird = isHome ? homePassesByThird : awayPassesByThird;
+          const halfIndex = event.half - 1;
+
+          if (passesByThird[halfIndex]) {
+            passesByThird[halfIndex][zone]++;
+          }
         }
       });
+
+      // Helper to aggregate stats from a tracker
+      const aggregateSetPieces = (tracker: Map<string, { name: string, number: number, corners: number, freeKicks: number }>) => {
+        const playerStats = Array.from(tracker.values()).map((p, i) => ({
+          playerId: `p-${i}`,
+          playerName: p.name,
+          jerseyNumber: p.number,
+          cornersTaken: p.corners,
+          shotsCreated: Math.floor(p.corners * 0.3), // Mock logic derived from earlier
+          goalsCreated: Math.floor(p.corners * 0.1)  // Mock logic derived from earlier
+        }));
+
+        const teamStats = [
+          {
+            type: 'corner',
+            total: playerStats.reduce((sum, p) => sum + p.cornersTaken, 0),
+            goals: playerStats.reduce((sum, p) => sum + p.goalsCreated, 0),
+            shots: playerStats.reduce((sum, p) => sum + p.shotsCreated, 0),
+            conversionRate: 0
+          },
+          {
+            type: 'free_kick',
+            total: playerStats.reduce((sum, p) => sum + (Array.from(tracker.values()).find(v => v.name === p.playerName)?.freeKicks || 0), 0),
+            goals: 0,
+            shots: 0,
+            conversionRate: 0
+          }
+        ].map(stat => ({
+          ...stat,
+          conversionRate: stat.total > 0 ? Math.round((stat.goals / stat.total) * 100) : 0
+        }));
+
+        return { playerStats, teamStats };
+      };
+
+      // Generate results for all periods
+      const allSetPiece = aggregateSetPieces(trackers.all);
+      const firstSetPiece = aggregateSetPieces(trackers.firstHalf);
+      const secondSetPiece = aggregateSetPieces(trackers.secondHalf);
+
+      // Format Derived Stats
+      const formatLaneStats = (stats: any) => {
+        const totalPasses = stats.left.passes + stats.center.passes + stats.right.passes;
+        return [
+          { lane: 'left', passCount: stats.left.passes, threatPercent: totalPasses ? Math.round((stats.left.passes / totalPasses) * 100) : 0, xg: 0 },
+          { lane: 'center', passCount: stats.center.passes, threatPercent: totalPasses ? Math.round((stats.center.passes / totalPasses) * 100) : 0, xg: 0 },
+          { lane: 'right', passCount: stats.right.passes, threatPercent: totalPasses ? Math.round((stats.right.passes / totalPasses) * 100) : 0, xg: 0 },
+        ];
+      };
+
+      const attackingThreat = {
+        all: formatLaneStats(homeLaneStats.all),
+        firstHalf: formatLaneStats(homeLaneStats.firstHalf),
+        secondHalf: formatLaneStats(homeLaneStats.secondHalf),
+      };
+
+      const opponentAttackingThreat = {
+        all: formatLaneStats(awayLaneStats.all),
+        firstHalf: formatLaneStats(awayLaneStats.firstHalf),
+        secondHalf: formatLaneStats(awayLaneStats.secondHalf),
+      };
 
       return {
         homePhases,
@@ -195,6 +366,19 @@ export function useMatchVisualizationData(
           teamId: awayTeamId || '',
           halves: awayPassesByThird,
         } as TeamPassesByThird,
+        shots,
+        defensiveEvents,
+        possessionLossEvents,
+        attackingThreat,
+        opponentAttackingThreat,
+        setPieceData: {
+          all: { team: allSetPiece.teamStats, players: allSetPiece.playerStats },
+          firstHalf: { team: firstSetPiece.teamStats, players: firstSetPiece.playerStats },
+          secondHalf: { team: secondSetPiece.teamStats, players: secondSetPiece.playerStats }
+        },
+        // Legacy/Fallback support
+        playerSetPieceStats: allSetPiece.playerStats,
+        setPieceStats: allSetPiece.teamStats
       };
     },
     enabled: !!matchId && !!homeTeamId && !!awayTeamId,

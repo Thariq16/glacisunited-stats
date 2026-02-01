@@ -50,7 +50,7 @@ export function AttackingPhasesSection({ teamName, phases, isHomeTeam }: Attacki
                   <span>1st Half</span>
                   <span className="text-muted-foreground">({firstHalfPhases.length} phases)</span>
                 </h4>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {firstHalfPhases.map((phase) => (
                     <AttackingPhaseCard key={phase.id} phase={phase} />
                   ))}
@@ -65,7 +65,7 @@ export function AttackingPhasesSection({ teamName, phases, isHomeTeam }: Attacki
                   <span>2nd Half</span>
                   <span className="text-muted-foreground">({secondHalfPhases.length} phases)</span>
                 </h4>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {secondHalfPhases.map((phase) => (
                     <AttackingPhaseCard key={phase.id} phase={phase} />
                   ))}

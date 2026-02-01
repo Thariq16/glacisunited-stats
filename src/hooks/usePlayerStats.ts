@@ -37,6 +37,7 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           .from('matches')
           .select('id, match_date')
           .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
+          .eq('status', 'completed')
           .order('match_date', { ascending: false });
 
         if (matchFilter === 'last1') {
@@ -123,52 +124,91 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
         }
       });
 
+      let rawAggregatedPlayers: (PlayerStats & { hidden: boolean })[] = [];
+
+      // Fetch substitution events for these matches
+      const { data: subEvents } = await supabase
+        .from('match_events')
+        .select('*')
+        .in('match_id', matchIds)
+        .eq('event_type', 'substitution');
+
+      const substitutions: { [matchId: string]: { [playerId: string]: { type: 'on' | 'off', minute: number } } } = {};
+      subEvents?.forEach((event: any) => {
+        if (!substitutions[event.match_id]) substitutions[event.match_id] = {};
+        if (event.player_id) substitutions[event.match_id][event.player_id] = { type: 'off', minute: event.minute };
+        if (event.substitute_player_id) substitutions[event.match_id][event.substitute_player_id] = { type: 'on', minute: event.minute };
+      });
+
       if (hasLegacyStats) {
         // Use legacy player_match_stats data
-        const aggregatedPlayers = playersData.map((player: any) => {
+        rawAggregatedPlayers = playersData.map((player: any) => {
           const stats = (player.player_match_stats || []).filter(
             (stat: any) => matchIds.includes(stat.match_id)
           );
 
-          const aggregated = stats.reduce((acc: any, stat: any) => ({
-            passCount: acc.passCount + (stat.pass_count || 0),
-            successfulPass: acc.successfulPass + (stat.successful_pass || 0),
-            missPass: acc.missPass + (stat.miss_pass || 0),
-            forwardPass: acc.forwardPass + (stat.forward_pass || 0),
-            backwardPass: acc.backwardPass + (stat.backward_pass || 0),
-            goals: acc.goals + (stat.goals || 0),
-            penaltyAreaPass: acc.penaltyAreaPass + (stat.penalty_area_pass || 0),
-            penaltyAreaEntry: acc.penaltyAreaEntry + (stat.penalty_area_entry || 0),
-            runInBehind: acc.runInBehind + (stat.run_in_behind || 0),
-            overlaps: acc.overlaps + (stat.overlaps || 0),
-            shotsAttempted: acc.shotsAttempted + (stat.shots_attempted || 0),
-            shotsOnTarget: acc.shotsOnTarget + (stat.shots_on_target || 0),
-            saves: acc.saves + (stat.saves || 0),
-            defensiveErrors: acc.defensiveErrors + (stat.defensive_errors || 0),
-            aerialDuelsWon: acc.aerialDuelsWon + (stat.aerial_duels_won || 0),
-            aerialDuelsLost: acc.aerialDuelsLost + (stat.aerial_duels_lost || 0),
-            tackles: acc.tackles + (stat.tackles || 0),
-            clearance: acc.clearance + (stat.clearance || 0),
-            fouls: acc.fouls + (stat.fouls || 0),
-            foulsInFinalThird: acc.foulsInFinalThird + (stat.fouls_final_third || 0),
-            foulsInMiddleThird: acc.foulsInMiddleThird + (stat.fouls_middle_third || 0),
-            foulsInDefensiveThird: acc.foulsInDefensiveThird + (stat.fouls_defensive_third || 0),
-            foulWon: acc.foulWon + (stat.foul_won || 0),
-            fwFinalThird: acc.fwFinalThird + (stat.fw_final_3rd || 0),
-            fwMiddleThird: acc.fwMiddleThird + (stat.fw_middle_3rd || 0),
-            fwDefensiveThird: acc.fwDefensiveThird + (stat.fw_defensive_3rd || 0),
-            cutBacks: acc.cutBacks + (stat.cut_backs || 0),
-            crosses: acc.crosses + (stat.crosses || 0),
-            freeKicks: acc.freeKicks + (stat.free_kicks || 0),
-            corners: acc.corners + (stat.corners || 0),
-            cornerFailed: acc.cornerFailed + (stat.corner_failed || 0),
-            cornerSuccess: acc.cornerSuccess + (stat.corner_success || 0),
-            throwIns: acc.throwIns + (stat.throw_ins || 0),
-            tiFailed: acc.tiFailed + (stat.ti_failed || 0),
-            tiSuccess: acc.tiSuccess + (stat.ti_success || 0),
-            offside: acc.offside + (stat.offside || 0),
-            minutesPlayed: acc.minutesPlayed + (stat.minutes_played || 0),
-          }), {
+          // Deduplicate by match_id
+          const uniqueStatsMap = new Map();
+          stats.forEach((stat: any) => {
+            if (!uniqueStatsMap.has(stat.match_id)) {
+              uniqueStatsMap.set(stat.match_id, stat);
+            }
+          });
+          const uniqueStats = Array.from(uniqueStatsMap.values());
+
+          const aggregated = uniqueStats.reduce((acc: any, stat: any) => {
+            let minutesInMatch = 90;
+            const relevantSub = substitutions[stat.match_id]?.[player.id];
+
+            if (relevantSub) {
+              if (relevantSub.type === 'off') {
+                minutesInMatch = relevantSub.minute;
+              } else if (relevantSub.type === 'on') {
+                minutesInMatch = 90 - relevantSub.minute;
+              }
+            }
+
+            return {
+              passCount: acc.passCount + (stat.pass_count || 0),
+              successfulPass: acc.successfulPass + (stat.successful_pass || 0),
+              missPass: acc.missPass + (stat.miss_pass || 0),
+              forwardPass: acc.forwardPass + (stat.forward_pass || 0),
+              backwardPass: acc.backwardPass + (stat.backward_pass || 0),
+              goals: acc.goals + (stat.goals || 0),
+              penaltyAreaPass: acc.penaltyAreaPass + (stat.penalty_area_pass || 0),
+              penaltyAreaEntry: acc.penaltyAreaEntry + (stat.penalty_area_entry || 0),
+              runInBehind: acc.runInBehind + (stat.run_in_behind || 0),
+              overlaps: acc.overlaps + (stat.overlaps || 0),
+              shotsAttempted: acc.shotsAttempted + (stat.shots_attempted || 0),
+              shotsOnTarget: acc.shotsOnTarget + (stat.shots_on_target || 0),
+              saves: acc.saves + (stat.saves || 0),
+              defensiveErrors: acc.defensiveErrors + (stat.defensive_errors || 0),
+              aerialDuelsWon: acc.aerialDuelsWon + (stat.aerial_duels_won || 0),
+              aerialDuelsLost: acc.aerialDuelsLost + (stat.aerial_duels_lost || 0),
+              tackles: acc.tackles + (stat.tackles || 0),
+              clearance: acc.clearance + (stat.clearance || 0),
+              fouls: acc.fouls + (stat.fouls || 0),
+              foulsInFinalThird: acc.foulsInFinalThird + (stat.fouls_final_third || 0),
+              foulsInMiddleThird: acc.foulsInMiddleThird + (stat.fouls_middle_third || 0),
+              foulsInDefensiveThird: acc.foulsInDefensiveThird + (stat.fouls_defensive_third || 0),
+              foulWon: acc.foulWon + (stat.foul_won || 0),
+              fwFinalThird: acc.fwFinalThird + (stat.fw_final_3rd || 0),
+              fwMiddleThird: acc.fwMiddleThird + (stat.fw_middle_3rd || 0),
+              fwDefensiveThird: acc.fwDefensiveThird + (stat.fw_defensive_3rd || 0),
+              cutBacks: acc.cutBacks + (stat.cut_backs || 0),
+              crosses: acc.crosses + (stat.crosses || 0),
+              freeKicks: acc.freeKicks + (stat.free_kicks || 0),
+              corners: acc.corners + (stat.corners || 0),
+              cornerFailed: acc.cornerFailed + (stat.corner_failed || 0),
+              cornerSuccess: acc.cornerSuccess + (stat.corner_success || 0),
+              throwIns: acc.throwIns + (stat.throw_ins || 0),
+              tiFailed: acc.tiFailed + (stat.ti_failed || 0),
+              tiSuccess: acc.tiSuccess + (stat.ti_success || 0),
+              offside: acc.offside + (stat.offside || 0),
+              minutesPlayed: acc.minutesPlayed + minutesInMatch,
+              substituteAppearances: acc.substituteAppearances + (stat.substitute_appearances || 0),
+            }
+          }, {
             passCount: 0, successfulPass: 0, missPass: 0, forwardPass: 0, backwardPass: 0,
             goals: 0, penaltyAreaPass: 0, penaltyAreaEntry: 0, runInBehind: 0, overlaps: 0,
             shotsAttempted: 0, shotsOnTarget: 0, saves: 0, defensiveErrors: 0,
@@ -176,7 +216,7 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
             fouls: 0, foulsInFinalThird: 0, foulsInMiddleThird: 0, foulsInDefensiveThird: 0,
             foulWon: 0, fwFinalThird: 0, fwMiddleThird: 0, fwDefensiveThird: 0, cutBacks: 0,
             crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
-            throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0, minutesPlayed: 0,
+            throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0, minutesPlayed: 0, substituteAppearances: 0,
           });
 
           // Calculate percentages
@@ -206,12 +246,11 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
           } as PlayerStats & { hidden: boolean };
         });
 
-        return aggregatedPlayers;
       } else {
         // Fallback: Aggregate from match_events
         const eventsStatsMap = await fetchAndAggregateEventsForTeam(matchIds, team.id);
 
-        const aggregatedPlayers = playersData.map((player: any) => {
+        rawAggregatedPlayers = playersData.map((player: any) => {
           const eventStats = eventsStatsMap.get(player.id);
           if (eventStats) {
             return {
@@ -230,9 +269,71 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
             hidden: player.hidden || false,
           } as PlayerStats & { hidden: boolean };
         });
-
-        return aggregatedPlayers;
       }
+
+      // Deduplicate and Merge Players (Handle duplicate records in DB)
+      const mergedPlayersMap = new Map<string, any>();
+
+      rawAggregatedPlayers.forEach(player => {
+        const key = `${player.playerName}-${player.jerseyNumber}`;
+
+        if (mergedPlayersMap.has(key)) {
+          const existing = mergedPlayersMap.get(key);
+          // Merge stats
+          const merged = {
+            ...existing,
+            passCount: existing.passCount + player.passCount,
+            successfulPass: existing.successfulPass + player.successfulPass,
+            missPass: existing.missPass + player.missPass,
+            forwardPass: existing.forwardPass + player.forwardPass,
+            backwardPass: existing.backwardPass + player.backwardPass,
+            goals: existing.goals + player.goals,
+            penaltyAreaPass: existing.penaltyAreaPass + player.penaltyAreaPass,
+            penaltyAreaEntry: existing.penaltyAreaEntry + player.penaltyAreaEntry,
+            runInBehind: existing.runInBehind + player.runInBehind,
+            overlaps: existing.overlaps + player.overlaps,
+            shotsAttempted: existing.shotsAttempted + player.shotsAttempted,
+            shotsOnTarget: existing.shotsOnTarget + player.shotsOnTarget,
+            saves: existing.saves + player.saves,
+            defensiveErrors: existing.defensiveErrors + player.defensiveErrors,
+            aerialDuelsWon: existing.aerialDuelsWon + player.aerialDuelsWon,
+            aerialDuelsLost: existing.aerialDuelsLost + player.aerialDuelsLost,
+            tackles: existing.tackles + player.tackles,
+            clearance: existing.clearance + player.clearance,
+            fouls: existing.fouls + player.fouls,
+            foulsInFinalThird: existing.foulsInFinalThird + player.foulsInFinalThird,
+            foulsInMiddleThird: existing.foulsInMiddleThird + player.foulsInMiddleThird,
+            foulsInDefensiveThird: existing.foulsInDefensiveThird + player.foulsInDefensiveThird,
+            foulWon: existing.foulWon + player.foulWon,
+            fwFinalThird: existing.fwFinalThird + player.fwFinalThird,
+            fwMiddleThird: existing.fwMiddleThird + player.fwMiddleThird,
+            fwDefensiveThird: existing.fwDefensiveThird + player.fwDefensiveThird,
+            cutBacks: existing.cutBacks + player.cutBacks,
+            crosses: existing.crosses + player.crosses,
+            freeKicks: existing.freeKicks + player.freeKicks,
+            corners: existing.corners + player.corners,
+            cornerFailed: existing.cornerFailed + player.cornerFailed,
+            cornerSuccess: existing.cornerSuccess + player.cornerSuccess,
+            throwIns: existing.throwIns + player.throwIns,
+            tiFailed: existing.tiFailed + player.tiFailed,
+            tiSuccess: existing.tiSuccess + player.tiSuccess,
+            offside: existing.offside + player.offside,
+            minutesPlayed: existing.minutesPlayed + player.minutesPlayed,
+          };
+
+          // Recalculate percentages
+          merged.successPassPercent = merged.passCount > 0 ? `${((merged.successfulPass / merged.passCount) * 100).toFixed(2)}%` : '0%';
+          merged.missPassPercent = merged.passCount > 0 ? `${((merged.missPass / merged.passCount) * 100).toFixed(2)}%` : '0%';
+          merged.forwardPassPercent = merged.passCount > 0 ? `${((merged.forwardPass / merged.passCount) * 100).toFixed(2)}%` : '0%';
+          merged.backwardPassPercent = merged.passCount > 0 ? `${((merged.backwardPass / merged.passCount) * 100).toFixed(2)}%` : '0%';
+
+          mergedPlayersMap.set(key, merged);
+        } else {
+          mergedPlayersMap.set(key, player);
+        }
+      });
+
+      return Array.from(mergedPlayersMap.values());
     },
   });
 }

@@ -46,19 +46,19 @@ function PitchPassMap({ passes, jerseyNumber }: { passes: PassEvent[]; jerseyNum
 
       {/* Pitch markings */}
       <rect x="0" y="0" width={pitchWidth} height={pitchHeight} fill="none" stroke="white" strokeWidth="0.5" opacity="0.5" />
-      
+
       {/* Center line */}
       <line x1={pitchWidth / 2} y1="0" x2={pitchWidth / 2} y2={pitchHeight} stroke="white" strokeWidth="0.3" opacity="0.5" />
-      
+
       {/* Center circle */}
       <circle cx={pitchWidth / 2} cy={pitchHeight / 2} r="9.15" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
-      
+
       {/* Left penalty area */}
       <rect x="0" y={(pitchHeight - 40.32) / 2} width="16.5" height="40.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
-      
+
       {/* Right penalty area */}
       <rect x={pitchWidth - 16.5} y={(pitchHeight - 40.32) / 2} width="16.5" height="40.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
-      
+
       {/* Goal areas */}
       <rect x="0" y={(pitchHeight - 18.32) / 2} width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
       <rect x={pitchWidth - 5.5} y={(pitchHeight - 18.32) / 2} width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" opacity="0.5" />
@@ -132,50 +132,61 @@ function PitchPassMap({ passes, jerseyNumber }: { passes: PassEvent[]; jerseyNum
   );
 }
 
+
+
+
 export function PlayerPassPositionMap({ passData }: PlayerPassPositionMapProps) {
-  const firstHalf = passData.byHalf?.[0] || { passes: [], totalPasses: 0 };
-  const secondHalf = passData.byHalf?.[1] || { passes: [], totalPasses: 0 };
+  const firstHalf = passData.byHalf?.[0] || { passes: [], totalPasses: 0, passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0 };
+  const secondHalf = passData.byHalf?.[1] || { passes: [], totalPasses: 0, passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0 };
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Pass Map</CardTitle>
+        <CardTitle className="text-lg font-bold">Pass Visualizations</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-3">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="all">All ({passData.totalPasses})</TabsTrigger>
             <TabsTrigger value="first">1st Half ({firstHalf.totalPasses})</TabsTrigger>
             <TabsTrigger value="second">2nd Half ({secondHalf.totalPasses})</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="all">
-            <PitchPassMap passes={passData.passes} jerseyNumber={passData.jerseyNumber} />
+
+          <TabsContent value="all" className="mt-0">
+            <div>
+              <h4 className="text-sm font-medium mb-4">Pass Map</h4>
+              <PitchPassMap passes={passData.passes} jerseyNumber={passData.jerseyNumber} />
+              <div className="flex justify-center gap-4 mt-3 text-xs flex-wrap">
+                <div className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-green-500" />
+                  <span>Successful</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-orange-500" />
+                  <span>Unsuccessful (line)</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-red-500" />
+                  <span>End position</span>
+                </div>
+              </div>
+            </div>
           </TabsContent>
-          
-          <TabsContent value="first">
-            <PitchPassMap passes={firstHalf.passes} jerseyNumber={passData.jerseyNumber} />
+
+          <TabsContent value="first" className="mt-0">
+            <div>
+              <h4 className="text-sm font-medium mb-4">Pass Map</h4>
+              <PitchPassMap passes={firstHalf.passes} jerseyNumber={passData.jerseyNumber} />
+            </div>
           </TabsContent>
-          
-          <TabsContent value="second">
-            <PitchPassMap passes={secondHalf.passes} jerseyNumber={passData.jerseyNumber} />
+
+          <TabsContent value="second" className="mt-0">
+            <div>
+              <h4 className="text-sm font-medium mb-4">Pass Map</h4>
+              <PitchPassMap passes={secondHalf.passes} jerseyNumber={passData.jerseyNumber} />
+            </div>
           </TabsContent>
         </Tabs>
-        
-        <div className="flex justify-center gap-4 mt-3 text-xs">
-          <div className="flex items-center gap-1">
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-            <span>Successful</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-2 w-2 rounded-full bg-orange-500" />
-            <span>Unsuccessful (line)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-2 w-2 rounded-full bg-red-500" />
-            <span>End position</span>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

@@ -14,7 +14,7 @@ function AdminContent() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -24,8 +24,8 @@ function AdminContent() {
             </h1>
           </div>
           <p className="text-muted-foreground">
-            {isAdmin 
-              ? 'Manage players, matches, and statistics' 
+            {isAdmin
+              ? 'Manage players, matches, and statistics'
               : 'View match analysis and notes'}
           </p>
         </div>
@@ -79,7 +79,7 @@ function AdminContent() {
                 Analyst Notes
               </CardTitle>
               <CardDescription>
-                {isAdmin 
+                {isAdmin
                   ? 'Add and manage analyst notes for matches that coaches can view'
                   : 'View analyst notes and add replies'}
               </CardDescription>
@@ -87,6 +87,24 @@ function AdminContent() {
             <CardContent>
               <Button variant="secondary" className="w-full">
                 {isAdmin ? 'Manage Notes' : 'View Notes'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Admin & Coach: Squad Analysis Link */}
+          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/squad-analysis')}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Squad Analysis
+              </CardTitle>
+              <CardDescription>
+                View comprehensive team intelligence, shot maps, and performance metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="secondary" className="w-full">
+                View Analysis
               </Button>
             </CardContent>
           </Card>

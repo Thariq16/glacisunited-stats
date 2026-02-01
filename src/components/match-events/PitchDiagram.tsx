@@ -54,21 +54,21 @@ export function PitchDiagram({
 
   // Convert stored Y coordinate (0-100 normalized) to SVG Y coordinate (0-68)
   const toSvgY = useCallback((storedY: number) => (storedY / 100) * PITCH_HEIGHT, []);
-  
+
   // Convert SVG Y coordinate (0-68) to stored/display Y coordinate (0-100 normalized)
   const toNormalizedY = useCallback((svgY: number) => (svgY / PITCH_HEIGHT) * 100, []);
 
   const getPositionFromEvent = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!svgRef.current) return null;
-    
+
     const rect = svgRef.current.getBoundingClientRect();
     // Scale click position to match SVG viewBox coordinates (0-100 for X, 0-68 for Y)
     const svgX = ((e.clientX - rect.left) / rect.width) * PITCH_WIDTH;
     const svgY = ((e.clientY - rect.top) / rect.height) * PITCH_HEIGHT;
-    
+
     // Normalize Y to 0-100 range for storage and display (consistent with X)
     const normalizedY = toNormalizedY(svgY);
-    
+
     return {
       x: Math.max(0, Math.min(100, Math.round(svgX * 10) / 10)),
       y: Math.max(0, Math.min(100, Math.round(normalizedY * 10) / 10)),
@@ -145,82 +145,81 @@ export function PitchDiagram({
       <svg
         ref={svgRef}
         viewBox="0 0 100 68"
-        className="w-full border rounded-lg cursor-crosshair"
-        style={{ backgroundColor: '#2D5016' }}
+        className="w-full border-2 border-green-800 rounded-lg cursor-crosshair bg-green-50 dark:bg-green-950"
         onClick={handleClick}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
         {/* Pitch outline */}
-        <rect x="0" y="0" width="100" height="68" fill="none" stroke="white" strokeWidth="0.5" />
+        <rect x="0" y="0" width="100" height="68" fill="none" stroke="#22c55e" strokeWidth="0.5" />
 
         {/* Halfway line */}
-        <line x1="50" y1="0" x2="50" y2="68" stroke="white" strokeWidth="0.3" />
+        <line x1="50" y1="0" x2="50" y2="68" stroke="#22c55e" strokeWidth="0.3" />
 
         {/* Center circle */}
-        <circle cx="50" cy="34" r="9.15" fill="none" stroke="white" strokeWidth="0.3" />
-        <circle cx="50" cy="34" r="0.5" fill="white" />
+        <circle cx="50" cy="34" r="9.15" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+        <circle cx="50" cy="34" r="0.5" fill="#22c55e" />
 
         {/* Left penalty area - with subtle highlight */}
-        <rect x="0" y="13.84" width="16.5" height="40.32" fill="rgba(255,200,0,0.1)" stroke="white" strokeWidth="0.3" />
+        <rect x="0" y="13.84" width="16.5" height="40.32" fill="rgba(34, 197, 94, 0.05)" stroke="#22c55e" strokeWidth="0.3" />
         {/* Left 6-yard box */}
-        <rect x="0" y="24.84" width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" />
+        <rect x="0" y="24.84" width="5.5" height="18.32" fill="none" stroke="#22c55e" strokeWidth="0.3" />
         {/* Left penalty spot */}
-        <circle cx="11" cy="34" r="0.4" fill="white" />
+        <circle cx="11" cy="34" r="0.4" fill="#22c55e" />
         {/* Left penalty arc */}
-        <path d="M 16.5 27.5 A 9.15 9.15 0 0 1 16.5 40.5" fill="none" stroke="white" strokeWidth="0.3" />
+        <path d="M 16.5 27.5 A 9.15 9.15 0 0 1 16.5 40.5" fill="none" stroke="#22c55e" strokeWidth="0.3" />
         {/* Left goal - enhanced with colored post */}
-        <rect x="-2.5" y="29.84" width="3" height="8.32" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <rect x="-2.5" y="29.84" width="3" height="8.32" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" strokeWidth="0.5" />
         {/* Left goal net pattern */}
-        <line x1="-2" y1="31" x2="-2" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="-1" y1="31" x2="-1" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="-2.5" y1="32" x2="0" y2="32" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="-2.5" y1="34" x2="0" y2="34" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="-2.5" y1="36" x2="0" y2="36" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="-2" y1="31" x2="-2" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="-1" y1="31" x2="-1" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="-2.5" y1="32" x2="0" y2="32" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="-2.5" y1="34" x2="0" y2="34" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="-2.5" y1="36" x2="0" y2="36" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
 
         {/* Right penalty area - with subtle highlight */}
-        <rect x="83.5" y="13.84" width="16.5" height="40.32" fill="rgba(255,200,0,0.1)" stroke="white" strokeWidth="0.3" />
+        <rect x="83.5" y="13.84" width="16.5" height="40.32" fill="rgba(34, 197, 94, 0.05)" stroke="#22c55e" strokeWidth="0.3" />
         {/* Right 6-yard box */}
-        <rect x="94.5" y="24.84" width="5.5" height="18.32" fill="none" stroke="white" strokeWidth="0.3" />
+        <rect x="94.5" y="24.84" width="5.5" height="18.32" fill="none" stroke="#22c55e" strokeWidth="0.3" />
         {/* Right penalty spot */}
-        <circle cx="89" cy="34" r="0.4" fill="white" />
+        <circle cx="89" cy="34" r="0.4" fill="#22c55e" />
         {/* Right penalty arc */}
-        <path d="M 83.5 27.5 A 9.15 9.15 0 0 0 83.5 40.5" fill="none" stroke="white" strokeWidth="0.3" />
+        <path d="M 83.5 27.5 A 9.15 9.15 0 0 0 83.5 40.5" fill="none" stroke="#22c55e" strokeWidth="0.3" />
         {/* Right goal - enhanced with colored post */}
-        <rect x="99.5" y="29.84" width="3" height="8.32" fill="rgba(255,255,255,0.2)" stroke="white" strokeWidth="0.5" />
+        <rect x="99.5" y="29.84" width="3" height="8.32" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" strokeWidth="0.5" />
         {/* Right goal net pattern */}
-        <line x1="101" y1="31" x2="101" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="102" y1="31" x2="102" y2="37" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="100" y1="32" x2="102.5" y2="32" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="100" y1="34" x2="102.5" y2="34" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
-        <line x1="100" y1="36" x2="102.5" y2="36" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" />
+        <line x1="101" y1="31" x2="101" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="102" y1="31" x2="102" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="100" y1="32" x2="102.5" y2="32" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="100" y1="34" x2="102.5" y2="34" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+        <line x1="100" y1="36" x2="102.5" y2="36" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
 
         {/* Attack direction indicator - top banner only */}
         {attackDirection && (() => {
           // homeAttacksLeft is already computed for the current half by the parent
           // No need to flip again here
           const homeAttacksLeftThisHalf = attackDirection.homeAttacksLeft;
-          
+
           // Team attacking right (towards right goal)
           const teamAttackingRight = homeAttacksLeftThisHalf ? attackDirection.awayTeamName : attackDirection.homeTeamName;
           // Team attacking left (towards left goal)
           const teamAttackingLeft = homeAttacksLeftThisHalf ? attackDirection.homeTeamName : attackDirection.awayTeamName;
-          
+
           // Truncate long team names
           const truncate = (name: string, max: number = 10) => name.length > max ? name.slice(0, max - 1) + '…' : name;
-          
+
           return (
             <>
               {/* Single top banner showing attack directions */}
               <g>
                 {/* Background bar */}
-                <rect x="10" y="60" width="80" height="6" rx="1" fill="rgba(0,0,0,0.7)" />
-                
+                <rect x="10" y="60" width="80" height="6" rx="1" fill="rgba(21, 128, 61, 0.9)" />
+
                 {/* Left side: team attacking left */}
                 <text x="14" y="64.2" fill="white" fontSize="2.8" textAnchor="start" fontWeight="bold">
                   ← {truncate(teamAttackingLeft, 12)}
                 </text>
-                
+
                 {/* Right side: team attacking right */}
                 <text x="86" y="64.2" fill="white" fontSize="2.8" textAnchor="end" fontWeight="bold">
                   {truncate(teamAttackingRight, 12)} →
@@ -231,27 +230,27 @@ export function PitchDiagram({
         })()}
 
         {/* Corner arcs */}
-        <path d="M 0 1 A 1 1 0 0 0 1 0" fill="none" stroke="white" strokeWidth="0.3" />
-        <path d="M 99 0 A 1 1 0 0 0 100 1" fill="none" stroke="white" strokeWidth="0.3" />
-        <path d="M 0 67 A 1 1 0 0 1 1 68" fill="none" stroke="white" strokeWidth="0.3" />
-        <path d="M 100 67 A 1 1 0 0 0 99 68" fill="none" stroke="white" strokeWidth="0.3" />
+        <path d="M 0 1 A 1 1 0 0 0 1 0" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+        <path d="M 99 0 A 1 1 0 0 0 100 1" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+        <path d="M 0 67 A 1 1 0 0 1 1 68" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+        <path d="M 100 67 A 1 1 0 0 0 99 68" fill="none" stroke="#22c55e" strokeWidth="0.3" />
 
         {/* Zone divider lines (thirds) */}
-        <line x1="33" y1="0" x2="33" y2="68" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" strokeDasharray="1,1" />
-        <line x1="67" y1="0" x2="67" y2="68" stroke="rgba(255,255,255,0.3)" strokeWidth="0.2" strokeDasharray="1,1" />
+        <line x1="33" y1="0" x2="33" y2="68" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" strokeDasharray="1,1" />
+        <line x1="67" y1="0" x2="67" y2="68" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" strokeDasharray="1,1" />
 
         {/* Zone labels */}
-        <text x="16.5" y="4" fill="rgba(255,255,255,0.5)" fontSize="3" textAnchor="middle">DEF</text>
-        <text x="50" y="4" fill="rgba(255,255,255,0.5)" fontSize="3" textAnchor="middle">MID</text>
-        <text x="83.5" y="4" fill="rgba(255,255,255,0.5)" fontSize="3" textAnchor="middle">FIN</text>
+        <text x="16.5" y="4" fill="rgba(21, 128, 61, 0.5)" fontSize="3" textAnchor="middle">DEF</text>
+        <text x="50" y="4" fill="rgba(21, 128, 61, 0.5)" fontSize="3" textAnchor="middle">MID</text>
+        <text x="83.5" y="4" fill="rgba(21, 128, 61, 0.5)" fontSize="3" textAnchor="middle">FIN</text>
 
         {/* Ball movement trail - faded arrows showing recent movements */}
         {ballTrail.map((trail, index) => {
           const opacity = 0.2 + (index / ballTrail.length) * 0.4; // Fade older trails
           const hasEnd = trail.endX !== undefined && trail.endY !== undefined;
-          const trailColor = trail.successful ? '#60A5FA' : '#F87171'; // Blue for success, red for fail
+          const trailColor = trail.successful ? '#2563EB' : '#DC2626'; // Darker Blue for success, Red for fail (better contrast on light)
           const markerId = `trail-arrow-${index}`;
-          
+
           return (
             <g key={index}>
               <defs>
@@ -294,10 +293,11 @@ export function PitchDiagram({
               <text
                 x={trail.x}
                 y={toSvgY(trail.y) - 2}
-                fill="white"
+                fill="#15803d"
                 fontSize="1.8"
                 textAnchor="middle"
-                opacity={opacity + 0.2}
+                opacity={opacity + 0.4}
+                className="font-bold"
               >
                 #{trail.jerseyNumber}
               </text>
@@ -306,10 +306,11 @@ export function PitchDiagram({
                 <text
                   x={trail.endX!}
                   y={toSvgY(trail.endY!) + 3}
-                  fill="white"
+                  fill="#15803d"
                   fontSize="1.6"
                   textAnchor="middle"
-                  opacity={opacity + 0.2}
+                  opacity={opacity + 0.4}
+                  className="font-bold"
                 >
                   →#{trail.targetJerseyNumber}
                 </text>
@@ -353,7 +354,7 @@ export function PitchDiagram({
             y1={toSvgY(startPosition.y)}
             x2={hoverPosition.x}
             y2={toSvgY(hoverPosition.y)}
-            stroke="rgba(255,255,255,0.5)"
+            stroke="rgba(34, 197, 94, 0.5)"
             strokeWidth="0.3"
             strokeDasharray="1,1"
           />
@@ -367,7 +368,7 @@ export function PitchDiagram({
               cy={toSvgY(startPosition.y)}
               r="2"
               fill="#22C55E"
-              stroke="white"
+              stroke="#15803d"
               strokeWidth="0.3"
             >
               <animate
@@ -380,9 +381,10 @@ export function PitchDiagram({
             <text
               x={startPosition.x}
               y={toSvgY(startPosition.y) - 3}
-              fill="white"
+              fill="#15803d"
               fontSize="2"
               textAnchor="middle"
+              className="font-bold"
             >
               START
             </text>
@@ -397,15 +399,16 @@ export function PitchDiagram({
               cy={toSvgY(endPosition.y)}
               r="2"
               fill="#EF4444"
-              stroke="white"
+              stroke="#B91C1C"
               strokeWidth="0.3"
             />
             <text
               x={endPosition.x}
               y={toSvgY(endPosition.y) - 3}
-              fill="white"
+              fill="#B91C1C"
               fontSize="2"
               textAnchor="middle"
+              className="font-bold"
             >
               END
             </text>
@@ -419,7 +422,7 @@ export function PitchDiagram({
             cy={toSvgY(hoverPosition.y)}
             r="1.5"
             fill="rgba(34, 197, 94, 0.5)"
-            stroke="white"
+            stroke="#22c55e"
             strokeWidth="0.2"
           />
         )}
@@ -429,7 +432,7 @@ export function PitchDiagram({
             cy={toSvgY(hoverPosition.y)}
             r="1.5"
             fill="rgba(239, 68, 68, 0.5)"
-            stroke="white"
+            stroke="#ef4444"
             strokeWidth="0.2"
           />
         )}
@@ -442,7 +445,7 @@ export function PitchDiagram({
               cx={ballPosition.x}
               cy={toSvgY(ballPosition.y)}
               r="4"
-              fill="rgba(255, 215, 0, 0.3)"
+              fill="rgba(255, 215, 0, 0.4)"
             >
               <animate
                 attributeName="r"
@@ -457,7 +460,7 @@ export function PitchDiagram({
                 repeatCount="indefinite"
               />
             </circle>
-            
+
             {/* Football/soccer ball icon */}
             <circle
               cx={ballPosition.x}
@@ -498,7 +501,7 @@ export function PitchDiagram({
               r="0.5"
               fill="#333"
             />
-            
+
             {/* Jersey number badge */}
             <g>
               <rect

@@ -51,8 +51,8 @@ function isInPenaltyArea(x: number, y: number): boolean {
 const PASS_EVENTS = ['pass', 'key_pass', 'assist', 'cross', 'penalty_area_pass', 'long_ball', 'through_ball', 'throw_in'];
 
 // Events that should not be counted as passes
-const NON_PASS_EVENTS = ['shot', 'goal', 'tackle', 'tackle_won', 'interception', 'clearance', 'save', 
-  'foul_committed', 'foul_won', 'card', 'aerial_duel', 'block', 'offside', 'run_in_behind', 
+const NON_PASS_EVENTS = ['shot', 'goal', 'tackle', 'tackle_won', 'interception', 'clearance', 'save',
+  'foul_committed', 'foul_won', 'card', 'aerial_duel', 'block', 'offside', 'run_in_behind',
   'overlap', 'carry', 'dribble', 'defensive_error', 'substitution', 'penalty_area_entry',
   'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'cut_back'];
 
@@ -65,26 +65,30 @@ export function aggregateEventsToPlayerStats(
   events.forEach((event) => {
     const player = event.player;
     if (!player) return;
-    
+
     // Filter by team if specified
     if (teamIdFilter && player.team_id !== teamIdFilter) return;
 
     const playerId = player.id;
-    
+
     // Initialize player if not exists
     if (!playersMap.has(playerId)) {
       playersMap.set(playerId, createEmptyPlayerStats(
         String(player.jersey_number),
         player.name,
-        player.role || ''
+        player.role || '',
       ));
+      // Assume started => 90 mins by default, corrected by substitutions
+      const s = playersMap.get(playerId)!;
+      s.minutesPlayed = 90;
+      playersMap.set(playerId, s);
     }
 
     // For substitution events, also track the substitute player coming ON
     if (event.event_type === 'substitution' && event.substitute_player_id && event.substitute) {
       const subPlayerId = event.substitute_player_id;
       const subPlayer = event.substitute;
-      
+
       // Initialize substitute player if not exists
       if (!playersMap.has(subPlayerId)) {
         playersMap.set(subPlayerId, createEmptyPlayerStats(
@@ -93,7 +97,7 @@ export function aggregateEventsToPlayerStats(
           subPlayer.role || ''
         ));
       }
-      
+
       // Increment substitute appearances for the player coming ON
       const subStats = playersMap.get(subPlayerId)!;
       subStats.substituteAppearances++;
@@ -258,6 +262,21 @@ export function aggregateEventsToPlayerStats(
       default:
         // Handle any unrecognized events
         break;
+
+      case 'substitution':
+        // Player OFF (current player) - played until this minute
+        stats.minutesPlayed = event.minute;
+
+        // Player ON (substitute) - played from this minute until end
+        if (event.substitute_player_id) {
+          const subStats = playersMap.get(event.substitute_player_id);
+          if (subStats) {
+            // Assuming 90 min game. If Sub comes on at 60, they play 30.
+            subStats.minutesPlayed = 90 - event.minute;
+            playersMap.set(event.substitute_player_id, subStats);
+          }
+        }
+        break;
     }
 
     // Update the map
@@ -364,7 +383,7 @@ async function fetchAllMatchEvents(matchId: string): Promise<any[]> {
       .range(offset, offset + PAGE_SIZE - 1);
 
     if (error) throw error;
-    
+
     if (events && events.length > 0) {
       allEvents = [...allEvents, ...events];
       offset += events.length;
@@ -444,7 +463,7 @@ async function fetchAllEventsForMatches(matchIds: string[]): Promise<any[]> {
       .range(offset, offset + PAGE_SIZE - 1);
 
     if (error) throw error;
-    
+
     if (events && events.length > 0) {
       allEvents = [...allEvents, ...events];
       offset += events.length;
@@ -470,7 +489,7 @@ export async function fetchAndAggregateEventsForTeam(
 
   // Filter to only team's events
   const teamEvents = events.filter((e: any) => e.player?.team_id === teamId);
-  
+
   return aggregateEventsToPlayerStats(teamEvents as MatchEvent[]);
 }
 
