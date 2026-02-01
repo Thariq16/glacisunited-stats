@@ -15,12 +15,20 @@ interface MatchEvent {
   half: number;
   minute: number;
   seconds?: number;
+  substitute_player_id?: string;
   player?: {
     id: string;
     name: string;
     jersey_number: number;
     role?: string;
     team_id: string;
+  };
+  substitute?: {
+    id: string;
+    name: string;
+    jersey_number: number;
+    role?: string;
+    team_id?: string;
   };
 }
 
@@ -70,6 +78,26 @@ export function aggregateEventsToPlayerStats(
         player.name,
         player.role || ''
       ));
+    }
+
+    // For substitution events, also track the substitute player coming ON
+    if (event.event_type === 'substitution' && event.substitute_player_id && event.substitute) {
+      const subPlayerId = event.substitute_player_id;
+      const subPlayer = event.substitute;
+      
+      // Initialize substitute player if not exists
+      if (!playersMap.has(subPlayerId)) {
+        playersMap.set(subPlayerId, createEmptyPlayerStats(
+          String(subPlayer.jersey_number),
+          subPlayer.name,
+          subPlayer.role || ''
+        ));
+      }
+      
+      // Increment substitute appearances for the player coming ON
+      const subStats = playersMap.get(subPlayerId)!;
+      subStats.substituteAppearances++;
+      playersMap.set(subPlayerId, subStats);
     }
 
     const stats = playersMap.get(playerId)!;
@@ -300,6 +328,7 @@ export function createEmptyPlayerStats(
     tiSuccess: 0,
     offside: 0,
     minutesPlayed: 0,
+    substituteAppearances: 0,
   };
 }
 
@@ -327,7 +356,9 @@ async function fetchAllMatchEvents(matchId: string): Promise<any[]> {
         half,
         minute,
         seconds,
-        player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
+        substitute_player_id,
+        player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id),
+        substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number, role, team_id)
       `)
       .eq('match_id', matchId)
       .range(offset, offset + PAGE_SIZE - 1);
@@ -405,7 +436,9 @@ async function fetchAllEventsForMatches(matchIds: string[]): Promise<any[]> {
         half,
         minute,
         seconds,
-        player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id)
+        substitute_player_id,
+        player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id),
+        substitute:players!match_events_substitute_player_id_fkey(id, name, jersey_number, role, team_id)
       `)
       .in('match_id', matchIds)
       .range(offset, offset + PAGE_SIZE - 1);
