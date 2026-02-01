@@ -39,8 +39,8 @@ import {
 } from '@/components/match-events/types';
 import { BallPosition } from '@/components/match-events/PitchDiagram';
 import { GoalMouthDiagram, ShotPlacement } from '@/components/match-events/GoalMouthDiagram';
-import { useMatchEventQueries } from './admin-match-events/hooks';
-import { useMatchEventMutations } from './admin-match-events/hooks';
+import { useMatchEventQueries } from '../hooks';
+import { useMatchEventMutations } from '../hooks';
 
 function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();

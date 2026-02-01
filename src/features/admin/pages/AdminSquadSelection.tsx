@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Plus, Users, UserPlus, Check, Loader2, Shirt } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSquadSelectionQueries, useSquadSelectionMutations, Player, SquadPlayer } from './admin-squad-selection/hooks';
+import { useSquadSelectionQueries, useSquadSelectionMutations, Player, SquadPlayer } from '../hooks';
 
 interface Team {
   id: string;

@@ -26,7 +26,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useCommentMutations, parseCSV, type NoteType, type ParsedComment } from "./admin-comments/hooks";
+import { useCommentMutations, parseCSV, type NoteType, type ParsedComment } from "../hooks";
 
 function AdminCommentsContent() {
   const navigate = useNavigate();

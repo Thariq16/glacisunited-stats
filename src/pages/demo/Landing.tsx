@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Navbar } from "@/components/Navbar";
+
 import { Footer } from "@/components/Footer";
 import { SquadAnalysisView } from "@/components/views/SquadAnalysisView";
 import { PlayerProfileView } from "@/components/views/PlayerProfileView";
@@ -20,7 +20,7 @@ export default function DemoLanding() {
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
-            <Navbar />
+
 
             <main className="container mx-auto px-4 py-8 flex-1">
                 {/* Demo Context Banner */}
