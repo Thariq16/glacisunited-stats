@@ -57,7 +57,7 @@ export default function SquadAnalysis() {
   const isLoading = isPlayersLoading || isVisLoading;
 
   // Determine which team is Glacis United (Focus Team)
-  const focusTeamId = (latestMatch as any)?.home_team?.name?.toLowerCase().includes('glacis')
+  const focusTeamId = (latestMatch as any)?.home_team?.name?.toLowerCase()?.includes('glacis')
     ? (latestMatch as any)?.home_team_id
     : (latestMatch as any)?.away_team_id;
 

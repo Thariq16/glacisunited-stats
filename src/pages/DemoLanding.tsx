@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { SquadAnalysisView } from "@/components/views/SquadAnalysisView";
 import { PlayerProfileView } from "@/components/views/PlayerProfileView";
-import { DEMO_SQUAD, DEMO_ATTACKING_PHASES, DEMO_PASS_DATA, DEMO_EVENTS, DEMO_MATCH_HISTORY, DEMO_SET_PIECE_STATS, DEMO_DEFENSIVE_EVENTS, DEMO_PLAYER_CORNER_STATS, DEMO_ATTACKING_THREAT, DEMO_LOST_POSSESSION } from "@/data/demo/mockData";
+import { DEMO_SQUAD, DEMO_ATTACKING_PHASES, DEMO_PASS_DATA, DEMO_EVENTS, DEMO_MATCH_HISTORY, DEMO_SET_PIECE_DATA, DEMO_DEFENSIVE_EVENTS, DEMO_PLAYER_CORNER_STATS, DEMO_ATTACKING_THREAT, DEMO_LOST_POSSESSION, DEMO_OPPONENT_ATTACKING_THREAT } from "@/data/demo/mockData";
 import { Button } from "@/components/ui/button";
 import { Info, User, Users } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -77,10 +77,10 @@ export default function DemoLanding() {
                                 phases={DEMO_ATTACKING_PHASES}
                                 events={DEMO_EVENTS}
                                 history={DEMO_MATCH_HISTORY}
-                                setPieceStats={DEMO_SET_PIECE_STATS}
-                                playerSetPieceStats={DEMO_PLAYER_CORNER_STATS}
+                                setPieceData={DEMO_SET_PIECE_DATA}
                                 defensiveEvents={DEMO_DEFENSIVE_EVENTS}
                                 attackingThreat={DEMO_ATTACKING_THREAT}
+                                opponentAttackingThreat={DEMO_OPPONENT_ATTACKING_THREAT}
                                 possessionLossEvents={DEMO_LOST_POSSESSION}
                                 teamName="Demo Team"
                             />

@@ -566,3 +566,19 @@ export const DEMO_LOST_POSSESSION = [
     { id: 'lp9', x: 80, y: 15, player: 'P7' },
     { id: 'lp10', x: 72, y: 85, player: 'P11' },
 ] as const;
+
+export const DEMO_SET_PIECE_DATA = {
+    all: { team: [...DEMO_SET_PIECE_STATS], players: [...DEMO_PLAYER_CORNER_STATS] },
+    firstHalf: { team: [...DEMO_SET_PIECE_STATS], players: [...DEMO_PLAYER_CORNER_STATS] },
+    secondHalf: { team: [...DEMO_SET_PIECE_STATS], players: [...DEMO_PLAYER_CORNER_STATS] }
+};
+
+export const DEMO_OPPONENT_ATTACKING_THREAT = {
+    all: [
+        { lane: 'left' as const, passCount: 45, threatPercent: 20, xg: 0.2 },
+        { lane: 'center' as const, passCount: 112, threatPercent: 55, xg: 1.1 },
+        { lane: 'right' as const, passCount: 58, threatPercent: 25, xg: 0.4 },
+    ],
+    firstHalf: [],
+    secondHalf: []
+};
