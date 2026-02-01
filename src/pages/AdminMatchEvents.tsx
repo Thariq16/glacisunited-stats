@@ -88,7 +88,7 @@ function AdminMatchEventsContent() {
   const [targetPlayerId, setTargetPlayerId] = useState<string | null>(null);
   const [substitutePlayerId, setSubstitutePlayerId] = useState<string | null>(null);
   const [shotPlacement, setShotPlacement] = useState<ShotPlacement | null>(null);
-  const [minute, setMinute] = useState(1);
+  const [minute, setMinute] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [stickyPlayer, setStickyPlayer] = useState(false);
 
