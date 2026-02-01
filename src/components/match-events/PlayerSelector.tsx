@@ -35,13 +35,29 @@ export function PlayerSelector({
 }: PlayerSelectorProps) {
   const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
 
-  // Split players by status and sort by jersey number
-  const starters = players
-    .filter((p) => p.status === 'starting')
+  // Compute effective starters and subs based on substitution events
+  // - Original starters who haven't been subbed off + players who came on
+  // - Original subs who haven't come on + players who were subbed off
+  const effectiveStarters = players
+    .filter((p) => {
+      const wasOriginalStarter = p.status === 'starting';
+      const wasSubbedOff = subbedOffPlayerIds.includes(p.id);
+      const cameOn = subbedOnPlayerIds.includes(p.id);
+      
+      // In effective starting XI if: (original starter AND not subbed off) OR (came on as sub)
+      return (wasOriginalStarter && !wasSubbedOff) || cameOn;
+    })
     .sort((a, b) => a.jersey_number - b.jersey_number);
-  
-  const substitutes = players
-    .filter((p) => p.status === 'substitute')
+
+  const effectiveSubs = players
+    .filter((p) => {
+      const wasOriginalSub = p.status === 'substitute';
+      const wasSubbedOff = subbedOffPlayerIds.includes(p.id);
+      const cameOn = subbedOnPlayerIds.includes(p.id);
+      
+      // In effective subs if: (original sub AND not came on) OR (was subbed off)
+      return (wasOriginalSub && !cameOn) || wasSubbedOff;
+    })
     .sort((a, b) => a.jersey_number - b.jersey_number);
 
   // All players sorted for dropdown
@@ -70,42 +86,31 @@ export function PlayerSelector({
       </div>
 
       {/* Starting XI grid */}
-      {starters.length > 0 && (
+      {effectiveStarters.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs text-muted-foreground">Starting XI:</p>
           <div className="flex flex-wrap gap-1">
-            {starters.map((player) => {
-              const isSubbedOff = subbedOffPlayerIds.includes(player.id);
+            {effectiveStarters.map((player) => {
               const isSubbedOn = subbedOnPlayerIds.includes(player.id);
               
               return (
                 <Tooltip key={player.id}>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={selectedPlayerId === player.id ? 'default' : isSubbedOn ? 'default' : 'secondary'}
+                      variant={selectedPlayerId === player.id ? 'default' : 'secondary'}
                       size="sm"
-                      disabled={isSubbedOff}
                       className={`w-9 h-9 p-0 text-sm font-bold ${
                         selectedPlayerId === player.id 
                           ? 'ring-2 ring-offset-1 ring-primary' 
                           : ''
-                      } ${
-                        isSubbedOff 
-                          ? 'opacity-40 cursor-not-allowed line-through' 
-                          : ''
-                      } ${
-                        isSubbedOn && selectedPlayerId !== player.id
-                          ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' 
-                          : ''
                       }`}
-                      onClick={() => !isSubbedOff && onSelect(player.id)}
+                      onClick={() => onSelect(player.id)}
                     >
                       {player.jersey_number}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">
                     {player.name}{player.role ? ` (${player.role})` : ''}
-                    {isSubbedOff && ' (OFF)'}
                     {isSubbedOn && ' (ON)'}
                   </TooltipContent>
                 </Tooltip>
@@ -116,32 +121,27 @@ export function PlayerSelector({
       )}
 
       {/* Substitutes grid */}
-      {substitutes.length > 0 && (
+      {effectiveSubs.length > 0 && (
         <div className="space-y-1.5">
           <p className="text-xs text-muted-foreground">Subs:</p>
           <div className="flex flex-wrap gap-1">
-            {substitutes.map((player) => {
+            {effectiveSubs.map((player) => {
               const isSubbedOff = subbedOffPlayerIds.includes(player.id);
-              const isSubbedOn = subbedOnPlayerIds.includes(player.id);
               
               return (
                 <Tooltip key={player.id}>
                   <TooltipTrigger asChild>
                     <Button
-                      variant={selectedPlayerId === player.id ? 'default' : isSubbedOn ? 'default' : 'outline'}
+                      variant={selectedPlayerId === player.id ? 'default' : 'outline'}
                       size="sm"
                       disabled={isSubbedOff}
                       className={`w-9 h-9 p-0 text-sm ${
                         selectedPlayerId === player.id 
                           ? 'ring-2 ring-offset-1 ring-primary' 
-                          : !isSubbedOn ? 'text-muted-foreground' : ''
+                          : 'text-muted-foreground'
                       } ${
                         isSubbedOff 
                           ? 'opacity-40 cursor-not-allowed line-through' 
-                          : ''
-                      } ${
-                        isSubbedOn && selectedPlayerId !== player.id
-                          ? 'bg-green-600 hover:bg-green-700 text-white border-green-600' 
                           : ''
                       }`}
                       onClick={() => !isSubbedOff && onSelect(player.id)}
@@ -152,7 +152,6 @@ export function PlayerSelector({
                   <TooltipContent side="bottom" className="text-xs">
                     {player.name}{player.role ? ` (${player.role})` : ''}
                     {isSubbedOff && ' (OFF)'}
-                    {isSubbedOn && ' (ON)'}
                   </TooltipContent>
                 </Tooltip>
               );
@@ -176,17 +175,30 @@ export function PlayerSelector({
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {allPlayersSorted.map((player) => (
-              <SelectItem key={player.id} value={player.id}>
-                <span className="flex items-center gap-2">
-                  <span className="font-mono font-bold w-6">{player.jersey_number}</span>
-                  <span>{player.name}</span>
-                  {player.status === 'substitute' && (
-                    <Badge variant="outline" className="text-[10px] h-4 px-1 ml-auto">SUB</Badge>
-                  )}
-                </span>
-              </SelectItem>
-            ))}
+            {allPlayersSorted.map((player) => {
+              const isSubbedOff = subbedOffPlayerIds.includes(player.id);
+              const isSubbedOn = subbedOnPlayerIds.includes(player.id);
+              // Determine effective status based on substitution events
+              const isEffectivelyOnPitch = (player.status === 'starting' && !isSubbedOff) || isSubbedOn;
+              
+              return (
+                <SelectItem key={player.id} value={player.id} disabled={isSubbedOff}>
+                  <span className={`flex items-center gap-2 ${isSubbedOff ? 'opacity-50 line-through' : ''}`}>
+                    <span className="font-mono font-bold w-6">{player.jersey_number}</span>
+                    <span>{player.name}</span>
+                    {isSubbedOff && (
+                      <Badge variant="destructive" className="text-[10px] h-4 px-1 ml-auto">OFF</Badge>
+                    )}
+                    {isSubbedOn && (
+                      <Badge className="text-[10px] h-4 px-1 ml-auto bg-green-600">ON</Badge>
+                    )}
+                    {!isSubbedOff && !isSubbedOn && !isEffectivelyOnPitch && (
+                      <Badge variant="outline" className="text-[10px] h-4 px-1 ml-auto">SUB</Badge>
+                    )}
+                  </span>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
