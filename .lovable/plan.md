@@ -1,81 +1,101 @@
 
-# Plan: Dynamic Player Grid Repositioning on Substitution
+# Plan: Fix Tactical & Advanced Tab Not Loading Data
 
-## Overview
-Currently, when substitutions occur, the player selector grids only apply visual styling (disabled/green) to players in their original positions. This update will dynamically reposition players between the "Starting XI" and "Subs" sections based on logged substitution events, creating a more intuitive match-day representation.
+## Root Cause Analysis
 
-## Current Behavior
-- Players subbed OFF: Shown disabled/grayed in Starting XI section
-- Players subbed ON: Shown highlighted green in Subs section
+The database contains **duplicate player records** for "K Klaudio":
 
-## New Behavior
-- Players subbed OFF: Move to Subs section and appear disabled
-- Players subbed ON: Move to Starting XI section and appear active
+| jersey | name | hidden | id |
+|--------|------|--------|-----|
+| 10 | K Klaudio | false | 77b2ac73... |
+| 9 | K Klaudio | true | 7fc73eeb... |
+
+Both `useSinglePlayerPassEvents` and `usePlayerAdvancedStats` hooks query for the player by name using `.single()`, which fails with a 406 error when multiple rows are returned (even if one is hidden).
+
+**Error from network logs:**
+```json
+{
+  "code": "PGRST116",
+  "details": "The result contains 2 rows",
+  "message": "Cannot coerce the result to a single JSON object"
+}
+```
+
+The Overview tab works because it uses `useTeamWithPlayers` which already filters hidden players and matches by name from pre-filtered results.
 
 ---
 
 ## Technical Implementation
 
-### 1. Update PlayerSelector Component
-**File: `src/components/match-events/PlayerSelector.tsx`**
+### 1. Update useSinglePlayerPassEvents Hook
+**File: `src/hooks/usePlayerPassEvents.ts`**
 
-Modify the player splitting logic to dynamically reassign players based on substitution events:
+Add a filter to exclude hidden players when querying by name:
 
-```text
-Current Logic (lines 38-45):
-- Filters by original `status` property only
+**Current code (lines 228-234):**
+```typescript
+const { data: playerData } = await supabase
+  .from('players')
+  .select('id, name, jersey_number')
+  .eq('team_id', team.id)
+  .eq('name', decodedName)
+  .single();
+```
 
-New Logic:
-- Compute "effective starters" = original starters (minus subbed off) + subbed on players
-- Compute "effective subs" = original subs (minus subbed on) + subbed off players
-- Sort each group by jersey number
-- Subbed OFF players in subs section remain disabled
-- Subbed ON players in starters section appear active (not highlighted green)
+**Updated code:**
+```typescript
+const { data: playerData } = await supabase
+  .from('players')
+  .select('id, name, jersey_number')
+  .eq('team_id', team.id)
+  .eq('name', decodedName)
+  .or('hidden.is.null,hidden.eq.false')
+  .maybeSingle();
 ```
 
 Key changes:
-- Replace static `starters` and `substitutes` arrays with computed `effectiveStarters` and `effectiveSubs`
-- Players who were subbed ON join the starters list (active, normal styling)
-- Players who were subbed OFF move to subs list (disabled, grayed out)
+- Add `.or('hidden.is.null,hidden.eq.false')` to filter out hidden players
+- Change `.single()` to `.maybeSingle()` for safer handling
 
-### 2. Update EventModifiers Component
-**File: `src/components/match-events/EventModifiers.tsx`**
+### 2. Update usePlayerAdvancedStats Hook
+**File: `src/hooks/usePlayerAdvancedStats.ts`**
 
-Apply the same dynamic repositioning logic to the target player selection grid:
+Apply the same fix to the player query:
 
-- Compute `effectiveStarters` and `effectiveSubs` using the same algorithm
-- Subbed ON players appear in Starting XI grid (selectable)
-- Subbed OFF players appear in Subs grid (disabled)
-
-### 3. Update Dropdown Menus
-Both components have "All players" dropdowns that should also reflect the new status:
-
-- Show badge indicating current effective role
-- Consider showing "(ON)" or "(OFF)" indicators for recently substituted players
-
----
-
-## Visual Summary
-
-**Before Substitution:**
-```text
-Starting XI:  [1] [4] [7] [10] [14] [15] [16] [19] [26] [73] [99]
-Subs:         [3] [5] [11] [12] [18] [22] [23] [25] [27]
+**Current code (lines 40-45):**
+```typescript
+const { data: playerData } = await supabase
+  .from('players')
+  .select('id, name, jersey_number')
+  .eq('team_id', team.id)
+  .eq('name', decodedName)
+  .single();
 ```
 
-**After #99 is subbed OFF, #27 comes ON:**
-```text
-Starting XI:  [1] [4] [7] [10] [14] [15] [16] [19] [26] [27] [73]
-Subs:         [3] [5] [11] [12] [18] [22] [23] [25] [99-disabled]
+**Updated code:**
+```typescript
+const { data: playerData } = await supabase
+  .from('players')
+  .select('id, name, jersey_number')
+  .eq('team_id', team.id)
+  .eq('name', decodedName)
+  .or('hidden.is.null,hidden.eq.false')
+  .maybeSingle();
 ```
 
 ---
 
-## Edge Cases Handled
+## Data Cleanup Recommendation
 
-1. **Multiple substitutions**: Track all substitution events, not just the last one
-2. **Substitute gets substituted**: If #27 comes on and later goes off for #23, #27 moves back to subs (disabled), #23 moves to starters
-3. **Sorting**: Both sections remain sorted by jersey number after repositioning
+While the code fix will resolve the immediate issue, consider cleaning up the duplicate player record in the database:
+
+**The hidden duplicate:**
+- id: `7fc73eeb-f47e-4557-ba6c-6d5280c6657e`
+- name: K Klaudio
+- jersey: 9
+- hidden: true
+
+This can be removed if there are no match events associated with it, or merged with the active record.
 
 ---
 
@@ -83,16 +103,14 @@ Subs:         [3] [5] [11] [12] [18] [22] [23] [25] [99-disabled]
 
 | File | Changes |
 |------|---------|
-| `src/components/match-events/PlayerSelector.tsx` | Add dynamic player repositioning logic based on substitution state |
-| `src/components/match-events/EventModifiers.tsx` | Apply same repositioning logic to target player grid |
+| `src/hooks/usePlayerPassEvents.ts` | Add hidden filter + use maybeSingle() |
+| `src/hooks/usePlayerAdvancedStats.ts` | Add hidden filter + use maybeSingle() |
 
 ---
 
-## Testing Recommendations
+## Expected Result
 
-After implementation, verify the following scenarios:
-1. Log a substitution event and confirm the players swap sections
-2. Verify the subbed OFF player appears disabled in the Subs section
-3. Verify the subbed ON player is selectable in the Starting XI section
-4. Test multiple consecutive substitutions
-5. Check that dropdowns reflect the updated player statuses
+After implementation:
+- The Tactical & Advanced tab will correctly load pass maps and heatmaps for K Klaudio
+- The hook will select only the active (non-hidden) player record
+- Other players with duplicate hidden records will also work correctly
