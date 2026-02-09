@@ -37,7 +37,7 @@ import { EventType, EVENT_CONFIG, EVENT_CATEGORIES, EventCategory } from './type
 
 interface EventTypeSelectorProps {
   selectedEventType: EventType | null;
-  onSelect: (eventType: EventType) => void;
+  onSelect: (eventType: EventType | null) => void;
 }
 
 const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>> = {
@@ -89,10 +89,9 @@ export function EventTypeSelector({ selectedEventType, onSelect }: EventTypeSele
           <Button
             variant={isSelected ? 'default' : 'outline'}
             size="sm"
-            className={`inline-flex items-center gap-1 h-7 py-1 px-2 text-xs ${
-              isSelected ? '' : 'hover:bg-accent'
-            }`}
-            onClick={() => onSelect(eventType)}
+            className={`inline-flex items-center gap-1 h-7 py-1 px-2 text-xs ${isSelected ? '' : 'hover:bg-accent'
+              }`}
+            onClick={() => onSelect(isSelected ? null : eventType)}
           >
             <Icon className="h-3 w-3 flex-shrink-0" />
             <span className="text-[11px] leading-none whitespace-nowrap">

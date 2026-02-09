@@ -26,6 +26,7 @@ import {
   EventType,
   ShotOutcome,
   AerialOutcome,
+  CornerDeliveryType,
   PhaseOutcome,
   Position,
   LocalEvent,
@@ -87,6 +88,7 @@ function AdminMatchEventsContent() {
   const [aerialOutcome, setAerialOutcome] = useState<AerialOutcome | null>(null);
   const [targetPlayerId, setTargetPlayerId] = useState<string | null>(null);
   const [substitutePlayerId, setSubstitutePlayerId] = useState<string | null>(null);
+  const [cornerDeliveryType, setCornerDeliveryType] = useState<CornerDeliveryType | null>(null);
   const [shotPlacement, setShotPlacement] = useState<ShotPlacement | null>(null);
   const [minute, setMinute] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -531,6 +533,7 @@ function AdminMatchEventsContent() {
     setIsUnsuccessful(false);
     setShotOutcome(null);
     setAerialOutcome(null);
+    setCornerDeliveryType(null);
     setTargetPlayerId(null);
     setSubstitutePlayerId(null);
     setShotPlacement(null);
@@ -612,6 +615,11 @@ function AdminMatchEventsContent() {
       return;
     }
 
+    if (selectedEventType === 'corner' && !cornerDeliveryType) {
+      toast.error('Please select a corner delivery type');
+      return;
+    }
+
     if (!matchId) return;
 
     try {
@@ -629,6 +637,7 @@ function AdminMatchEventsContent() {
         successful: !isUnsuccessful,
         shot_outcome: shotOutcome || undefined,
         aerial_outcome: aerialOutcome || undefined,
+        corner_delivery_type: cornerDeliveryType || undefined,
         target_player_id: targetPlayerId || undefined,
         substitute_player_id: substitutePlayerId || undefined,
         phase_id: currentPhase?.id,
@@ -1461,6 +1470,8 @@ function AdminMatchEventsContent() {
               onShotOutcomeChange={setShotOutcome}
               aerialOutcome={aerialOutcome}
               onAerialOutcomeChange={setAerialOutcome}
+              cornerDeliveryType={cornerDeliveryType}
+              onCornerDeliveryChange={setCornerDeliveryType}
               targetPlayerId={targetPlayerId}
               onTargetPlayerChange={setTargetPlayerId}
               substitutePlayerId={substitutePlayerId}

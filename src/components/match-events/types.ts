@@ -34,6 +34,7 @@ export type EventType =
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
+export type CornerDeliveryType = 'inswing' | 'outswing' | 'short';
 export type PhaseOutcome = 'goal' | 'shot' | 'lost_possession';
 
 export interface Position {
@@ -55,6 +56,7 @@ export interface LocalEvent {
   successful: boolean;
   shotOutcome?: ShotOutcome;
   aerialOutcome?: AerialOutcome;
+  cornerDeliveryType?: CornerDeliveryType;
   targetPlayerId?: string;
   targetPlayerName?: string;
   targetJerseyNumber?: number;
@@ -86,6 +88,7 @@ export interface EventLoggerState {
   isUnsuccessful: boolean;
   shotOutcome: ShotOutcome | null;
   aerialOutcome: AerialOutcome | null;
+  cornerDeliveryType: CornerDeliveryType | null;
   targetPlayerId: string | null;
   minute: number;
   currentPhase: Phase | null;

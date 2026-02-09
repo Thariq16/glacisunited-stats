@@ -4,7 +4,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { EventType, ShotOutcome, AerialOutcome, EVENTS_WITH_UNSUCCESSFUL, EVENTS_WITH_TARGET_PLAYER, EVENT_CONFIG } from './types';
+import { EventType, ShotOutcome, AerialOutcome, CornerDeliveryType, EVENTS_WITH_UNSUCCESSFUL, EVENTS_WITH_TARGET_PLAYER, EVENT_CONFIG } from './types';
 import { Badge } from '@/components/ui/badge';
 
 interface Player {
@@ -23,6 +23,8 @@ interface EventModifiersProps {
   onShotOutcomeChange: (value: ShotOutcome) => void;
   aerialOutcome: AerialOutcome | null;
   onAerialOutcomeChange: (value: AerialOutcome) => void;
+  cornerDeliveryType: CornerDeliveryType | null;
+  onCornerDeliveryChange: (value: CornerDeliveryType) => void;
   targetPlayerId: string | null;
   onTargetPlayerChange: (value: string | null) => void;
   substitutePlayerId: string | null;
@@ -42,6 +44,8 @@ export function EventModifiers({
   onShotOutcomeChange,
   aerialOutcome,
   onAerialOutcomeChange,
+  cornerDeliveryType,
+  onCornerDeliveryChange,
   targetPlayerId,
   onTargetPlayerChange,
   substitutePlayerId,
@@ -68,6 +72,7 @@ export function EventModifiers({
   const showUnsuccessful = EVENTS_WITH_UNSUCCESSFUL.includes(selectedEventType);
   const showShotOutcome = selectedEventType === 'shot';
   const showAerialOutcome = selectedEventType === 'aerial_duel';
+  const showCornerDelivery = selectedEventType === 'corner';
   const showTargetPlayer = EVENTS_WITH_TARGET_PLAYER.includes(selectedEventType);
   const showSubstitutePlayer = selectedEventType === 'substitution';
   const isTargetRequired = selectedEventType ? EVENT_CONFIG[selectedEventType]?.requiresTargetPlayer : false;
@@ -80,7 +85,7 @@ export function EventModifiers({
       const wasOriginalStarter = p.status === 'starting';
       const wasSubbedOff = subbedOffPlayerIds.includes(p.id);
       const cameOn = subbedOnPlayerIds.includes(p.id);
-      
+
       // In effective starting XI if: (original starter AND not subbed off) OR (came on as sub)
       return (wasOriginalStarter && !wasSubbedOff) || cameOn;
     })
@@ -91,7 +96,7 @@ export function EventModifiers({
       const wasOriginalSub = p.status === 'substitute';
       const wasSubbedOff = subbedOffPlayerIds.includes(p.id);
       const cameOn = subbedOnPlayerIds.includes(p.id);
-      
+
       // In effective subs if: (original sub AND not came on) OR (was subbed off)
       return (wasOriginalSub && !cameOn) || wasSubbedOff;
     })
@@ -172,6 +177,31 @@ export function EventModifiers({
         </div>
       )}
 
+      {/* Corner delivery type */}
+      {showCornerDelivery && (
+        <div className="space-y-2">
+          <Label className="text-sm">Delivery Type <span className="text-destructive">*</span></Label>
+          <RadioGroup
+            value={cornerDeliveryType || ''}
+            onValueChange={(value) => onCornerDeliveryChange(value as CornerDeliveryType)}
+            className="flex gap-4"
+          >
+            <div className="flex items-center space-x-1">
+              <RadioGroupItem value="inswing" id="corner_inswing" />
+              <Label htmlFor="corner_inswing" className="text-xs cursor-pointer">Inswing</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <RadioGroupItem value="outswing" id="corner_outswing" />
+              <Label htmlFor="corner_outswing" className="text-xs cursor-pointer">Outswing</Label>
+            </div>
+            <div className="flex items-center space-x-1">
+              <RadioGroupItem value="short" id="corner_short" />
+              <Label htmlFor="corner_short" className="text-xs cursor-pointer">Short</Label>
+            </div>
+          </RadioGroup>
+        </div>
+      )}
+
       {/* Target player - hybrid selection */}
       {showTargetPlayer && (
         <div className="space-y-3">
@@ -194,8 +224,8 @@ export function EventModifiers({
                           variant={targetPlayerId === player.id ? 'default' : 'secondary'}
                           size="sm"
                           className={`w-9 h-9 p-0 text-sm font-bold ${targetPlayerId === player.id
-                              ? 'ring-2 ring-offset-1 ring-primary'
-                              : ''
+                            ? 'ring-2 ring-offset-1 ring-primary'
+                            : ''
                             }`}
                           onClick={() => onTargetPlayerChange(player.id)}
                         >
@@ -229,8 +259,8 @@ export function EventModifiers({
                           size="sm"
                           disabled={isSubbedOff}
                           className={`w-9 h-9 p-0 text-sm ${targetPlayerId === player.id
-                              ? 'ring-2 ring-offset-1 ring-primary'
-                              : 'text-muted-foreground'
+                            ? 'ring-2 ring-offset-1 ring-primary'
+                            : 'text-muted-foreground'
                             } ${isSubbedOff
                               ? 'opacity-40 cursor-not-allowed line-through'
                               : ''
@@ -277,7 +307,7 @@ export function EventModifiers({
                   const isSubbedOn = subbedOnPlayerIds.includes(player.id);
                   // Determine effective status based on substitution events
                   const isEffectivelyOnPitch = (player.status === 'starting' && !isSubbedOff) || isSubbedOn;
-                  
+
                   return (
                     <SelectItem key={player.id} value={player.id} disabled={isSubbedOff}>
                       <span className={`flex items-center gap-2 ${isSubbedOff ? 'opacity-50 line-through' : ''}`}>
