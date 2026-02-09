@@ -47,7 +47,9 @@ export const DEMO_SQUAD: PlayerStats[] = [
         tiSuccess: 0,
         offside: 18,
         minutesPlayed: 1850,
-        substituteAppearances: 2
+        substituteAppearances: 2,
+        yellowCards: 3,
+        redCards: 0
     },
     {
         jerseyNumber: "10",
@@ -94,7 +96,9 @@ export const DEMO_SQUAD: PlayerStats[] = [
         tiSuccess: 0,
         offside: 2,
         minutesPlayed: 1980,
-        substituteAppearances: 0
+        substituteAppearances: 0,
+        yellowCards: 1,
+        redCards: 0
     },
     {
         jerseyNumber: "4",
@@ -141,7 +145,9 @@ export const DEMO_SQUAD: PlayerStats[] = [
         tiSuccess: 11,
         offside: 0,
         minutesPlayed: 2050,
-        substituteAppearances: 0
+        substituteAppearances: 0,
+        yellowCards: 0,
+        redCards: 0
     },
     {
         jerseyNumber: "1",
@@ -188,7 +194,9 @@ export const DEMO_SQUAD: PlayerStats[] = [
         tiSuccess: 0,
         offside: 0,
         minutesPlayed: 2100,
-        substituteAppearances: 0
+        substituteAppearances: 0,
+        yellowCards: 2,
+        redCards: 0
     },
     {
         jerseyNumber: "7",
@@ -235,7 +243,9 @@ export const DEMO_SQUAD: PlayerStats[] = [
         tiSuccess: 0,
         offside: 12,
         minutesPlayed: 1650,
-        substituteAppearances: 5
+        substituteAppearances: 5,
+        yellowCards: 4,
+        redCards: 1
     },
     {
         jerseyNumber: "6",
@@ -282,7 +292,9 @@ export const DEMO_SQUAD: PlayerStats[] = [
         tiSuccess: 0,
         offside: 0,
         minutesPlayed: 1900,
-        substituteAppearances: 1
+        substituteAppearances: 1,
+        yellowCards: 1,
+        redCards: 0
     },
     // Add more bench players to simulate depth analysis
     ...Array.from({ length: 10 }).map((_, i) => ({
@@ -330,7 +342,9 @@ export const DEMO_SQUAD: PlayerStats[] = [
         tiSuccess: Math.floor(Math.random() * 15),
         offside: Math.floor(Math.random() * 5),
         minutesPlayed: Math.floor(Math.random() * 1000),
-        substituteAppearances: Math.floor(Math.random() * 10)
+        substituteAppearances: Math.floor(Math.random() * 10),
+        yellowCards: Math.floor(Math.random() * 3),
+        redCards: Math.floor(Math.random() * 1)
     }))
 ];
 

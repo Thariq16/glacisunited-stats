@@ -78,6 +78,7 @@ export function useMatchDetail(matchId: string | undefined) {
             foulWon: 0, fwFinalThird: 0, fwMiddleThird: 0, fwDefensiveThird: 0, cutBacks: 0,
             crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
             throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0, minutesPlayed: 0, substituteAppearances: 0,
+            yellowCards: 0, redCards: 0,
           };
 
           const updated: PlayerStats = {
