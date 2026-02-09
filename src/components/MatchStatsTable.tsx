@@ -39,7 +39,8 @@ interface TeamStats {
   freekicks: number;
   throwIns: number;
   offside: number;
-  minutesPlayed: number;
+  yellowCards: number;
+  redCards: number;
 }
 
 function calculateTeamStats(players: PlayerStats[]): TeamStats {
@@ -63,7 +64,8 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
   const freekicks = players.reduce((sum, p) => sum + p.freeKicks, 0);
   const throwIns = players.reduce((sum, p) => sum + p.throwIns, 0);
   const offside = players.reduce((sum, p) => sum + p.offside, 0);
-  const minutesPlayed = players.reduce((sum, p) => sum + p.minutesPlayed, 0);
+  const yellowCards = players.reduce((sum, p) => sum + (p.yellowCards || 0), 0);
+  const redCards = players.reduce((sum, p) => sum + (p.redCards || 0), 0);
 
   const cpPercent = totalPasses > 0 ? ((completedPass / totalPasses) * 100).toFixed(2) : "0.00";
   const mpPercent = totalPasses > 0 ? ((missedPass / totalPasses) * 100).toFixed(2) : "0.00";
@@ -105,7 +107,8 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
     freekicks,
     throwIns,
     offside,
-    minutesPlayed,
+    yellowCards,
+    redCards,
   };
 }
 
@@ -115,20 +118,19 @@ export function MatchStatsTable({ homeTeam, awayTeam, homePlayers, awayPlayers }
 
   const statsRows = [
     { label: "Goals", home: homeStats.goals, away: awayStats.goals },
-    { label: "Total Minutes", home: homeStats.minutesPlayed, away: awayStats.minutesPlayed },
     { label: "Total Passes", home: homeStats.totalPasses, away: awayStats.totalPasses },
-    { label: "Completed Pass", home: homeStats.completedPass, away: awayStats.completedPass },
-    { label: "CP %", home: homeStats.cpPercent, away: awayStats.cpPercent },
-    { label: "Missed Pass", home: homeStats.missedPass, away: awayStats.missedPass },
-    { label: "MP %", home: homeStats.mpPercent, away: awayStats.mpPercent },
+    { label: "Completed Passes", home: homeStats.completedPass, away: awayStats.completedPass },
+    { label: "Completed Pass %", home: homeStats.cpPercent, away: awayStats.cpPercent },
+    { label: "Missed Passes", home: homeStats.missedPass, away: awayStats.missedPass },
+    { label: "Missed Pass %", home: homeStats.mpPercent, away: awayStats.mpPercent },
     { label: "Forward Passes", home: homeStats.forwardPasses, away: awayStats.forwardPasses },
-    { label: "FP %", home: homeStats.fpPercent, away: awayStats.fpPercent },
+    { label: "Forward Pass %", home: homeStats.fpPercent, away: awayStats.fpPercent },
     { label: "Backward Passes", home: homeStats.backwardPasses, away: awayStats.backwardPasses },
-    { label: "BP %", home: homeStats.bpPercent, away: awayStats.bpPercent },
+    { label: "Backward Pass %", home: homeStats.bpPercent, away: awayStats.bpPercent },
     { label: "Pass to Goal Threat", home: homeStats.passToGoalThreat, away: awayStats.passToGoalThreat },
     { label: "Penalty Area Pass", home: homeStats.penaltyAreaPass, away: awayStats.penaltyAreaPass },
     { label: "Penalty Area Entry", home: homeStats.penaltyAreaEntry, away: awayStats.penaltyAreaEntry },
-    { label: "PA Entry Efficiency", home: homeStats.paEntryEfficiency, away: awayStats.paEntryEfficiency },
+    { label: "Penalty Area Entry Efficiency", home: homeStats.paEntryEfficiency, away: awayStats.paEntryEfficiency },
     { label: "Run in Behind", home: homeStats.runInBehind, away: awayStats.runInBehind },
     { label: "Overlaps", home: homeStats.overlaps, away: awayStats.overlaps },
     { label: "Shots Attempted", home: homeStats.shotsAttempted, away: awayStats.shotsAttempted },
@@ -136,12 +138,14 @@ export function MatchStatsTable({ homeTeam, awayTeam, homePlayers, awayPlayers }
     { label: "Shot Accuracy", home: homeStats.shotAccuracy, away: awayStats.shotAccuracy },
     { label: "Conversion Rate", home: homeStats.conversionRate, away: awayStats.conversionRate },
     { label: "Clinical Finishing", home: homeStats.clinicalFinishing, away: awayStats.clinicalFinishing },
+    { label: "Yellow Cards", home: homeStats.yellowCards, away: awayStats.yellowCards },
+    { label: "Red Cards", home: homeStats.redCards, away: awayStats.redCards },
     { label: "Fouls", home: homeStats.fouls, away: awayStats.fouls },
     { label: "Fouls Won", home: homeStats.foulsWon, away: awayStats.foulsWon },
     { label: "Saves", home: homeStats.saves, away: awayStats.saves },
     { label: "Crosses", home: homeStats.crosses, away: awayStats.crosses },
     { label: "Corners", home: homeStats.corners, away: awayStats.corners },
-    { label: "Freekicks", home: homeStats.freekicks, away: awayStats.freekicks },
+    { label: "Free Kicks", home: homeStats.freekicks, away: awayStats.freekicks },
     { label: "Throw Ins", home: homeStats.throwIns, away: awayStats.throwIns },
     { label: "Offside", home: homeStats.offside, away: awayStats.offside },
   ];
