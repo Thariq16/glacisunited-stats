@@ -130,7 +130,6 @@ export function MatchStatsTable({ homeTeam, awayTeam, homePlayers, awayPlayers }
     { label: "Pass to Goal Threat", home: homeStats.passToGoalThreat, away: awayStats.passToGoalThreat },
     { label: "Penalty Area Pass", home: homeStats.penaltyAreaPass, away: awayStats.penaltyAreaPass },
     { label: "Penalty Area Entry", home: homeStats.penaltyAreaEntry, away: awayStats.penaltyAreaEntry },
-    { label: "Penalty Area Entry Efficiency", home: homeStats.paEntryEfficiency, away: awayStats.paEntryEfficiency },
     { label: "Run in Behind", home: homeStats.runInBehind, away: awayStats.runInBehind },
     { label: "Overlaps", home: homeStats.overlaps, away: awayStats.overlaps },
     { label: "Shots Attempted", home: homeStats.shotsAttempted, away: awayStats.shotsAttempted },
