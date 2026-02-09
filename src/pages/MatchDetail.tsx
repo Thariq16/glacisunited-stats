@@ -1,25 +1,26 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, MapPin, BarChart3, MessageSquare, TrendingUp } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, BarChart3, MessageSquare, TrendingUp } from "lucide-react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PlayerCard } from "@/components/PlayerCard";
-import { MatchStatsTable } from "@/components/MatchStatsTable";
+import { MatchPlayerCard } from "@/components/MatchPlayerCard";
+import { MatchStatsCards } from "@/components/MatchStatsCards";
 import { useMatchDetail } from "@/hooks/useMatchDetail";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MatchComments } from "@/components/MatchComments";
 import { MatchVisualizationsTab } from "@/components/match-visualizations/MatchVisualizationsTab";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatchXGStats } from "@/hooks/useMatchXGStats";
+import { MatchScoreHeader } from "@/components/MatchScoreHeader";
+import { MatchQuickStats } from "@/components/MatchQuickStats";
+import { PlayerStats } from "@/utils/parseCSV";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -36,6 +37,24 @@ export default function MatchDetail() {
   const { data: xgStats } = useMatchXGStats(matchId, homeTeam?.id, awayTeam?.id);
 
   const showTabs = isAdmin || isCoach;
+
+  // Helper to calculate contribution score and sort players
+  const getSortedPlayers = (players: PlayerStats[]) => {
+    return [...players].sort((a, b) => {
+      const scoreA = a.goals * 10 + a.shotsOnTarget * 2 + a.tackles * 2 +
+        (a.passCount > 0 ? (a.successfulPass / a.passCount) * 5 : 0);
+      const scoreB = b.goals * 10 + b.shotsOnTarget * 2 + b.tackles * 2 +
+        (b.passCount > 0 ? (b.successfulPass / b.passCount) * 5 : 0);
+      return scoreB - scoreA;
+    });
+  };
+
+  // Get sorted players for the selected team
+  const sortedPlayers = useMemo(() => {
+    if (!match || !selectedTeam) return [];
+    const players = selectedTeam === 'home' ? match.homePlayers : match.awayPlayers;
+    return getSortedPlayers(players);
+  }, [match, selectedTeam]);
 
   if (isLoading) {
     return (
@@ -83,67 +102,27 @@ export default function MatchDetail() {
         </Button>
 
         {/* Match Header */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <div className="flex justify-between items-center mb-6">
-              <Badge variant="outline" className="text-lg py-1 px-3">{match.competition || 'Match'}</Badge>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                {new Date(match.match_date).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </div>
-            </div>
+        <MatchScoreHeader
+          homeTeam={homeTeam}
+          awayTeam={awayTeam}
+          homeScore={match.home_score}
+          awayScore={match.away_score}
+          competition={match.competition}
+          matchDate={match.match_date}
+          venue={match.venue}
+          xgStats={xgStats}
+          onViewHomePlayers={() => setSelectedTeam('home')}
+          onViewAwayPlayers={() => setSelectedTeam('away')}
+        />
 
-            <div className="grid grid-cols-3 items-center gap-4 mb-6">
-              <div className="text-right">
-                <h2 className="text-2xl font-bold text-foreground mb-2">{homeTeam?.name || 'Home Team'}</h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedTeam('home')}
-                >
-                  View Players
-                </Button>
-              </div>
-
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-4">
-                  <span className="text-5xl font-bold text-foreground">{match.home_score}</span>
-                  <span className="text-3xl text-muted-foreground">-</span>
-                  <span className="text-5xl font-bold text-foreground">{match.away_score}</span>
-                </div>
-                {/* xG Display */}
-                {xgStats && (xgStats.home.shotCount > 0 || xgStats.away.shotCount > 0) && (
-                  <div className="flex items-center justify-center gap-4 mt-2">
-                    <span className="text-lg text-muted-foreground">xG: {xgStats.home.totalXG.toFixed(2)}</span>
-                    <span className="text-muted-foreground">-</span>
-                    <span className="text-lg text-muted-foreground">{xgStats.away.totalXG.toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="text-left">
-                <h2 className="text-2xl font-bold text-foreground mb-2">{awayTeam?.name || 'Away Team'}</h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelectedTeam('away')}
-                >
-                  View Players
-                </Button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              {match.venue || 'TBD'}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Quick Stats Summary */}
+        <MatchQuickStats
+          homePlayers={match.homePlayers}
+          awayPlayers={match.awayPlayers}
+          homeTeam={homeTeam?.name || 'Home Team'}
+          awayTeam={awayTeam?.name || 'Away Team'}
+          xgStats={xgStats}
+        />
 
         {/* Tabs for coaches and admins, otherwise just show stats */}
         {showTabs ? (
@@ -164,12 +143,12 @@ export default function MatchDetail() {
             </TabsList>
 
             <TabsContent value="stats" className="space-y-6">
-              <h2 className="text-2xl font-bold text-foreground">Overall Match Statistics</h2>
-              <MatchStatsTable
+              <MatchStatsCards
                 homeTeam={homeTeam?.name || 'Home Team'}
                 awayTeam={awayTeam?.name || 'Away Team'}
                 homePlayers={match.homePlayers}
                 awayPlayers={match.awayPlayers}
+                xgStats={xgStats}
               />
             </TabsContent>
 
@@ -189,12 +168,12 @@ export default function MatchDetail() {
           </Tabs>
         ) : (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-foreground">Overall Match Statistics</h2>
-            <MatchStatsTable
+            <MatchStatsCards
               homeTeam={homeTeam?.name || 'Home Team'}
               awayTeam={awayTeam?.name || 'Away Team'}
               homePlayers={match.homePlayers}
               awayPlayers={match.awayPlayers}
+              xgStats={xgStats}
             />
           </div>
         )}
@@ -203,16 +182,21 @@ export default function MatchDetail() {
         <Dialog open={!!selectedTeam} onOpenChange={() => setSelectedTeam(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
                 {selectedTeam === 'home' ? homeTeam?.name : awayTeam?.name} - Player Performances
+                <span className="text-sm text-muted-foreground font-normal">
+                  (sorted by contribution)
+                </span>
               </DialogTitle>
             </DialogHeader>
             <div className="grid md:grid-cols-2 gap-4 mt-4">
-              {(selectedTeam === 'home' ? match.homePlayers : match.awayPlayers).map((player) => (
-                <PlayerCard
+              {sortedPlayers.map((player, index) => (
+                <MatchPlayerCard
                   key={`${player.jerseyNumber}-${player.playerName}`}
                   player={player}
                   teamId={selectedTeam === 'home' ? homeTeam?.slug : awayTeam?.slug}
+                  isTopPerformer={index === 0}
+                  rank={index + 1}
                 />
               ))}
             </div>
