@@ -19,6 +19,7 @@ import { PlayerPassThirdMap } from "@/components/PlayerPassThirdMap";
 import { AttackingThreatMap } from "@/components/views/AttackingThreatMap"; // NEW
 import { LostPossessionHeatmap } from "@/components/views/LostPossessionHeatmap"; // NEW
 import { usePlayerAdvancedStats } from "@/hooks/usePlayerAdvancedStats";
+import { usePlayerXGStats } from "@/hooks/usePlayerXGStats";
 import { calculateAdvancedMetrics, calculateTacticalProfile, analyzePositioning } from "@/utils/playerMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
@@ -36,11 +37,32 @@ export default function PlayerProfile() {
     playerName,
     matchFilter
   );
-  const { data: advancedStats, isLoading: advancedStatsLoading } = usePlayerAdvancedStats( // NEW
-    teamId || '', // NEW
-    playerName, // NEW
-    matchFilter // NEW
-  ); // NEW
+  const { data: advancedStats, isLoading: advancedStatsLoading } = usePlayerAdvancedStats(
+    teamId || '',
+    playerName,
+    matchFilter
+  );
+
+  // Get match IDs for xG filtering based on match filter
+  const matchIdsForXG = useMemo(() => {
+    if (!matches || !team) return undefined;
+    const teamMatches = matches.filter(m =>
+      m.home_team?.slug === team.slug || m.away_team?.slug === team.slug
+    );
+
+    if (matchFilter === 'all') return teamMatches.map(m => m.id);
+    if (matchFilter === 'last1') return teamMatches.slice(0, 1).map(m => m.id);
+    if (matchFilter === 'last3') return teamMatches.slice(0, 3).map(m => m.id);
+    if (matchFilter === 'last5') return teamMatches.slice(0, 5).map(m => m.id);
+    // Specific match ID
+    return [matchFilter];
+  }, [matches, team, matchFilter]);
+
+  const { data: xgStats, isLoading: xgLoading } = usePlayerXGStats({
+    playerName: playerName ? decodeURIComponent(playerName) : undefined,
+    teamSlug: teamId,
+    matchIds: matchIdsForXG,
+  });
 
   const player = useMemo(() => {
     if (!team || !playerName) return null;
@@ -192,6 +214,32 @@ export default function PlayerProfile() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {/* xG Stats Row */}
+                  {xgStats && xgStats.shotCount > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Expected Goals (xG)</p>
+                        <p className="text-2xl font-bold text-primary">{xgStats.totalXG.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">xG per Shot</p>
+                        <p className="text-2xl font-bold">{xgStats.xGPerShot.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Goals vs xG</p>
+                        <p className={`text-2xl font-bold ${xgStats.overperformance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {xgStats.overperformance >= 0 ? '+' : ''}{xgStats.overperformance.toFixed(2)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Finishing Quality</p>
+                        <p className="text-2xl font-bold">
+                          {xgStats.actualGoals} / {xgStats.shotCount}
+                          <span className="text-sm text-muted-foreground ml-1">goals</span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">Run in Behind</p>

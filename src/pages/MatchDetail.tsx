@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MatchComments } from "@/components/MatchComments";
 import { MatchVisualizationsTab } from "@/components/match-visualizations/MatchVisualizationsTab";
 import { useAuth } from "@/hooks/useAuth";
+import { useMatchXGStats } from "@/hooks/useMatchXGStats";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -26,6 +27,13 @@ export default function MatchDetail() {
   const { data: match, isLoading, error } = useMatchDetail(matchId);
   const { isAdmin, isCoach } = useAuth();
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null);
+
+  // Extract team info for xG query
+  const homeTeam = match?.home_team as { id: string; name: string; slug: string } | null;
+  const awayTeam = match?.away_team as { id: string; name: string; slug: string } | null;
+
+  // Fetch xG stats for the match
+  const { data: xgStats } = useMatchXGStats(matchId, homeTeam?.id, awayTeam?.id);
 
   const showTabs = isAdmin || isCoach;
 
@@ -59,16 +67,14 @@ export default function MatchDetail() {
     );
   }
 
-  const homeTeam = match.home_team as { id: string; name: string; slug: string } | null;
-  const awayTeam = match.away_team as { id: string; name: string; slug: string } | null;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       <main className="container mx-auto px-4 py-8">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => navigate('/matches')}
           className="mb-6"
         >
@@ -83,11 +89,11 @@ export default function MatchDetail() {
               <Badge variant="outline" className="text-lg py-1 px-3">{match.competition || 'Match'}</Badge>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                {new Date(match.match_date).toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {new Date(match.match_date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </div>
             </div>
@@ -95,27 +101,35 @@ export default function MatchDetail() {
             <div className="grid grid-cols-3 items-center gap-4 mb-6">
               <div className="text-right">
                 <h2 className="text-2xl font-bold text-foreground mb-2">{homeTeam?.name || 'Home Team'}</h2>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setSelectedTeam('home')}
                 >
                   View Players
                 </Button>
               </div>
-              
+
               <div className="text-center">
                 <div className="flex items-center justify-center gap-4">
                   <span className="text-5xl font-bold text-foreground">{match.home_score}</span>
                   <span className="text-3xl text-muted-foreground">-</span>
                   <span className="text-5xl font-bold text-foreground">{match.away_score}</span>
                 </div>
+                {/* xG Display */}
+                {xgStats && (xgStats.home.shotCount > 0 || xgStats.away.shotCount > 0) && (
+                  <div className="flex items-center justify-center gap-4 mt-2">
+                    <span className="text-lg text-muted-foreground">xG: {xgStats.home.totalXG.toFixed(2)}</span>
+                    <span className="text-muted-foreground">-</span>
+                    <span className="text-lg text-muted-foreground">{xgStats.away.totalXG.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
-              
+
               <div className="text-left">
                 <h2 className="text-2xl font-bold text-foreground mb-2">{awayTeam?.name || 'Away Team'}</h2>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => setSelectedTeam('away')}
                 >
@@ -151,7 +165,7 @@ export default function MatchDetail() {
 
             <TabsContent value="stats" className="space-y-6">
               <h2 className="text-2xl font-bold text-foreground">Overall Match Statistics</h2>
-              <MatchStatsTable 
+              <MatchStatsTable
                 homeTeam={homeTeam?.name || 'Home Team'}
                 awayTeam={awayTeam?.name || 'Away Team'}
                 homePlayers={match.homePlayers}
@@ -176,7 +190,7 @@ export default function MatchDetail() {
         ) : (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-foreground">Overall Match Statistics</h2>
-            <MatchStatsTable 
+            <MatchStatsTable
               homeTeam={homeTeam?.name || 'Home Team'}
               awayTeam={awayTeam?.name || 'Away Team'}
               homePlayers={match.homePlayers}
@@ -195,7 +209,7 @@ export default function MatchDetail() {
             </DialogHeader>
             <div className="grid md:grid-cols-2 gap-4 mt-4">
               {(selectedTeam === 'home' ? match.homePlayers : match.awayPlayers).map((player) => (
-                <PlayerCard 
+                <PlayerCard
                   key={`${player.jerseyNumber}-${player.playerName}`}
                   player={player}
                   teamId={selectedTeam === 'home' ? homeTeam?.slug : awayTeam?.slug}
