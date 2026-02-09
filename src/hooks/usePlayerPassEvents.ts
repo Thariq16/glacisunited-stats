@@ -224,13 +224,14 @@ export function useSinglePlayerPassEvents(
 
       if (!team) throw new Error('Team not found');
 
-      // Get player
+      // Get player (filter out hidden players to avoid duplicate name conflicts)
       const { data: playerData } = await supabase
         .from('players')
         .select('id, name, jersey_number')
         .eq('team_id', team.id)
         .eq('name', decodedName)
-        .single();
+        .or('hidden.is.null,hidden.eq.false')
+        .maybeSingle();
 
       if (!playerData) return null;
 

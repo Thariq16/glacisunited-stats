@@ -42,6 +42,12 @@ export function useMatchEventMutations(matchId: string | undefined) {
     const invalidateEventQueries = () => {
         queryClient.invalidateQueries({ queryKey: ['match-events-half1', matchId] });
         queryClient.invalidateQueries({ queryKey: ['match-events-half2', matchId] });
+        // Also invalidate match detail and player stats so aggregated data refreshes
+        queryClient.invalidateQueries({ queryKey: ['match-detail', matchId] });
+        queryClient.invalidateQueries({ queryKey: ['player-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['player-advanced-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['player-pass-events'] });
+        queryClient.invalidateQueries({ queryKey: ['team-with-players'] });
     };
 
     // Save event mutation

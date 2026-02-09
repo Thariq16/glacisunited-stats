@@ -44,6 +44,8 @@ export interface PlayerStats {
   offside: number;
   minutesPlayed: number;
   substituteAppearances: number;
+  yellowCards: number;
+  redCards: number;
 }
 
 export function parseCSV(csvText: string): PlayerStats[] {
@@ -112,6 +114,8 @@ export function parseCSV(csvText: string): PlayerStats[] {
       offside: parseNumber(values[42]),
       minutesPlayed: parseNumber(values[43]),
       substituteAppearances: 0, // Not in CSV, calculated from events
+      yellowCards: 0, // Not in CSV, calculated from events
+      redCards: 0, // Not in CSV, calculated from events
     });
   }
 

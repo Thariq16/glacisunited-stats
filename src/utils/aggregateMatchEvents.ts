@@ -254,13 +254,19 @@ export function aggregateEventsToPlayerStats(
         stats.defensiveErrors++;
         break;
 
+      case 'yellow_card':
+        stats.yellowCards++;
+        break;
+
+      case 'red_card':
+        stats.redCards++;
+        break;
+
       case 'block':
       case 'interception':
-        // These contribute to defensive actions but aren't specifically tracked
         break;
 
       default:
-        // Handle any unrecognized events
         break;
 
       case 'substitution':
@@ -348,6 +354,8 @@ export function createEmptyPlayerStats(
     offside: 0,
     minutesPlayed: 0,
     substituteAppearances: 0,
+    yellowCards: 0,
+    redCards: 0,
   };
 }
 
