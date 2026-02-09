@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BarChart3, MessageSquare, TrendingUp } from "lucide-react";
+import { ArrowLeft, BarChart3, MessageSquare, TrendingUp, Flag } from "lucide-react";
 import { useState, useMemo } from "react";
 import {
   Dialog,
@@ -21,6 +21,7 @@ import { useMatchXGStats } from "@/hooks/useMatchXGStats";
 import { MatchScoreHeader } from "@/components/MatchScoreHeader";
 import { MatchQuickStats } from "@/components/MatchQuickStats";
 import { PlayerStats } from "@/utils/parseCSV";
+import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -127,10 +128,14 @@ export default function MatchDetail() {
         {/* Tabs for coaches and admins, otherwise just show stats */}
         {showTabs ? (
           <Tabs defaultValue="stats" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
               <TabsTrigger value="stats" className="gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Overall</span> Statistics
+              </TabsTrigger>
+              <TabsTrigger value="set-pieces" className="gap-2">
+                <Flag className="h-4 w-4" />
+                <span className="hidden sm:inline">Set</span> Pieces
               </TabsTrigger>
               <TabsTrigger value="notes" className="gap-2">
                 <MessageSquare className="h-4 w-4" />
@@ -150,6 +155,16 @@ export default function MatchDetail() {
                 awayPlayers={match.awayPlayers}
                 xgStats={xgStats}
               />
+            </TabsContent>
+
+            <TabsContent value="set-pieces" className="space-y-6">
+              {homeTeam && (
+                <SetPieceAnalyticsTab
+                  matchId={matchId!}
+                  teamId={homeTeam.id}
+                  teamName={homeTeam.name}
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="notes">
