@@ -637,7 +637,6 @@ function AdminMatchEventsContent() {
         successful: !isUnsuccessful,
         shot_outcome: shotOutcome || undefined,
         aerial_outcome: aerialOutcome || undefined,
-        corner_delivery_type: cornerDeliveryType || undefined,
         target_player_id: targetPlayerId || undefined,
         substitute_player_id: substitutePlayerId || undefined,
         phase_id: currentPhase?.id,
