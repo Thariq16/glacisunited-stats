@@ -28,7 +28,7 @@ export default function SquadAnalysis() {
           home_team:teams!matches_home_team_id_fkey(name),
           away_team:teams!matches_away_team_id_fkey(name)
         `)
-        .eq('status', 'completed') // Explicitly check for completed status
+        .in('status', ['completed', 'in_progress'])
         .order('match_date', { ascending: false })
         .limit(1)
         .single();
