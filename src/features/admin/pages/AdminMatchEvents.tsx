@@ -497,11 +497,10 @@ function AdminMatchEventsContent() {
     // Penalty area entries count regardless of whether the pass/cross was successful
     if (endX === undefined || endY === undefined) return;
 
-    // Check if movement goes INTO the penalty area
-    const startedOutside = !isInOpponentPenaltyArea(startX, startY);
+    // Check if the ball ends up in the penalty area
     const endedInside = isInOpponentPenaltyArea(endX, endY);
 
-    if (startedOutside && endedInside) {
+    if (endedInside) {
       // Find the passer
       const passer = players.find(p => p.id === playerId);
       // Find the receiver (if a target player was selected)
