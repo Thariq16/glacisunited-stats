@@ -41,6 +41,28 @@ export interface TeamPassesByThird {
   halves: PassesByThird[];
 }
 
+export interface TeamEventStats {
+  cornerSuccess: number;
+  cornerFailed: number;
+  throwInSuccess: number;
+  throwInFailed: number;
+  aerialDuelsWon: number;
+  aerialDuelsLost: number;
+  backwardPass: number;
+  incompletePass: number;
+}
+
+const createEmptyTeamEventStats = (): TeamEventStats => ({
+  cornerSuccess: 0,
+  cornerFailed: 0,
+  throwInSuccess: 0,
+  throwInFailed: 0,
+  aerialDuelsWon: 0,
+  aerialDuelsLost: 0,
+  backwardPass: 0,
+  incompletePass: 0,
+});
+
 // Zone thresholds based on X coordinate (0-100 scale)
 const DEFENSIVE_THIRD_MAX = 33.33;
 const MIDDLE_THIRD_MAX = 66.66;
@@ -173,6 +195,10 @@ export function useMatchVisualizationData(
       const defensiveEvents: any[] = [];
       const possessionLossEvents: any[] = [];
 
+      // Match Event Stats (per-team)
+      const homeEventStats = createEmptyTeamEventStats();
+      const awayEventStats = createEmptyTeamEventStats();
+
       // Lane Stats (Left, Center, Right) for Attacking Threat
       const createLaneStats = () => ({
         left: { passes: 0, xg: 0 },
@@ -205,6 +231,35 @@ export function useMatchVisualizationData(
         const teamId = event.player?.team_id;
         const isHome = teamId === homeTeamId;
         const halfKey = event.half === 1 ? 'firstHalf' : 'secondHalf';
+
+        // 0. Match Event Stats aggregation
+        const eventStats = isHome ? homeEventStats : awayEventStats;
+
+        if (event.event_type === 'corner') {
+          if (event.successful) eventStats.cornerSuccess++;
+          else eventStats.cornerFailed++;
+        }
+
+        if (event.event_type === 'throw_in') {
+          if (event.successful) eventStats.throwInSuccess++;
+          else eventStats.throwInFailed++;
+        }
+
+        if (event.event_type === 'aerial_duel') {
+          // Use aerial_outcome if available (from the full event query it may not be fetched,
+          // so fall back to successful)
+          const won = (event as any).aerial_outcome === 'won' || ((event as any).aerial_outcome == null && event.successful);
+          if (won) eventStats.aerialDuelsWon++;
+          else eventStats.aerialDuelsLost++;
+        }
+
+        if (PASS_EVENTS.includes(event.event_type)) {
+          if (!event.successful) {
+            eventStats.incompletePass++;
+          } else if (event.end_x != null && event.x != null && event.end_x < event.x) {
+            eventStats.backwardPass++;
+          }
+        }
 
         // 1. Process Shots
         if (event.event_type === 'shot') {
@@ -375,6 +430,11 @@ export function useMatchVisualizationData(
           all: { team: allSetPiece.teamStats, players: allSetPiece.playerStats },
           firstHalf: { team: firstSetPiece.teamStats, players: firstSetPiece.playerStats },
           secondHalf: { team: secondSetPiece.teamStats, players: secondSetPiece.playerStats }
+        },
+        // Match Event Stats
+        matchEventStats: {
+          home: homeEventStats,
+          away: awayEventStats,
         },
         // Legacy/Fallback support
         playerSetPieceStats: allSetPiece.playerStats,

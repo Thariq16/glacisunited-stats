@@ -456,8 +456,8 @@ function AdminMatchEventsContent() {
   }, [events]);
 
   // Penalty area detection helper
-  // Left penalty area: x < 17, y between 14-54 (adjusted for pitch proportions)
-  // Right penalty area: x > 83, y between 14-54
+  // Left penalty area: x: 0-17, y: 20-80
+  // Right penalty area: x: 83-100, y: 20-80
   const isInOpponentPenaltyArea = useCallback((x: number, y: number): boolean => {
     // Get home team's attack direction for this half
     const homeAttacksLeftThisHalf = selectedHalf === 1
@@ -471,12 +471,12 @@ function AdminMatchEventsContent() {
       ? !homeAttacksLeftThisHalf  // Home attacks right = opponent penalty on right
       : homeAttacksLeftThisHalf;   // Away attacks opposite direction
 
-    const inYRange = y >= 14 && y <= 54;
+    const inYRange = y >= 20 && y <= 80;
 
     if (opponentPenaltyOnRight) {
-      return x > 83 && inYRange;
+      return x >= 83 && inYRange;
     } else {
-      return x < 17 && inYRange;
+      return x <= 17 && inYRange;
     }
   }, [matchData?.home_attacks_left, selectedHalf, selectedTeamType]);
 

@@ -22,6 +22,7 @@ interface TeamStats {
     forwardPasses: number;
     fpPercent: number;
     backwardPasses: number;
+    incompletePasses: number;
     penaltyAreaPass: number;
     penaltyAreaEntry: number;
     runInBehind: number;
@@ -36,10 +37,15 @@ interface TeamStats {
     tackles: number;
     clearances: number;
     aerialDuelsWon: number;
+    aerialDuelsLost: number;
     crosses: number;
     corners: number;
+    cornerSuccess: number;
+    cornerFailed: number;
     freekicks: number;
     throwIns: number;
+    tiSuccess: number;
+    tiFailed: number;
     offside: number;
     yellowCards: number;
     redCards: number;
@@ -51,6 +57,7 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
     const completedPass = players.reduce((sum, p) => sum + p.successfulPass, 0);
     const forwardPasses = players.reduce((sum, p) => sum + p.forwardPass, 0);
     const backwardPasses = players.reduce((sum, p) => sum + p.backwardPass, 0);
+    const incompletePasses = players.reduce((sum, p) => sum + p.missPass, 0);
     const penaltyAreaPass = players.reduce((sum, p) => sum + p.penaltyAreaPass, 0);
     const penaltyAreaEntry = players.reduce((sum, p) => sum + p.penaltyAreaEntry, 0);
     const runInBehind = players.reduce((sum, p) => sum + p.runInBehind, 0);
@@ -63,10 +70,15 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
     const tackles = players.reduce((sum, p) => sum + p.tackles, 0);
     const clearances = players.reduce((sum, p) => sum + p.clearance, 0);
     const aerialDuelsWon = players.reduce((sum, p) => sum + p.aerialDuelsWon, 0);
+    const aerialDuelsLost = players.reduce((sum, p) => sum + p.aerialDuelsLost, 0);
     const crosses = players.reduce((sum, p) => sum + p.crosses, 0);
     const corners = players.reduce((sum, p) => sum + p.corners, 0);
+    const cornerSuccess = players.reduce((sum, p) => sum + p.cornerSuccess, 0);
+    const cornerFailed = players.reduce((sum, p) => sum + p.cornerFailed, 0);
     const freekicks = players.reduce((sum, p) => sum + p.freeKicks, 0);
     const throwIns = players.reduce((sum, p) => sum + p.throwIns, 0);
+    const tiSuccess = players.reduce((sum, p) => sum + p.tiSuccess, 0);
+    const tiFailed = players.reduce((sum, p) => sum + p.tiFailed, 0);
     const offside = players.reduce((sum, p) => sum + p.offside, 0);
     const yellowCards = players.reduce((sum, p) => sum + (p.yellowCards || 0), 0);
     const redCards = players.reduce((sum, p) => sum + (p.redCards || 0), 0);
@@ -84,6 +96,7 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
         forwardPasses,
         fpPercent,
         backwardPasses,
+        incompletePasses,
         penaltyAreaPass,
         penaltyAreaEntry,
         runInBehind,
@@ -98,10 +111,15 @@ function calculateTeamStats(players: PlayerStats[]): TeamStats {
         tackles,
         clearances,
         aerialDuelsWon,
+        aerialDuelsLost,
         crosses,
         corners,
+        cornerSuccess,
+        cornerFailed,
         freekicks,
         throwIns,
+        tiSuccess,
+        tiFailed,
         offside,
         yellowCards,
         redCards,
@@ -238,6 +256,18 @@ export function MatchStatsCards({
                     awayValue={awayStats.forwardPasses}
                 />
                 <StatComparisonRow
+                    label="Backward"
+                    homeValue={homeStats.backwardPasses}
+                    awayValue={awayStats.backwardPasses}
+                    higherIsBetter={false}
+                />
+                <StatComparisonRow
+                    label="Incomplete"
+                    homeValue={homeStats.incompletePasses}
+                    awayValue={awayStats.incompletePasses}
+                    higherIsBetter={false}
+                />
+                <StatComparisonRow
                     label="PA Passes"
                     homeValue={homeStats.penaltyAreaPass}
                     awayValue={awayStats.penaltyAreaPass}
@@ -277,6 +307,12 @@ export function MatchStatsCards({
                     awayValue={awayStats.aerialDuelsWon}
                 />
                 <StatComparisonRow
+                    label="Aerials Lost"
+                    homeValue={homeStats.aerialDuelsLost}
+                    awayValue={awayStats.aerialDuelsLost}
+                    higherIsBetter={false}
+                />
+                <StatComparisonRow
                     label="Saves"
                     homeValue={homeStats.saves}
                     awayValue={awayStats.saves}
@@ -313,6 +349,17 @@ export function MatchStatsCards({
                     awayValue={awayStats.corners}
                 />
                 <StatComparisonRow
+                    label="Corner Success"
+                    homeValue={homeStats.cornerSuccess}
+                    awayValue={awayStats.cornerSuccess}
+                />
+                <StatComparisonRow
+                    label="Corner Failed"
+                    homeValue={homeStats.cornerFailed}
+                    awayValue={awayStats.cornerFailed}
+                    higherIsBetter={false}
+                />
+                <StatComparisonRow
                     label="Free Kicks"
                     homeValue={homeStats.freekicks}
                     awayValue={awayStats.freekicks}
@@ -321,6 +368,17 @@ export function MatchStatsCards({
                     label="Throw Ins"
                     homeValue={homeStats.throwIns}
                     awayValue={awayStats.throwIns}
+                />
+                <StatComparisonRow
+                    label="TI Success"
+                    homeValue={homeStats.tiSuccess}
+                    awayValue={awayStats.tiSuccess}
+                />
+                <StatComparisonRow
+                    label="TI Failed"
+                    homeValue={homeStats.tiFailed}
+                    awayValue={awayStats.tiFailed}
+                    higherIsBetter={false}
                 />
                 <StatComparisonRow
                     label="Offsides"

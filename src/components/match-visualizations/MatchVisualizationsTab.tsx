@@ -1,6 +1,7 @@
 import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
 import { AttackingPhasesSection } from "./AttackingPhasesSection";
 import { TeamPassesByThirdChart } from "./TeamPassesByThirdChart";
+import { MatchEventStatsChart } from "./MatchEventStatsChart";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MatchVisualizationsTabProps {
@@ -46,10 +47,18 @@ export function MatchVisualizationsTab({
 
   return (
     <div className="space-y-6">
+      {/* Match Event Stats Chart */}
+      <MatchEventStatsChart
+        homeTeamName={homeTeamName}
+        awayTeamName={awayTeamName}
+        home={data.matchEventStats.home}
+        away={data.matchEventStats.away}
+      />
+
       {/* Passes by Third Chart */}
-      <TeamPassesByThirdChart 
-        homeTeam={data.homePassesByThird} 
-        awayTeam={data.awayPassesByThird} 
+      <TeamPassesByThirdChart
+        homeTeam={data.homePassesByThird}
+        awayTeam={data.awayPassesByThird}
       />
 
       {/* Home Team Attacking Phases */}
