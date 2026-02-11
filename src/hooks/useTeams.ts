@@ -137,7 +137,7 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
           .from('matches')
           .select('id')
           .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-          .eq('status', 'completed')
+          .in('status', ['completed', 'in_progress'])
           .order('match_date', { ascending: false });
 
         if (matchFilter === 'last1') {
@@ -154,7 +154,7 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
           .from('matches')
           .select('id')
           .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-          .eq('status', 'completed');
+          .in('status', ['completed', 'in_progress']);
         matchIds = matches?.map(m => m.id) || [];
       }
 
@@ -343,7 +343,7 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', mat
               .from('matches')
               .select('id')
               .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-              .eq('status', 'completed')
+              .in('status', ['completed', 'in_progress'])
               .order('match_date', { ascending: false });
 
             if (matchFilter === 'last1') {
@@ -359,7 +359,7 @@ export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', mat
               .from('matches')
               .select('id')
               .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-              .eq('status', 'completed');
+              .in('status', ['completed', 'in_progress']);
             matchIds = matches?.map(m => m.id) || [];
           }
 

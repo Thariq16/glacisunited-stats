@@ -58,7 +58,7 @@ export function usePlayerAdvancedStats(
                     .from('matches')
                     .select('id, match_date')
                     .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-                    .eq('status', 'completed')
+                    .in('status', ['completed', 'in_progress'])
                     .order('match_date', { ascending: false });
 
                 if (matchFilter === 'last1') {

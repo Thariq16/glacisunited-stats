@@ -84,8 +84,14 @@ export default function PlayerProfile() {
     return { advancedMetrics: metrics, tacticalProfile: profile, positioning: pos };
   }, [player]);
 
-  // Check if player has stats for the selected filter
-  const hasStats = player && (player.passCount > 0 || player.goals > 0 || player.tackles > 0);
+  // Check if player has any stats for the selected filter
+  const hasStats = player && (
+    player.passCount > 0 || player.goals > 0 || player.tackles > 0 ||
+    player.shotsAttempted > 0 || player.minutesPlayed > 0 || player.saves > 0 ||
+    player.clearance > 0 || player.aerialDuelsWon > 0 || player.aerialDuelsLost > 0 ||
+    player.fouls > 0 || player.corners > 0 || player.throwIns > 0 ||
+    player.freeKicks > 0 || player.crosses > 0 || player.runInBehind > 0
+  );
 
   if (teamLoading) {
     return (
