@@ -492,7 +492,7 @@ function AdminMatchEventsContent() {
     targetPlayerIdParam: string | null
   ) => {
     // Only check for ball movement events that could enter penalty area
-    const relevantEvents: EventType[] = ['carry', 'dribble', 'pass', 'key_pass', 'run_in_behind', 'cross', 'throw_in'];
+    const relevantEvents: EventType[] = ['carry', 'dribble', 'pass', 'key_pass', 'assist', 'run_in_behind', 'cross', 'throw_in', 'cutback', 'penalty_area_pass'];
     if (!relevantEvents.includes(eventType)) return;
     // Penalty area entries count regardless of whether the pass/cross was successful
     if (endX === undefined || endY === undefined) return;
