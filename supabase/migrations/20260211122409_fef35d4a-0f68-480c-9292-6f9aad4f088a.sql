@@ -1,0 +1,1 @@
+ALTER TABLE public.match_events ADD COLUMN corner_delivery_type text NULL;

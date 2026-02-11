@@ -110,6 +110,7 @@ export type Database = {
       match_events: {
         Row: {
           aerial_outcome: string | null
+          corner_delivery_type: string | null
           created_at: string
           end_x: number | null
           end_y: number | null
@@ -130,6 +131,7 @@ export type Database = {
         }
         Insert: {
           aerial_outcome?: string | null
+          corner_delivery_type?: string | null
           created_at?: string
           end_x?: number | null
           end_y?: number | null
@@ -150,6 +152,7 @@ export type Database = {
         }
         Update: {
           aerial_outcome?: string | null
+          corner_delivery_type?: string | null
           created_at?: string
           end_x?: number | null
           end_y?: number | null
