@@ -52,17 +52,18 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          const n = id.replace(/\\/g, '/');
           // Admin code → unminified 'admin' chunk for easier production debugging
-          if (id.includes('/features/admin/') || id.includes('/components/match-events/')) {
+          if (n.includes('/features/admin/') || n.includes('/components/match-events/')) {
             return 'admin';
           }
           // Vendor library chunks (minified normally by Vite)
-          if (id.includes('node_modules')) {
-            if (/[\\/](react|react-dom|react-router-dom)[\\/]/.test(id)) return 'vendor';
-            if (id.includes('@radix-ui/')) return 'ui';
-            if (id.includes('recharts')) return 'recharts';
-            if (id.includes('@supabase/')) return 'supabase';
-            if (/[\\/](date-fns|lucide-react|clsx|tailwind-merge)[\\/]/.test(id)) return 'utils';
+          if (n.includes('/node_modules/')) {
+            if (/\/(react|react-dom|react-router-dom)\//.test(n)) return 'vendor';
+            if (n.includes('/@radix-ui/')) return 'ui';
+            if (n.includes('/recharts/')) return 'recharts';
+            if (n.includes('/@supabase/')) return 'supabase';
+            if (/\/(date-fns|lucide-react|clsx|tailwind-merge)\//.test(n)) return 'utils';
           }
         },
       },
