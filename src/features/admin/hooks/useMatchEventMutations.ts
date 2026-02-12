@@ -80,11 +80,35 @@ export function useMatchEventMutations(matchId: string | undefined) {
     // Complete match mutation
     const completeMatchMutation = useMutation({
         mutationFn: async () => {
+            // Get match details before completing for notification
+            const { data: matchData } = await supabase
+                .from('matches')
+                .select(`
+                    id, home_score, away_score,
+                    home_team:teams!matches_home_team_id_fkey(name),
+                    away_team:teams!matches_away_team_id_fkey(name)
+                `)
+                .eq('id', matchId)
+                .single();
+
             const { error } = await supabase
                 .from('matches')
                 .update({ status: 'completed' })
                 .eq('id', matchId);
             if (error) throw error;
+
+            // Send push notifications (fire and forget)
+            if (matchData) {
+                supabase.functions.invoke('send-match-notification', {
+                    body: {
+                        match_id: matchId,
+                        home_team: (matchData.home_team as any)?.name || 'Home',
+                        away_team: (matchData.away_team as any)?.name || 'Away',
+                        home_score: matchData.home_score,
+                        away_score: matchData.away_score,
+                    },
+                }).catch(e => console.error('Push notification error:', e));
+            }
         },
         onSuccess: () => {
             toast.success('Match marked as completed');
