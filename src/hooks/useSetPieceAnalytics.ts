@@ -46,7 +46,7 @@ export interface PossessionLossEvent {
     x: number;
     y: number;
     zone: 'defensive' | 'middle' | 'final';
-    type: 'dispossession' | 'turnover' | 'bad_touch' | 'failed_pass';
+    type: 'bad_touch' | 'failed_pass' | 'failed_dribble';
     playerName: string;
     jerseyNumber: number;
     minute: number;
@@ -241,37 +241,49 @@ export function useSetPieceAnalytics(
                 .filter(p => p.throwIns.total > 0 || p.corners.total > 0 || p.freeKicks.total > 0)
                 .sort((a, b) => (b.throwIns.total + b.corners.total) - (a.throwIns.total + a.corners.total));
 
-            // 5. Possession Losses
-            const lossEventTypes = ['dispossession', 'turnover', 'bad_touch'];
-            const failedPasses = teamEvents.filter((e: any) =>
-                ['pass', 'throw_in', 'cross'].includes(e.event_type) && !e.successful
-            );
+            // 5. Possession Losses (derived from unsuccessful actions + bad touches)
+            const PASS_LOSS_EVENTS = ['pass', 'key_pass', 'assist', 'cross', 'cutback', 'penalty_area_pass', 'throw_in'];
 
             const possessionLosses: PossessionLossEvent[] = [
                 ...teamEvents
-                    .filter((e: any) => lossEventTypes.includes(e.event_type))
+                    .filter((e: any) => e.event_type === 'bad_touch')
                     .map((e: any) => ({
                         id: e.id,
                         x: e.x,
                         y: e.y,
                         zone: getZone(e.x),
-                        type: e.event_type as 'dispossession' | 'turnover' | 'bad_touch',
+                        type: 'bad_touch' as const,
                         playerName: e.player?.name || 'Unknown',
                         jerseyNumber: e.player?.jersey_number || 0,
                         minute: e.minute,
                         half: e.half
                     })),
-                ...failedPasses.map((e: any) => ({
-                    id: e.id,
-                    x: e.x,
-                    y: e.y,
-                    zone: getZone(e.x),
-                    type: 'failed_pass' as const,
-                    playerName: e.player?.name || 'Unknown',
-                    jerseyNumber: e.player?.jersey_number || 0,
-                    minute: e.minute,
-                    half: e.half
-                }))
+                ...teamEvents
+                    .filter((e: any) => PASS_LOSS_EVENTS.includes(e.event_type) && !e.successful)
+                    .map((e: any) => ({
+                        id: e.id,
+                        x: e.x,
+                        y: e.y,
+                        zone: getZone(e.x),
+                        type: 'failed_pass' as const,
+                        playerName: e.player?.name || 'Unknown',
+                        jerseyNumber: e.player?.jersey_number || 0,
+                        minute: e.minute,
+                        half: e.half
+                    })),
+                ...teamEvents
+                    .filter((e: any) => e.event_type === 'dribble' && !e.successful)
+                    .map((e: any) => ({
+                        id: e.id,
+                        x: e.x,
+                        y: e.y,
+                        zone: getZone(e.x),
+                        type: 'failed_dribble' as const,
+                        playerName: e.player?.name || 'Unknown',
+                        jerseyNumber: e.player?.jersey_number || 0,
+                        minute: e.minute,
+                        half: e.half
+                    }))
             ];
 
             // 6. Possession Loss by Zone

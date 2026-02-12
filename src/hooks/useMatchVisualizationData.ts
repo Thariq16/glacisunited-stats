@@ -285,8 +285,13 @@ export function useMatchVisualizationData(
           });
         }
 
-        // 3. Possession Loss
-        if (['dispossession', 'turnover', 'bad_touch'].includes(event.event_type)) {
+        // 3. Possession Loss (derived from unsuccessful actions + bad touches)
+        const PASS_LOSS_EVENTS = ['pass', 'key_pass', 'assist', 'cross', 'cutback', 'penalty_area_pass'];
+        if (
+          event.event_type === 'bad_touch' ||
+          (PASS_LOSS_EVENTS.includes(event.event_type) && !event.successful) ||
+          (event.event_type === 'dribble' && !event.successful)
+        ) {
           possessionLossEvents.push({
             id: event.id,
             x: event.x,
