@@ -30,8 +30,7 @@ export type EventType =
   | 'goal_kick'
   | 'kick_off'
   | 'goal_restart'
-  | 'block'
-  | 'bad_touch';
+  | 'block';
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
@@ -137,11 +136,10 @@ export const EVENT_CONFIG: Record<EventType, {
   kick_off: { label: 'Kick Off', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   goal_restart: { label: 'Goal Restart', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   block: { label: 'Block', requiresEndPosition: false, category: 'defensive' },
-  bad_touch: { label: 'Bad Touch', requiresEndPosition: true, category: 'movement' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
-  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'cutback', 'corner', 'throw_in', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_pass', 'bad_touch'
+  'pass', 'key_pass', 'assist', 'carry', 'dribble', 'cross', 'cutback', 'corner', 'throw_in', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_pass'
 ];
 
 export const EVENTS_WITH_TARGET_PLAYER: EventType[] = [
@@ -155,7 +153,7 @@ export const BALL_MOVEMENT_EVENTS: EventType[] = [
 
 // Events where the player has the ball at start position
 export const BALL_POSSESSION_EVENTS: EventType[] = [
-  'pass', 'key_pass', 'assist', 'shot', 'carry', 'dribble', 'clearance', 'cross', 'cutback', 'corner', 'throw_in', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_entry', 'penalty_area_pass', 'bad_touch'
+  'pass', 'key_pass', 'assist', 'shot', 'carry', 'dribble', 'clearance', 'cross', 'cutback', 'corner', 'throw_in', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart', 'penalty_area_entry', 'penalty_area_pass'
 ];
 
 // Events that break ball continuity (next event should NOT auto-inherit position)
@@ -173,7 +171,6 @@ export const CONTINUITY_BREAKING_EVENTS: EventType[] = [
   'offside',        // Loses possession, free kick to opponent
   'penalty',        // Shot goes to goal
   'block',          // Ball deflected, unpredictable position
-  'bad_touch',      // Miscontrol, ball could go anywhere
 ];
 
 // Ball trail type for movement history
@@ -200,7 +197,7 @@ export const EVENT_CATEGORIES: Record<EventCategory, { label: string; events: Ev
   },
   movement: {
     label: 'Movement',
-    events: ['carry', 'dribble', 'run_in_behind', 'overlap', 'penalty_area_entry', 'offside', 'bad_touch'],
+    events: ['carry', 'dribble', 'run_in_behind', 'overlap', 'penalty_area_entry', 'offside'],
   },
   shooting: {
     label: 'Shooting',

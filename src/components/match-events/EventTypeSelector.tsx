@@ -73,7 +73,6 @@ const EVENT_ICONS: Record<EventType, React.ComponentType<{ className?: string }>
   kick_off: Play,
   goal_restart: RotateCcw,
   block: ShieldOff,
-  bad_touch: XCircle,
 };
 
 const CATEGORY_ORDER: EventCategory[] = ['passing', 'movement', 'shooting', 'defensive', 'set_piece', 'without_ball'];

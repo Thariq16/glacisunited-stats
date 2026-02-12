@@ -9,7 +9,6 @@ import { SessionExpiryWarning } from "@/components/SessionExpiryWarning";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
 
-
 // Eagerly loaded pages (public, frequently accessed)
 import Home from "./pages/Home";
 import Matches from "./pages/Matches";
@@ -46,7 +45,6 @@ const App = () => (
           <Toaster />
           <Sonner />
           <SessionExpiryWarning />
-
           <BrowserRouter>
             <Routes>
               {/* Public routes - eagerly loaded */}

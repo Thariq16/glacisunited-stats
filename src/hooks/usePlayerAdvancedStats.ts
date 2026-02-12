@@ -78,7 +78,7 @@ export function usePlayerAdvancedStats(
             let offset = 0;
             let hasMore = true;
 
-            const RELEVANT_EVENTS = [...PASS_EVENTS, 'bad_touch', 'dribble'];
+            const RELEVANT_EVENTS = [...PASS_EVENTS, 'dispossession', 'dribble'];
 
             while (hasMore) {
                 const { data: events, error } = await supabase
@@ -127,7 +127,7 @@ export function usePlayerAdvancedStats(
                 const halfKey = event.half === 1 ? 'firstHalf' : 'secondHalf';
 
                 // 1. Possession Loss
-                if (event.event_type === 'bad_touch' || (['pass', 'dribble'].includes(event.event_type) && event.successful === false)) {
+                if (event.event_type === 'dispossession' || (['pass', 'dribble'].includes(event.event_type) && event.successful === false)) {
                     possessionLossEvents.push({
                         id: event.id,
                         x: event.x,

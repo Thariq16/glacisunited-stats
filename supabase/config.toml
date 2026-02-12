@@ -2,9 +2,3 @@ project_id = "twkpikanixylbjhgoboo"
 
 [functions.import-match-data]
 verify_jwt = false
-
-[functions.send-match-notification]
-verify_jwt = false
-
-[functions.get-vapid-key]
-verify_jwt = false
