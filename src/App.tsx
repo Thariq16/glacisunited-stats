@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { SessionExpiryWarning } from "@/components/SessionExpiryWarning";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 // Eagerly loaded pages (public, frequently accessed)
 import Home from "./pages/Home";
@@ -45,6 +46,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <SessionExpiryWarning />
+          <InstallPrompt />
           <BrowserRouter>
             <Routes>
               {/* Public routes - eagerly loaded */}
