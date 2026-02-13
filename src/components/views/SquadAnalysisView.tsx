@@ -183,12 +183,13 @@ export function SquadAnalysisView({
         return defensiveEvents;
     }, [defensiveEvents]);
 
-    // Possession: Apply Filter (User Request: "Lost Possession Zone")
+    // Possession: Apply Filter - only show focus team's losses
     const filteredPossessionLoss = useMemo(() => {
-        if (selectedHalf === 'all') return possessionLossEvents;
+        let filtered = possessionLossEvents.filter(e => !focusTeamId || (e as any).teamId === focusTeamId);
+        if (selectedHalf === 'all') return filtered;
         const targetHalf = selectedHalf === 'first' ? 1 : 2;
-        return possessionLossEvents.filter(e => (e as any).half === targetHalf);
-    }, [possessionLossEvents, selectedHalf]);
+        return filtered.filter(e => (e as any).half === targetHalf);
+    }, [possessionLossEvents, selectedHalf, focusTeamId]);
 
     // Attacking Threat: Apply Filter (User Request: "Attacking Threat Channel")
     const filteredAttackingThreat = useMemo(() => {
