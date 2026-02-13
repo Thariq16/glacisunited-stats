@@ -53,7 +53,9 @@ export function MatchComments({ matchId }: MatchCommentsProps) {
 
   // Count notes by type
   const counts = commentsWithTypes?.reduce((acc, c) => {
-    acc[c.noteType] = (acc[c.noteType] || 0) + 1;
+    if (c.noteType !== 'all') {
+      acc[c.noteType] = (acc[c.noteType] || 0) + 1;
+    }
     acc.all = (acc.all || 0) + 1;
     return acc;
   }, {} as Record<NoteFilter, number>) || { all: 0, '1st_half': 0, '2nd_half': 0, 'overall': 0 };

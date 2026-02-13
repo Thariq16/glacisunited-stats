@@ -122,7 +122,9 @@ export function AllMatchComments() {
   // Count notes by type for badges
   const counts = matchesWithComments?.reduce((acc, match) => {
     match.comments.forEach(c => {
-      acc[c.noteType] = (acc[c.noteType] || 0) + 1;
+      if (c.noteType !== 'all') {
+        acc[c.noteType] = (acc[c.noteType] || 0) + 1;
+      }
       acc.all = (acc.all || 0) + 1;
     });
     return acc;
