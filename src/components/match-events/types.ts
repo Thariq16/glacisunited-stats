@@ -137,7 +137,7 @@ export const EVENT_CONFIG: Record<EventType, {
   kick_off: { label: 'Kick Off', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   goal_restart: { label: 'Goal Restart', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   block: { label: 'Block', requiresEndPosition: false, category: 'defensive' },
-  bad_touch: { label: 'Bad Touch', requiresEndPosition: false, category: 'without_ball' },
+  bad_touch: { label: 'Bad Touch', requiresEndPosition: true, category: 'without_ball' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
