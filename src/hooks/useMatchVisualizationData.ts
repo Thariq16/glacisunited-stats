@@ -285,11 +285,12 @@ export function useMatchVisualizationData(
           });
         }
 
-        // 3. Possession Loss (failed passes, failed dribbles, offsides, etc.)
+        // 3. Possession Loss (failed passes, failed dribbles, offsides, bad touch, etc.)
         const isPossessionLoss =
           (PASS_EVENTS.includes(event.event_type) && !event.successful) ||
           (event.event_type === 'dribble' && !event.successful) ||
-          event.event_type === 'offside';
+          event.event_type === 'offside' ||
+          event.event_type === 'bad_touch';
 
         if (isPossessionLoss) {
           possessionLossEvents.push({
