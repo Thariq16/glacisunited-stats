@@ -30,7 +30,8 @@ export type EventType =
   | 'goal_kick'
   | 'kick_off'
   | 'goal_restart'
-  | 'block';
+  | 'block'
+  | 'bad_touch';
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
@@ -136,6 +137,7 @@ export const EVENT_CONFIG: Record<EventType, {
   kick_off: { label: 'Kick Off', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   goal_restart: { label: 'Goal Restart', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   block: { label: 'Block', requiresEndPosition: false, category: 'defensive' },
+  bad_touch: { label: 'Bad Touch', requiresEndPosition: false, category: 'without_ball' },
 };
 
 export const EVENTS_WITH_UNSUCCESSFUL: EventType[] = [
@@ -213,6 +215,6 @@ export const EVENT_CATEGORIES: Record<EventCategory, { label: string; events: Ev
   },
   without_ball: {
     label: 'Other',
-    events: ['substitution', 'yellow_card', 'red_card'],
+    events: ['substitution', 'yellow_card', 'red_card', 'bad_touch'],
   },
 };
