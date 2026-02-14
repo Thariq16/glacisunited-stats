@@ -604,7 +604,7 @@ function AdminMatchEventsContent() {
       return;
     }
 
-    if (selectedEventType === 'shot' && !shotOutcome) {
+    if ((selectedEventType === 'shot' || selectedEventType === 'penalty') && !shotOutcome) {
       toast.error('Please select a shot outcome');
       return;
     }
@@ -1084,25 +1084,25 @@ function AdminMatchEventsContent() {
           break;
         case 'g':
         case 'G':
-          if (selectedEventType === 'shot') {
+          if (selectedEventType === 'shot' || selectedEventType === 'penalty') {
             setShotOutcome('goal');
           }
           break;
         case 't':
         case 'T':
-          if (selectedEventType === 'shot') {
+          if (selectedEventType === 'shot' || selectedEventType === 'penalty') {
             setShotOutcome('on_target');
           }
           break;
         case 'o':
         case 'O':
-          if (selectedEventType === 'shot') {
+          if (selectedEventType === 'shot' || selectedEventType === 'penalty') {
             setShotOutcome('off_target');
           }
           break;
         case 'b':
         case 'B':
-          if (selectedEventType === 'shot') {
+          if (selectedEventType === 'shot' || selectedEventType === 'penalty') {
             setShotOutcome('blocked');
           }
           break;
@@ -1517,7 +1517,7 @@ function AdminMatchEventsContent() {
             />
 
             {/* Goal mouth diagram for shots */}
-            {selectedEventType === 'shot' && (
+            {(selectedEventType === 'shot' || selectedEventType === 'penalty') && (
               <GoalMouthDiagram
                 selectedPlacement={shotPlacement}
                 onSelect={setShotPlacement}
