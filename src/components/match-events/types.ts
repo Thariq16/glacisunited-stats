@@ -108,7 +108,7 @@ export const EVENT_CONFIG: Record<EventType, {
   pass: { label: 'Pass', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
   key_pass: { label: 'Key Pass', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
   assist: { label: 'Assist', requiresEndPosition: true, requiresTargetPlayer: true, category: 'passing' },
-  shot: { label: 'Shot', requiresEndPosition: false, category: 'shooting' },
+  shot: { label: 'Shot', requiresEndPosition: true, category: 'shooting' },
   tackle_won: { label: 'Tackle Won', requiresEndPosition: false, category: 'defensive' },
   tackle_not_won: { label: 'Tackle Not Won', requiresEndPosition: false, category: 'defensive' },
   foul_committed: { label: 'Foul Committed', requiresEndPosition: false, category: 'defensive' },
