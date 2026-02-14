@@ -70,7 +70,7 @@ export function EventModifiers({
   }
 
   const showUnsuccessful = EVENTS_WITH_UNSUCCESSFUL.includes(selectedEventType);
-  const showShotOutcome = selectedEventType === 'shot';
+  const showShotOutcome = selectedEventType === 'shot' || selectedEventType === 'penalty';
   const showAerialOutcome = selectedEventType === 'aerial_duel';
   const showCornerDelivery = selectedEventType === 'corner';
   const showTargetPlayer = EVENTS_WITH_TARGET_PLAYER.includes(selectedEventType);

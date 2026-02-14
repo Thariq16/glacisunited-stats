@@ -131,7 +131,7 @@ export const EVENT_CONFIG: Record<EventType, {
   substitution: { label: 'Substitution', requiresEndPosition: false, requiresSubstitutePlayer: true, category: 'without_ball' },
   yellow_card: { label: 'Yellow Card', requiresEndPosition: false, category: 'without_ball' },
   red_card: { label: 'Red Card', requiresEndPosition: false, category: 'without_ball' },
-  penalty: { label: 'Penalty', requiresEndPosition: false, category: 'set_piece' },
+  penalty: { label: 'Penalty', requiresEndPosition: true, category: 'set_piece' },
   offside: { label: 'Offside', requiresEndPosition: false, category: 'movement' },
   goal_kick: { label: 'Goal Kick', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
   kick_off: { label: 'Kick Off', requiresEndPosition: true, requiresTargetPlayer: true, category: 'set_piece' },
