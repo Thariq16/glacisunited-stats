@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
 import { AttackingPhasesSection } from "./AttackingPhasesSection";
 import { TeamPassesByThirdChart } from "./TeamPassesByThirdChart";
 import { MatchEventStatsChart } from "./MatchEventStatsChart";
+import { TeamGoalMouthMap } from "./TeamGoalMouthMap";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MatchVisualizationsTabProps {
@@ -25,6 +27,16 @@ export function MatchVisualizationsTab({
     awayTeamId,
     homeTeamName,
     awayTeamName
+  );
+
+  const homeShots = useMemo(() =>
+    data?.shots?.filter((s: any) => s.team_id === homeTeamId) || [],
+    [data?.shots, homeTeamId]
+  );
+
+  const awayShots = useMemo(() =>
+    data?.shots?.filter((s: any) => s.team_id === awayTeamId) || [],
+    [data?.shots, awayTeamId]
   );
 
   if (isLoading) {
@@ -54,6 +66,10 @@ export function MatchVisualizationsTab({
         home={data.matchEventStats.home}
         away={data.matchEventStats.away}
       />
+
+      {/* Goal Mouth Maps */}
+      <TeamGoalMouthMap shots={homeShots} teamName={homeTeamName} />
+      <TeamGoalMouthMap shots={awayShots} teamName={awayTeamName} />
 
       {/* Passes by Third Chart */}
       <TeamPassesByThirdChart

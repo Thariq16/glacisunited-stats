@@ -262,11 +262,11 @@ export function useMatchVisualizationData(
         }
 
         // 1. Process Shots
-        if (event.event_type === 'shot') {
+        if (event.event_type === 'shot' || event.event_type === 'penalty') {
           shots.push({
             ...event,
             team_id: teamId,
-            shot_outcome: event.shot_outcome || (event.successful ? 'goal' : 'miss'), // Basic fallback
+            shot_outcome: event.shot_outcome || (event.successful ? 'goal' : 'miss'),
             player: event.player
           });
         }
