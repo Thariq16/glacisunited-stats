@@ -114,6 +114,8 @@ export function useMatchVisualizationData(
             y,
             end_x,
             end_y,
+            goal_mouth_x,
+            goal_mouth_y,
             successful,
             shot_outcome,
             half,

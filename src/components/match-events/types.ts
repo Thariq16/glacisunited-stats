@@ -68,6 +68,8 @@ export interface LocalEvent {
   seconds?: number;
   half: number;
   phaseId?: string;
+  goalMouthX?: number;
+  goalMouthY?: number;
 }
 
 export interface Phase {

@@ -152,6 +152,8 @@ function AdminMatchEventsContent() {
         seconds: e.seconds ?? 0,
         half: e.half,
         phaseId: e.phase_id,
+        goalMouthX: e.goal_mouth_x != null ? Number(e.goal_mouth_x) : undefined,
+        goalMouthY: e.goal_mouth_y != null ? Number(e.goal_mouth_y) : undefined,
       }));
       setEvents(localEvents);
 
@@ -631,17 +633,17 @@ function AdminMatchEventsContent() {
         seconds,
         x: startPosition?.x ?? 50,
         y: startPosition?.y ?? 50,
-        // For shots/penalties: use goal mouth placement coordinates if available
-        end_x: (selectedEventType === 'shot' || selectedEventType === 'penalty') && shotPlacement
-          ? shotPlacement.x
-          : endPosition?.x,
-        end_y: (selectedEventType === 'shot' || selectedEventType === 'penalty') && shotPlacement
-          ? shotPlacement.y
-          : endPosition?.y,
+        end_x: endPosition?.x,
+        end_y: endPosition?.y,
         successful: !isUnsuccessful,
         shot_outcome: shotOutcome || undefined,
         aerial_outcome: aerialOutcome || undefined,
         corner_delivery_type: cornerDeliveryType || undefined,
+        // Goal mouth placement for shots/penalties
+        goal_mouth_x: (selectedEventType === 'shot' || selectedEventType === 'penalty') && shotPlacement
+          ? shotPlacement.x : undefined,
+        goal_mouth_y: (selectedEventType === 'shot' || selectedEventType === 'penalty') && shotPlacement
+          ? shotPlacement.y : undefined,
         target_player_id: targetPlayerId || undefined,
         substitute_player_id: substitutePlayerId || undefined,
         phase_id: currentPhase?.id,
@@ -844,10 +846,8 @@ function AdminMatchEventsContent() {
     setShotOutcome(event.shotOutcome || null);
     setAerialOutcome(event.aerialOutcome || null);
     // Restore goal mouth placement for shot/penalty events
-    if ((event.eventType === 'shot' || event.eventType === 'penalty') && event.endX != null && event.endY != null) {
-      setShotPlacement({ x: event.endX, y: event.endY, zone: getZoneFromPosition(event.endX, event.endY) });
-      // Clear the end position so it doesn't interfere with pitch display
-      setEndPosition(null);
+    if ((event.eventType === 'shot' || event.eventType === 'penalty') && event.goalMouthX != null && event.goalMouthY != null) {
+      setShotPlacement({ x: event.goalMouthX, y: event.goalMouthY, zone: getZoneFromPosition(event.goalMouthX, event.goalMouthY) });
     } else {
       setShotPlacement(null);
     }

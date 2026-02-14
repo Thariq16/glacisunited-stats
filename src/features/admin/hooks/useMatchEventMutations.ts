@@ -22,6 +22,8 @@ interface EventPayload {
     shot_outcome?: string;
     aerial_outcome?: string;
     corner_delivery_type?: string;
+    goal_mouth_x?: number;
+    goal_mouth_y?: number;
     target_player_id?: string;
     substitute_player_id?: string;
     phase_id?: string;

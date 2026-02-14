@@ -9,6 +9,8 @@ interface ShotData {
   y: number;
   end_x: number | null;
   end_y: number | null;
+  goal_mouth_x: number | null;
+  goal_mouth_y: number | null;
   event_type: string;
   shot_outcome: string | null;
   half: number;
@@ -32,10 +34,10 @@ interface TeamGoalMouthMapProps {
 function mapToGoalMouth(shot: ShotData, index: number, total: number) {
   // If real goal mouth placement data exists (captured via GoalMouthDiagram),
   // use it directly — these are already in 0-100 goal-face coordinates
-  if (shot.end_x != null && shot.end_y != null) {
+  if (shot.goal_mouth_x != null && shot.goal_mouth_y != null) {
     return {
-      gmX: Math.max(3, Math.min(97, shot.end_x)),
-      gmY: Math.max(3, Math.min(97, shot.end_y)),
+      gmX: Math.max(3, Math.min(97, shot.goal_mouth_x)),
+      gmY: Math.max(3, Math.min(97, shot.goal_mouth_y)),
     };
   }
 
