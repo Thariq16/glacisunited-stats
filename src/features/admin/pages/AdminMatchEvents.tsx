@@ -39,7 +39,7 @@ import {
   BallTrailPoint,
 } from '@/components/match-events/types';
 import { BallPosition } from '@/components/match-events/PitchDiagram';
-import { GoalMouthDiagram, ShotPlacement } from '@/components/match-events/GoalMouthDiagram';
+import { GoalMouthDiagram, ShotPlacement, getZoneFromPosition } from '@/components/match-events/GoalMouthDiagram';
 import { useMatchEventQueries } from '../hooks';
 import { useMatchEventMutations } from '../hooks';
 
@@ -631,8 +631,13 @@ function AdminMatchEventsContent() {
         seconds,
         x: startPosition?.x ?? 50,
         y: startPosition?.y ?? 50,
-        end_x: endPosition?.x,
-        end_y: endPosition?.y,
+        // For shots/penalties: use goal mouth placement coordinates if available
+        end_x: (selectedEventType === 'shot' || selectedEventType === 'penalty') && shotPlacement
+          ? shotPlacement.x
+          : endPosition?.x,
+        end_y: (selectedEventType === 'shot' || selectedEventType === 'penalty') && shotPlacement
+          ? shotPlacement.y
+          : endPosition?.y,
         successful: !isUnsuccessful,
         shot_outcome: shotOutcome || undefined,
         aerial_outcome: aerialOutcome || undefined,
@@ -691,6 +696,7 @@ function AdminMatchEventsContent() {
     shotOutcome,
     aerialOutcome,
     isUnsuccessful,
+    shotPlacement,
     targetPlayerId,
     substitutePlayerId,
     minute,
@@ -837,6 +843,14 @@ function AdminMatchEventsContent() {
     setIsUnsuccessful(!event.successful);
     setShotOutcome(event.shotOutcome || null);
     setAerialOutcome(event.aerialOutcome || null);
+    // Restore goal mouth placement for shot/penalty events
+    if ((event.eventType === 'shot' || event.eventType === 'penalty') && event.endX != null && event.endY != null) {
+      setShotPlacement({ x: event.endX, y: event.endY, zone: getZoneFromPosition(event.endX, event.endY) });
+      // Clear the end position so it doesn't interfere with pitch display
+      setEndPosition(null);
+    } else {
+      setShotPlacement(null);
+    }
     setTargetPlayerId(event.targetPlayerId || null);
     setSubstitutePlayerId(event.substitutePlayerId || null);
     setMinute(Math.floor(event.minute));

@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
-export type ShotZone = 
+export type ShotZone =
   | 'top_left' | 'top_center' | 'top_right'
   | 'middle_left' | 'middle_center' | 'middle_right'
   | 'bottom_left' | 'bottom_center' | 'bottom_right'
@@ -35,20 +35,20 @@ const ZONE_LABELS: Record<ShotZone, string> = {
   over: 'Over Bar',
 };
 
-function getZoneFromPosition(x: number, y: number): ShotZone {
+export function getZoneFromPosition(x: number, y: number): ShotZone {
   // Goal frame is roughly x: 15-85, y: 20-90
   // Above or beside the goal
   if (y < 20) return 'over';
   if (x < 15) return 'wide_left';
   if (x > 85) return 'wide_right';
-  
+
   // Inside goal frame - divide into 9 zones
   const relX = (x - 15) / 70; // 0-1 within goal width
   const relY = (y - 20) / 70; // 0-1 within goal height
-  
+
   const col = relX < 0.33 ? 'left' : relX > 0.66 ? 'right' : 'center';
   const row = relY < 0.33 ? 'top' : relY > 0.66 ? 'bottom' : 'middle';
-  
+
   return `${row}_${col}` as ShotZone;
 }
 
@@ -63,11 +63,11 @@ export function GoalMouthDiagram({
 
   const getPositionFromEvent = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (!svgRef.current) return null;
-    
+
     const rect = svgRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+
     return {
       x: Math.max(0, Math.min(100, Math.round(x * 10) / 10)),
       y: Math.max(0, Math.min(100, Math.round(y * 10) / 10)),
@@ -77,7 +77,7 @@ export function GoalMouthDiagram({
   const handleClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     const pos = getPositionFromEvent(e);
     if (!pos) return;
-    
+
     const zone = getZoneFromPosition(pos.x, pos.y);
     onSelect({ x: pos.x, y: pos.y, zone });
   }, [getPositionFromEvent, onSelect]);
@@ -88,7 +88,7 @@ export function GoalMouthDiagram({
   }, [getPositionFromEvent]);
 
   const hoverZone = hoverPosition ? getZoneFromPosition(hoverPosition.x, hoverPosition.y) : null;
-  
+
   // Determine marker color based on outcome
   const getMarkerColor = () => {
     switch (outcome) {
@@ -123,19 +123,19 @@ export function GoalMouthDiagram({
       >
         {/* Background - crowd/stands effect */}
         <rect x="0" y="0" width="100" height="20" fill="rgba(100, 100, 100, 0.3)" />
-        
+
         {/* Goal frame - crossbar */}
         <rect x="14" y="18" width="72" height="3" fill="#FFFFFF" stroke="#666" strokeWidth="0.5" rx="1" />
-        
+
         {/* Goal frame - left post */}
         <rect x="12" y="18" width="3" height="75" fill="#FFFFFF" stroke="#666" strokeWidth="0.5" rx="1" />
-        
+
         {/* Goal frame - right post */}
         <rect x="85" y="18" width="3" height="75" fill="#FFFFFF" stroke="#666" strokeWidth="0.5" rx="1" />
-        
+
         {/* Goal net background */}
         <rect x="15" y="21" width="70" height="69" fill="rgba(255, 255, 255, 0.4)" />
-        
+
         {/* Net mesh pattern */}
         {[...Array(8)].map((_, i) => (
           <line
@@ -159,7 +159,7 @@ export function GoalMouthDiagram({
             strokeWidth="0.3"
           />
         ))}
-        
+
         {/* Zone divider lines (dashed) */}
         {/* Vertical dividers (thirds) */}
         <line x1="38.33" y1="21" x2="38.33" y2="90" stroke="rgba(255,255,255,0.4)" strokeWidth="0.5" strokeDasharray="2,2" />
@@ -172,7 +172,7 @@ export function GoalMouthDiagram({
         <text x="50" y="12" fill="rgba(255,255,255,0.6)" fontSize="4" textAnchor="middle">
           OVER
         </text>
-        
+
         {/* "Wide" zone indicators */}
         <text x="6" y="55" fill="rgba(255,255,255,0.5)" fontSize="3" textAnchor="middle" transform="rotate(-90, 6, 55)">
           WIDE
@@ -187,8 +187,8 @@ export function GoalMouthDiagram({
             cx={hoverPosition.x}
             cy={hoverPosition.y}
             r="3"
-            fill={hoverZone && !['wide_left', 'wide_right', 'over'].includes(hoverZone) 
-              ? 'rgba(34, 197, 94, 0.5)' 
+            fill={hoverZone && !['wide_left', 'wide_right', 'over'].includes(hoverZone)
+              ? 'rgba(34, 197, 94, 0.5)'
               : 'rgba(239, 68, 68, 0.5)'}
             stroke="white"
             strokeWidth="0.5"
@@ -256,8 +256,8 @@ export function GoalMouthDiagram({
       {/* Zone info */}
       {selectedPlacement && (
         <div className="mt-2 text-xs flex items-center gap-2">
-          <span 
-            className="w-3 h-3 rounded-full" 
+          <span
+            className="w-3 h-3 rounded-full"
             style={{ backgroundColor: getMarkerColor() }}
           />
           <span className="font-medium">{ZONE_LABELS[selectedPlacement.zone]}</span>

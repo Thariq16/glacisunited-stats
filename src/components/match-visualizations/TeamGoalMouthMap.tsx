@@ -26,17 +26,25 @@ interface TeamGoalMouthMapProps {
   className?: string;
 }
 
-// Map pitch end_y (0-100) to goal mouth horizontal position (15-85 in SVG)
-// Map vertical position based on shot outcome or distribute evenly
+// Map shot data to goal mouth position for visualization
+// Uses real goal mouth coordinates (end_x/end_y) when available,
+// falls back to synthetic positioning for legacy data
 function mapToGoalMouth(shot: ShotData, index: number, total: number) {
-  // Horizontal: use end_y if available, otherwise use origin y
-  const pitchY = shot.end_y ?? shot.y;
-  // Map pitch Y (0-100) to goal width (15-85)
+  // If real goal mouth placement data exists (captured via GoalMouthDiagram),
+  // use it directly — these are already in 0-100 goal-face coordinates
+  if (shot.end_x != null && shot.end_y != null) {
+    return {
+      gmX: Math.max(3, Math.min(97, shot.end_x)),
+      gmY: Math.max(3, Math.min(97, shot.end_y)),
+    };
+  }
+
+  // Fallback: synthetic positioning for legacy data without goal mouth placement
+  // Horizontal: use origin y (where shot was taken from) mapped to goal width
+  const pitchY = shot.y;
   const gmX = 15 + (pitchY / 100) * 70;
 
   // Vertical: distribute based on outcome
-  // Goals/on-target: inside goal frame (25-85)
-  // Off target/blocked: outside or edge
   const outcome = shot.shot_outcome;
   let gmY: number;
 
@@ -81,7 +89,8 @@ export function TeamGoalMouthMap({ shots, teamName, className }: TeamGoalMouthMa
     const offTarget = total - onTarget - blocked;
     const penalties = shots.filter(s => s.event_type === 'penalty').length;
 
-    return { total, goals, onTarget, blocked, offTarget, penalties,
+    return {
+      total, goals, onTarget, blocked, offTarget, penalties,
       conversionRate: total > 0 ? Math.round((goals / total) * 100) : 0,
       accuracyRate: total > 0 ? Math.round((onTarget / total) * 100) : 0,
     };
