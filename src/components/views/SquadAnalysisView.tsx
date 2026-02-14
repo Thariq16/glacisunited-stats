@@ -31,11 +31,17 @@ interface SquadAnalysisViewProps {
         firstHalf: { team: SetPieceStats[], players: PlayerSetPieceStats[] },
         secondHalf: { team: SetPieceStats[], players: PlayerSetPieceStats[] }
     };
+    opponentSetPieceData?: {
+        all: { team: SetPieceStats[], players: PlayerSetPieceStats[] },
+        firstHalf: { team: SetPieceStats[], players: PlayerSetPieceStats[] },
+        secondHalf: { team: SetPieceStats[], players: PlayerSetPieceStats[] }
+    };
     defensiveEvents?: readonly DefensiveEvent[];
     attackingThreat?: readonly LaneStats[] | { all: LaneStats[], firstHalf: LaneStats[], secondHalf: LaneStats[] };
     opponentAttackingThreat?: readonly LaneStats[] | { all: LaneStats[], firstHalf: LaneStats[], secondHalf: LaneStats[] };
     possessionLossEvents?: readonly PossessionLossEvent[];
     teamName?: string;
+    opponentName?: string;
     focusTeamId?: string;
     matchCount?: number;
 }
@@ -49,11 +55,13 @@ export function SquadAnalysisView({
     setPieceStats = [],
     playerSetPieceStats = [],
     setPieceData,
+    opponentSetPieceData,
     defensiveEvents = [],
     attackingThreat = [],
     opponentAttackingThreat = [],
     possessionLossEvents = [],
     teamName = "Demo Team",
+    opponentName = "Opposition",
     focusTeamId,
     matchCount = 1
 }: SquadAnalysisViewProps) {
@@ -229,6 +237,20 @@ export function SquadAnalysisView({
         if (selectedHalf === 'first') return setPieceData.firstHalf.players || [];
         return setPieceData.secondHalf.players || [];
     }, [playerSetPieceStats, setPieceData, selectedHalf]);
+
+    const filteredOpponentSetPieceStats = useMemo(() => {
+        if (!opponentSetPieceData) return [];
+        if (selectedHalf === 'all') return opponentSetPieceData.all.team || [];
+        if (selectedHalf === 'first') return opponentSetPieceData.firstHalf.team || [];
+        return opponentSetPieceData.secondHalf.team || [];
+    }, [opponentSetPieceData, selectedHalf]);
+
+    const filteredOpponentPlayerSetPieceStats = useMemo(() => {
+        if (!opponentSetPieceData) return [];
+        if (selectedHalf === 'all') return opponentSetPieceData.all.players || [];
+        if (selectedHalf === 'first') return opponentSetPieceData.firstHalf.players || [];
+        return opponentSetPieceData.secondHalf.players || [];
+    }, [opponentSetPieceData, selectedHalf]);
 
     if (!squadStats) {
         return (
@@ -492,17 +514,38 @@ export function SquadAnalysisView({
             <TabsContent value="set-pieces" className="space-y-6">
                 <FilterControl />
 
-                {filteredSetPieceStats && filteredSetPieceStats.length > 0 ? (
-                    <div className="grid grid-cols-1">
-                        <SetPieceEfficiency stats={filteredSetPieceStats} playerStats={filteredPlayerSetPieceStats} />
-                    </div>
-                ) : (
-                    <Card>
-                        <CardContent className="py-12">
-                            <p className="text-center text-muted-foreground">No set piece data available.</p>
-                        </CardContent>
-                    </Card>
-                )}
+                <Tabs defaultValue="own" className="space-y-4">
+                    <TabsList>
+                        <TabsTrigger value="own">{teamName}</TabsTrigger>
+                        <TabsTrigger value="opponent">{opponentName}</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="own">
+                        {filteredSetPieceStats && filteredSetPieceStats.length > 0 ? (
+                            <div className="grid grid-cols-1">
+                                <SetPieceEfficiency stats={filteredSetPieceStats} playerStats={filteredPlayerSetPieceStats} />
+                            </div>
+                        ) : (
+                            <Card>
+                                <CardContent className="py-12">
+                                    <p className="text-center text-muted-foreground">No set piece data available for {teamName}.</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </TabsContent>
+                    <TabsContent value="opponent">
+                        {filteredOpponentSetPieceStats && filteredOpponentSetPieceStats.length > 0 ? (
+                            <div className="grid grid-cols-1">
+                                <SetPieceEfficiency stats={filteredOpponentSetPieceStats} playerStats={filteredOpponentPlayerSetPieceStats} />
+                            </div>
+                        ) : (
+                            <Card>
+                                <CardContent className="py-12">
+                                    <p className="text-center text-muted-foreground">No set piece data available for {opponentName}.</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </TabsContent>
+                </Tabs>
             </TabsContent>
         </Tabs>
     );

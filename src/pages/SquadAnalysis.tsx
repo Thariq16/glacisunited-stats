@@ -57,9 +57,24 @@ export default function SquadAnalysis() {
   const isLoading = isPlayersLoading || isVisLoading;
 
   // Determine which team is Glacis United (Focus Team)
-  const focusTeamId = (latestMatch as any)?.home_team?.name?.toLowerCase()?.includes('glacis')
+  const isGlacisHome = (latestMatch as any)?.home_team?.name?.toLowerCase()?.includes('glacis');
+  const focusTeamId = isGlacisHome
     ? (latestMatch as any)?.home_team_id
     : (latestMatch as any)?.away_team_id;
+
+  // Swap set piece data so Glacis data is always primary
+  const glacisSetPieceData = isGlacisHome
+    ? (visualizationData as any)?.setPieceData
+    : (visualizationData as any)?.opponentSetPieceData;
+  const opponentSetPieceData = isGlacisHome
+    ? (visualizationData as any)?.opponentSetPieceData
+    : (visualizationData as any)?.setPieceData;
+  const glacisName = isGlacisHome
+    ? (latestMatch as any)?.home_team?.name
+    : (latestMatch as any)?.away_team?.name;
+  const opponentName = isGlacisHome
+    ? (latestMatch as any)?.away_team?.name
+    : (latestMatch as any)?.home_team?.name;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -95,14 +110,16 @@ export default function SquadAnalysis() {
             history={[]}
             setPieceStats={(visualizationData as any)?.setPieceStats || []}
             playerSetPieceStats={visualizationData?.playerSetPieceStats || []}
-            setPieceData={(visualizationData as any)?.setPieceData}
+            setPieceData={glacisSetPieceData}
+            opponentSetPieceData={opponentSetPieceData}
             defensiveEvents={visualizationData?.defensiveEvents || []}
             attackingThreat={visualizationData?.attackingThreat as any}
             opponentAttackingThreat={visualizationData?.opponentAttackingThreat as any}
             possessionLossEvents={visualizationData?.possessionLossEvents || []}
-            teamName={(latestMatch as any)?.home_team?.name || 'Home Team'}
+            teamName={glacisName || 'Glacis United'}
+            opponentName={opponentName || 'Opposition'}
             focusTeamId={focusTeamId}
-            matchCount={matchFilter === 'last1' ? 1 : matchFilter === 'last3' ? 1 : 1} // Temporary: defaulting to 1 for safety till robust query specific to 'last3' is added. Assuming primary use case is single match analysis.
+            matchCount={matchFilter === 'last1' ? 1 : matchFilter === 'last3' ? 1 : 1}
           />
         )}
       </main>

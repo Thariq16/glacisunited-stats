@@ -229,6 +229,12 @@ export function useMatchVisualizationData(
         secondHalf: createSetPieceTracker()
       };
 
+      const awayTrackers = {
+        all: createSetPieceTracker(),
+        firstHalf: createSetPieceTracker(),
+        secondHalf: createSetPieceTracker()
+      };
+
       allEvents.forEach((event) => {
         const teamId = event.player?.team_id;
         const isHome = teamId === homeTeamId;
@@ -324,12 +330,13 @@ export function useMatchVisualizationData(
           }
         }
 
-        // 5. Player Set Pieces (Updated)
-        if (['corner', 'free_kick'].includes(event.event_type) && isHome && event.player) {
+        // 5. Player Set Pieces — track both teams
+        if (['corner', 'free_kick'].includes(event.event_type) && event.player) {
           const pid = event.player.name + event.player.jersey_number;
+          const teamTrackers = isHome ? trackers : awayTrackers;
 
           // Update All, and specific Half tracker
-          [trackers.all, trackers[halfKey]].forEach(tracker => {
+          [teamTrackers.all, teamTrackers[halfKey]].forEach(tracker => {
             const current = tracker.get(pid) || {
               name: event.player!.name,
               number: event.player!.jersey_number,
@@ -395,6 +402,10 @@ export function useMatchVisualizationData(
       const firstSetPiece = aggregateSetPieces(trackers.firstHalf);
       const secondSetPiece = aggregateSetPieces(trackers.secondHalf);
 
+      const allAwaySetPiece = aggregateSetPieces(awayTrackers.all);
+      const firstAwaySetPiece = aggregateSetPieces(awayTrackers.firstHalf);
+      const secondAwaySetPiece = aggregateSetPieces(awayTrackers.secondHalf);
+
       // Format Derived Stats
       const formatLaneStats = (stats: any) => {
         const totalPasses = stats.left.passes + stats.center.passes + stats.right.passes;
@@ -439,6 +450,11 @@ export function useMatchVisualizationData(
           all: { team: allSetPiece.teamStats, players: allSetPiece.playerStats },
           firstHalf: { team: firstSetPiece.teamStats, players: firstSetPiece.playerStats },
           secondHalf: { team: secondSetPiece.teamStats, players: secondSetPiece.playerStats }
+        },
+        opponentSetPieceData: {
+          all: { team: allAwaySetPiece.teamStats, players: allAwaySetPiece.playerStats },
+          firstHalf: { team: firstAwaySetPiece.teamStats, players: firstAwaySetPiece.playerStats },
+          secondHalf: { team: secondAwaySetPiece.teamStats, players: secondAwaySetPiece.playerStats }
         },
         // Match Event Stats
         matchEventStats: {
