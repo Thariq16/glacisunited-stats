@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Crosshair } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ShotData {
   id: string;
@@ -83,37 +84,53 @@ function getOutcomeColor(outcome: string | null) {
 }
 
 export function TeamGoalMouthMap({ shots, teamName, className }: TeamGoalMouthMapProps) {
+  const [selectedHalf, setSelectedHalf] = useState<string>("full");
+
+  const filteredShots = useMemo(() => {
+    if (selectedHalf === "full") return shots;
+    return shots.filter(s => s.half === Number(selectedHalf));
+  }, [shots, selectedHalf]);
+
   const stats = useMemo(() => {
-    const total = shots.length;
-    const goals = shots.filter(s => s.shot_outcome === 'goal').length;
-    const onTarget = shots.filter(s => s.shot_outcome === 'on_target' || s.shot_outcome === 'goal').length;
-    const blocked = shots.filter(s => s.shot_outcome === 'blocked').length;
+    const total = filteredShots.length;
+    const goals = filteredShots.filter(s => s.shot_outcome === 'goal').length;
+    const onTarget = filteredShots.filter(s => s.shot_outcome === 'on_target' || s.shot_outcome === 'goal').length;
+    const blocked = filteredShots.filter(s => s.shot_outcome === 'blocked').length;
     const offTarget = total - onTarget - blocked;
-    const penalties = shots.filter(s => s.event_type === 'penalty').length;
+    const penalties = filteredShots.filter(s => s.event_type === 'penalty').length;
 
     return {
       total, goals, onTarget, blocked, offTarget, penalties,
       conversionRate: total > 0 ? Math.round((goals / total) * 100) : 0,
       accuracyRate: total > 0 ? Math.round((onTarget / total) * 100) : 0,
     };
-  }, [shots]);
+  }, [filteredShots]);
 
   const mappedShots = useMemo(() =>
-    shots.map((shot, i) => ({
+    filteredShots.map((shot, i) => ({
       ...shot,
-      ...mapToGoalMouth(shot, i, shots.length),
+      ...mapToGoalMouth(shot, i, filteredShots.length),
     })),
-    [shots]
+    [filteredShots]
   );
 
   if (shots.length === 0) {
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Crosshair className="h-5 w-5 text-primary" />
-            {teamName} — Shot Placement
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Crosshair className="h-5 w-5 text-primary" />
+              {teamName} — Shot Placement
+            </CardTitle>
+            <Tabs value={selectedHalf} onValueChange={setSelectedHalf}>
+              <TabsList>
+                <TabsTrigger value="full">Full Match</TabsTrigger>
+                <TabsTrigger value="1">1st Half</TabsTrigger>
+                <TabsTrigger value="2">2nd Half</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground italic text-center py-6">No shots recorded</p>
@@ -125,24 +142,33 @@ export function TeamGoalMouthMap({ shots, teamName, className }: TeamGoalMouthMa
   return (
     <Card className={className}>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Crosshair className="h-5 w-5 text-primary" />
-            {teamName} — Shot Placement
-          </CardTitle>
-          <div className="flex gap-1.5 flex-wrap">
-            <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-200 text-xs">
-              {stats.goals} Goals
-            </Badge>
-            <Badge variant="outline" className="text-xs">
-              {stats.total} Shots
-            </Badge>
-            {stats.penalties > 0 && (
-              <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-700 border-blue-200">
-                {stats.penalties} Pen
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Crosshair className="h-5 w-5 text-primary" />
+              {teamName} — Shot Placement
+            </CardTitle>
+            <div className="flex gap-1.5 flex-wrap">
+              <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-200 text-xs">
+                {stats.goals} Goals
               </Badge>
-            )}
+              <Badge variant="outline" className="text-xs">
+                {stats.total} Shots
+              </Badge>
+              {stats.penalties > 0 && (
+                <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-700 border-blue-200">
+                  {stats.penalties} Pen
+                </Badge>
+              )}
+            </div>
           </div>
+          <Tabs value={selectedHalf} onValueChange={setSelectedHalf}>
+            <TabsList>
+              <TabsTrigger value="full">Full Match</TabsTrigger>
+              <TabsTrigger value="1">1st Half</TabsTrigger>
+              <TabsTrigger value="2">2nd Half</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </CardHeader>
       <CardContent>
@@ -292,7 +318,7 @@ export function TeamGoalMouthMap({ shots, teamName, className }: TeamGoalMouthMa
             <div>
               <h4 className="font-semibold text-sm mb-2">Shot Details</h4>
               <div className="max-h-48 overflow-y-auto space-y-1">
-                {shots
+                {filteredShots
                   .sort((a, b) => a.half - b.half || a.minute - b.minute || (a.seconds || 0) - (b.seconds || 0))
                   .map((shot) => {
                     const colors = getOutcomeColor(shot.shot_outcome);
