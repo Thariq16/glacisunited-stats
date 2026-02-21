@@ -20,6 +20,8 @@ import { AttackingThreatMap } from "@/components/views/AttackingThreatMap"; // N
 import { LostPossessionHeatmap } from "@/components/views/LostPossessionHeatmap"; // NEW
 import { usePlayerAdvancedStats } from "@/hooks/usePlayerAdvancedStats";
 import { usePlayerXGStats } from "@/hooks/usePlayerXGStats";
+import { usePlayerMatchTrends } from "@/hooks/usePlayerMatchTrends";
+import { PlayerPerformanceTrends } from "@/components/views/PlayerPerformanceTrends";
 import { calculateAdvancedMetrics, calculateTacticalProfile, analyzePositioning } from "@/utils/playerMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
@@ -57,6 +59,11 @@ export default function PlayerProfile() {
     // Specific match ID
     return [matchFilter];
   }, [matches, team, matchFilter]);
+
+  const { data: trendData, isLoading: trendLoading } = usePlayerMatchTrends(
+    teamId,
+    playerName ? decodeURIComponent(playerName) : undefined
+  );
 
   const { data: xgStats, isLoading: xgLoading } = usePlayerXGStats({
     playerName: playerName ? decodeURIComponent(playerName) : undefined,
@@ -178,8 +185,9 @@ export default function PlayerProfile() {
           </Card>
         ) : (
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="trends">Trends</TabsTrigger>
               <TabsTrigger value="analysis">Tactical & Advanced</TabsTrigger>
             </TabsList>
 
@@ -405,6 +413,14 @@ export default function PlayerProfile() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+
+            <TabsContent value="trends" className="space-y-6">
+              <PlayerPerformanceTrends
+                data={trendData || []}
+                isLoading={trendLoading}
+              />
             </TabsContent>
 
             <TabsContent value="analysis" className="space-y-6">
