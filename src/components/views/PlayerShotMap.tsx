@@ -12,42 +12,23 @@ interface ShotEvent {
   shot_outcome: string;
   half: number;
   minute: number;
-  opponent?: string;
 }
 
 interface PlayerShotMapProps {
   shots: ShotEvent[];
-  attacksRight?: boolean;
 }
 
-const OUTCOME_CONFIG: Record<string, { color: string; label: string; symbol: string }> = {
-  goal: { color: '#22c55e', label: 'Goal', symbol: '★' },
-  on_target: { color: '#f59e0b', label: 'On Target', symbol: '●' },
-  off_target: { color: '#ef4444', label: 'Off Target', symbol: '×' },
-  blocked: { color: '#94a3b8', label: 'Blocked', symbol: '■' },
+const OUTCOME_CONFIG: Record<string, { color: string; label: string }> = {
+  goal: { color: '#22C55E', label: 'Goal' },
+  on_target: { color: '#F59E0B', label: 'On Target' },
+  off_target: { color: '#EF4444', label: 'Off Target' },
+  blocked: { color: '#94A3B8', label: 'Blocked' },
 };
 
-// Pitch dimensions in SVG viewBox
-const PITCH_W = 100;
-const PITCH_H = 68;
+const PITCH_HEIGHT = 68;
+const toSvgY = (y: number) => (y / 100) * PITCH_HEIGHT;
 
-export function PlayerShotMap({ shots, attacksRight = true }: PlayerShotMapProps) {
-  // Normalize shots so they all go toward the right goal
-  const normalizedShots = useMemo(() =>
-    shots.map(s => {
-      const x = Number(s.x);
-      const y = (Number(s.y) / 100) * PITCH_H;
-      // If attacking right, shots should be on right half (x > 50). If not, flip.
-      const needsFlip = attacksRight ? x < 50 : x > 50;
-      return {
-        ...s,
-        nx: needsFlip ? PITCH_W - x : x,
-        ny: needsFlip ? PITCH_H - y : y,
-      };
-    }),
-    [shots, attacksRight]
-  );
-
+export function PlayerShotMap({ shots }: PlayerShotMapProps) {
   const stats = useMemo(() => {
     const total = shots.length;
     const goals = shots.filter(s => s.shot_outcome === 'goal').length;
@@ -57,9 +38,7 @@ export function PlayerShotMap({ shots, attacksRight = true }: PlayerShotMapProps
     return { total, goals, onTarget, offTarget, blocked };
   }, [shots]);
 
-  if (!shots.length) {
-    return null;
-  }
+  if (!shots.length) return null;
 
   return (
     <Card>
@@ -77,7 +56,7 @@ export function PlayerShotMap({ shots, attacksRight = true }: PlayerShotMapProps
             if (!count) return null;
             return (
               <div key={key} className="flex items-center gap-1.5 text-xs">
-                <span style={{ color: cfg.color, fontSize: 14 }}>{cfg.symbol}</span>
+                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cfg.color }} />
                 <span className="text-muted-foreground">{cfg.label}</span>
                 <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">{count}</Badge>
               </div>
@@ -85,87 +64,112 @@ export function PlayerShotMap({ shots, attacksRight = true }: PlayerShotMapProps
           })}
         </div>
 
-        {/* Pitch SVG — only show attacking half */}
-        <div className="relative w-full" style={{ aspectRatio: '1.2 / 1' }}>
-          <svg
-            viewBox="45 0 55 68"
-            className="w-full h-full"
-            style={{ background: 'hsl(142 40% 28%)' }}
-          >
-            {/* Pitch markings */}
-            {/* Pitch border */}
-            <rect x="0" y="0" width="100" height="68" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" />
-            {/* Halfway line */}
-            <line x1="50" y1="0" x2="50" y2="68" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" />
-            {/* Penalty area */}
-            <rect x="83" y="13.84" width="17" height="40.32" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.3" />
-            {/* 6-yard box */}
-            <rect x="94.2" y="24.84" width="5.8" height="18.32" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="0.3" />
-            {/* Goal */}
-            <rect x="100" y="29.84" width="1.5" height="8.32" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="0.4" />
-            {/* Penalty spot */}
-            <circle cx="88" cy="34" r="0.4" fill="rgba(255,255,255,0.5)" />
-            {/* Arc */}
-            <path d="M 83 27 A 8 8 0 0 0 83 41" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" />
-            {/* Center circle partial */}
-            <path d="M 50 27 A 7 7 0 0 1 50 41" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" />
+        {/* Pitch SVG — same style as PitchDiagram */}
+        <svg
+          viewBox="-3 0 106 68"
+          className="w-full border-2 border-green-800 rounded-lg bg-green-50 dark:bg-green-950"
+        >
+          {/* Pitch outline */}
+          <rect x="0" y="0" width="100" height="68" fill="none" stroke="#22c55e" strokeWidth="0.5" />
 
-            {/* Shot markers */}
-            {normalizedShots.map((shot, i) => {
-              const cfg = OUTCOME_CONFIG[shot.shot_outcome] || OUTCOME_CONFIG.off_target;
-              const isGoal = shot.shot_outcome === 'goal';
-              return (
-                <g key={shot.id || i}>
-                  {isGoal ? (
-                    <text
-                      x={shot.nx}
-                      y={shot.ny}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fill={cfg.color}
-                      fontSize="4"
-                      fontWeight="bold"
-                    >
-                      ★
-                    </text>
-                  ) : shot.shot_outcome === 'blocked' ? (
-                    <rect
-                      x={shot.nx - 1.2}
-                      y={shot.ny - 1.2}
-                      width={2.4}
-                      height={2.4}
-                      fill={cfg.color}
-                      opacity={0.85}
-                      rx={0.3}
-                    />
-                  ) : shot.shot_outcome === 'off_target' ? (
-                    <text
-                      x={shot.nx}
-                      y={shot.ny}
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                      fill={cfg.color}
-                      fontSize="4.5"
-                      fontWeight="bold"
-                    >
-                      ×
-                    </text>
-                  ) : (
-                    <circle
-                      cx={shot.nx}
-                      cy={shot.ny}
-                      r={1.5}
-                      fill={cfg.color}
-                      opacity={0.85}
-                    />
-                  )}
-                  {/* Tooltip on hover */}
-                  <title>{`${cfg.label} — ${shot.minute}' (${shot.half === 1 ? '1st' : '2nd'} Half)`}</title>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
+          {/* Halfway line */}
+          <line x1="50" y1="0" x2="50" y2="68" stroke="#22c55e" strokeWidth="0.3" />
+
+          {/* Center circle */}
+          <circle cx="50" cy="34" r="9.15" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          <circle cx="50" cy="34" r="0.5" fill="#22c55e" />
+
+          {/* Left penalty area */}
+          <rect x="0" y="13.84" width="16.5" height="40.32" fill="rgba(34, 197, 94, 0.05)" stroke="#22c55e" strokeWidth="0.3" />
+          <rect x="0" y="24.84" width="5.5" height="18.32" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          <circle cx="11" cy="34" r="0.4" fill="#22c55e" />
+          <path d="M 16.5 27.5 A 9.15 9.15 0 0 1 16.5 40.5" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          {/* Left goal */}
+          <rect x="-2.5" y="29.84" width="3" height="8.32" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" strokeWidth="0.5" />
+          <line x1="-2" y1="31" x2="-2" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="-1" y1="31" x2="-1" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="-2.5" y1="32" x2="0" y2="32" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="-2.5" y1="34" x2="0" y2="34" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="-2.5" y1="36" x2="0" y2="36" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+
+          {/* Right penalty area */}
+          <rect x="83.5" y="13.84" width="16.5" height="40.32" fill="rgba(34, 197, 94, 0.05)" stroke="#22c55e" strokeWidth="0.3" />
+          <rect x="94.5" y="24.84" width="5.5" height="18.32" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          <circle cx="89" cy="34" r="0.4" fill="#22c55e" />
+          <path d="M 83.5 27.5 A 9.15 9.15 0 0 0 83.5 40.5" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          {/* Right goal */}
+          <rect x="99.5" y="29.84" width="3" height="8.32" fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" strokeWidth="0.5" />
+          <line x1="101" y1="31" x2="101" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="102" y1="31" x2="102" y2="37" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="100" y1="32" x2="102.5" y2="32" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="100" y1="34" x2="102.5" y2="34" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+          <line x1="100" y1="36" x2="102.5" y2="36" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" />
+
+          {/* Corner arcs */}
+          <path d="M 0 1 A 1 1 0 0 0 1 0" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          <path d="M 99 0 A 1 1 0 0 0 100 1" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          <path d="M 0 67 A 1 1 0 0 1 1 68" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+          <path d="M 100 67 A 1 1 0 0 0 99 68" fill="none" stroke="#22c55e" strokeWidth="0.3" />
+
+          {/* Zone divider lines */}
+          <line x1="33" y1="0" x2="33" y2="68" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" strokeDasharray="1,1" />
+          <line x1="67" y1="0" x2="67" y2="68" stroke="rgba(34, 197, 94, 0.3)" strokeWidth="0.2" strokeDasharray="1,1" />
+
+          {/* Zone labels */}
+          <text x="16.5" y="4" fill="rgba(21, 128, 61, 0.5)" fontSize="3" textAnchor="middle">DEF</text>
+          <text x="50" y="4" fill="rgba(21, 128, 61, 0.5)" fontSize="3" textAnchor="middle">MID</text>
+          <text x="83.5" y="4" fill="rgba(21, 128, 61, 0.5)" fontSize="3" textAnchor="middle">FIN</text>
+
+          {/* Shot markers */}
+          {shots.map((shot, i) => {
+            const cfg = OUTCOME_CONFIG[shot.shot_outcome] || OUTCOME_CONFIG.off_target;
+            const sx = Number(shot.x);
+            const sy = toSvgY(Number(shot.y));
+            const isGoal = shot.shot_outcome === 'goal';
+
+            return (
+              <g key={shot.id || i}>
+                {/* Outer ring */}
+                <circle
+                  cx={sx}
+                  cy={sy}
+                  r={isGoal ? 2.2 : 1.6}
+                  fill={cfg.color}
+                  fillOpacity={isGoal ? 0.9 : 0.7}
+                  stroke={isGoal ? '#fff' : cfg.color}
+                  strokeWidth={isGoal ? 0.4 : 0.2}
+                />
+                {/* Goal star */}
+                {isGoal && (
+                  <text
+                    x={sx}
+                    y={sy + 0.8}
+                    textAnchor="middle"
+                    fill="#fff"
+                    fontSize="2.5"
+                    fontWeight="bold"
+                  >
+                    ★
+                  </text>
+                )}
+                {/* Blocked X */}
+                {shot.shot_outcome === 'blocked' && (
+                  <text
+                    x={sx}
+                    y={sy + 0.7}
+                    textAnchor="middle"
+                    fill="#fff"
+                    fontSize="2"
+                    fontWeight="bold"
+                  >
+                    ×
+                  </text>
+                )}
+                <title>{`${cfg.label} — ${shot.minute}' (${shot.half === 1 ? '1st' : '2nd'} Half)`}</title>
+              </g>
+            );
+          })}
+        </svg>
 
         {/* Quick stats row */}
         <div className="grid grid-cols-4 gap-2 mt-3 text-center">
@@ -174,11 +178,11 @@ export function PlayerShotMap({ shots, attacksRight = true }: PlayerShotMapProps
             <p className="text-[10px] text-muted-foreground">Total</p>
           </div>
           <div>
-            <p className="text-lg font-bold text-green-500">{stats.goals}</p>
+            <p className="text-lg font-bold" style={{ color: '#22C55E' }}>{stats.goals}</p>
             <p className="text-[10px] text-muted-foreground">Goals</p>
           </div>
           <div>
-            <p className="text-lg font-bold text-amber-500">{stats.onTarget}</p>
+            <p className="text-lg font-bold" style={{ color: '#F59E0B' }}>{stats.onTarget}</p>
             <p className="text-[10px] text-muted-foreground">On Target</p>
           </div>
           <div>
