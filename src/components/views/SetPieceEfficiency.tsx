@@ -117,7 +117,7 @@ export function SetPieceEfficiency({ stats, playerStats = [] }: SetPieceEfficien
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {playerStats.map((player) => (
+                                    {playerStats.filter(p => p.cornersTaken > 0).map((player) => (
                                         <tr key={player.playerId} className="border-b last:border-0 hover:bg-muted/50">
                                             <td className="py-3 font-medium">
                                                 <span className="mr-2 text-muted-foreground">#{player.jerseyNumber}</span>
