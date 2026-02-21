@@ -64,10 +64,11 @@ export interface SetPieceAnalyticsData {
 
 export function useSetPieceAnalytics(
     matchId: string | undefined,
-    teamId: string | undefined
+    teamId: string | undefined,
+    half?: number | null
 ) {
     return useQuery({
-        queryKey: ['set-piece-analytics', matchId, teamId],
+        queryKey: ['set-piece-analytics', matchId, teamId, half],
         queryFn: async (): Promise<SetPieceAnalyticsData> => {
             if (!matchId || !teamId) throw new Error('Match ID and Team ID required');
 
@@ -104,8 +105,12 @@ export function useSetPieceAnalytics(
                 }
             }
 
-            // Filter to team's events only
-            const teamEvents = allEvents.filter((e: any) => e.player?.team_id === teamId);
+            // Filter to team's events only, and optionally by half
+            const teamEvents = allEvents.filter((e: any) => {
+                if (e.player?.team_id !== teamId) return false;
+                if (half != null && e.half !== half) return false;
+                return true;
+            });
 
             // 1. Calculate Overview Stats
             const throwIns = teamEvents.filter((e: any) => e.event_type === 'throw_in');
