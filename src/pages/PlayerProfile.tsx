@@ -22,6 +22,8 @@ import { usePlayerAdvancedStats } from "@/hooks/usePlayerAdvancedStats";
 import { usePlayerXGStats } from "@/hooks/usePlayerXGStats";
 import { usePlayerMatchTrends } from "@/hooks/usePlayerMatchTrends";
 import { PlayerPerformanceTrends } from "@/components/views/PlayerPerformanceTrends";
+import { usePlayerShots } from "@/hooks/usePlayerShots";
+import { PlayerShotMap } from "@/components/views/PlayerShotMap";
 import { calculateAdvancedMetrics, calculateTacticalProfile, analyzePositioning } from "@/utils/playerMetrics";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
@@ -63,6 +65,12 @@ export default function PlayerProfile() {
   const { data: trendData, isLoading: trendLoading } = usePlayerMatchTrends(
     teamId,
     playerName ? decodeURIComponent(playerName) : undefined
+  );
+
+  const { data: playerShots } = usePlayerShots(
+    teamId,
+    playerName ? decodeURIComponent(playerName) : undefined,
+    matchIdsForXG
   );
 
   const { data: xgStats, isLoading: xgLoading } = usePlayerXGStats({
@@ -303,6 +311,13 @@ export default function PlayerProfile() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Shot Map */}
+              {playerShots && playerShots.length > 0 && (
+                <div className="mb-8">
+                  <PlayerShotMap shots={playerShots} />
+                </div>
+              )}
 
               {/* Defensive Stats */}
               <Card className="mb-8">
