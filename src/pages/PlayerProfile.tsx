@@ -16,8 +16,10 @@ import { PlayerEfficiencyMetrics } from "@/components/PlayerEfficiencyMetrics";
 import { TacticalInsightsCard } from "@/components/TacticalInsightsCard";
 import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
 import { PlayerPassThirdMap } from "@/components/PlayerPassThirdMap";
-import { AttackingThreatMap } from "@/components/views/AttackingThreatMap"; // NEW
-import { LostPossessionHeatmap } from "@/components/views/LostPossessionHeatmap"; // NEW
+import { AttackingThreatMap } from "@/components/views/AttackingThreatMap";
+import { LostPossessionHeatmap } from "@/components/views/LostPossessionHeatmap";
+import { DefensiveHeatmap } from "@/components/views/DefensiveHeatmap";
+import { usePlayerDefensiveEvents } from "@/hooks/usePlayerDefensiveEvents";
 import { usePlayerAdvancedStats } from "@/hooks/usePlayerAdvancedStats";
 import { usePlayerXGStats } from "@/hooks/usePlayerXGStats";
 import { usePlayerMatchTrends } from "@/hooks/usePlayerMatchTrends";
@@ -68,6 +70,12 @@ export default function PlayerProfile() {
   );
 
   const { data: playerShots } = usePlayerShots(
+    teamId,
+    playerName ? decodeURIComponent(playerName) : undefined,
+    matchIdsForXG
+  );
+
+  const { data: defensiveEvents } = usePlayerDefensiveEvents(
     teamId,
     playerName ? decodeURIComponent(playerName) : undefined,
     matchIdsForXG
@@ -451,6 +459,10 @@ export default function PlayerProfile() {
                   <AttackingThreatMap stats={advancedStats.attackingThreat.all} />
                   <LostPossessionHeatmap events={advancedStats.possessionLossEvents} />
                 </div>
+              )}
+
+              {defensiveEvents && defensiveEvents.length > 0 && (
+                <DefensiveHeatmap events={defensiveEvents} />
               )}
             </TabsContent>
           </Tabs>
