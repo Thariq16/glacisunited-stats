@@ -149,23 +149,24 @@ export function MatchScoreHeader({
                                 <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>
                                         {homeScore > xgStats!.home.totalXG ? (
-                                            <span className="text-emerald-500">+{(homeScore - xgStats!.home.totalXG).toFixed(2)} overperform</span>
+                                            <span>+{(homeScore - xgStats!.home.totalXG).toFixed(2)} overperform</span>
                                         ) : homeScore < xgStats!.home.totalXG ? (
-                                            <span className="text-rose-500">{(homeScore - xgStats!.home.totalXG).toFixed(2)} underperform</span>
+                                            <span>{(homeScore - xgStats!.home.totalXG).toFixed(2)} underperform</span>
                                         ) : (
                                             <span>On target</span>
                                         )}
                                     </span>
                                     <span>
                                         {awayScore > xgStats!.away.totalXG ? (
-                                            <span className="text-emerald-500">+{(awayScore - xgStats!.away.totalXG).toFixed(2)} overperform</span>
+                                            <span>+{(awayScore - xgStats!.away.totalXG).toFixed(2)} overperform</span>
                                         ) : awayScore < xgStats!.away.totalXG ? (
-                                            <span className="text-rose-500">{(awayScore - xgStats!.away.totalXG).toFixed(2)} underperform</span>
+                                            <span>{(awayScore - xgStats!.away.totalXG).toFixed(2)} underperform</span>
                                         ) : (
                                             <span>On target</span>
                                         )}
                                     </span>
                                 </div>
+                                <p className="text-[10px] text-muted-foreground/60 text-center mt-1">xG values are approximate</p>
                             </div>
                         )}
                     </div>
