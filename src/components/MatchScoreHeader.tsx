@@ -149,18 +149,18 @@ export function MatchScoreHeader({
                                 <div className="flex justify-between text-xs text-muted-foreground">
                                     <span>
                                         {homeScore > xgStats!.home.totalXG ? (
-                                            <span>+{(homeScore - xgStats!.home.totalXG).toFixed(2)} overperform</span>
+                                            <span>{Math.abs(homeScore - xgStats!.home.totalXG).toFixed(2)} overperform</span>
                                         ) : homeScore < xgStats!.home.totalXG ? (
-                                            <span>{(homeScore - xgStats!.home.totalXG).toFixed(2)} underperform</span>
+                                            <span>{Math.abs(homeScore - xgStats!.home.totalXG).toFixed(2)} underperform</span>
                                         ) : (
                                             <span>On target</span>
                                         )}
                                     </span>
                                     <span>
                                         {awayScore > xgStats!.away.totalXG ? (
-                                            <span>+{(awayScore - xgStats!.away.totalXG).toFixed(2)} overperform</span>
+                                            <span>{Math.abs(awayScore - xgStats!.away.totalXG).toFixed(2)} overperform</span>
                                         ) : awayScore < xgStats!.away.totalXG ? (
-                                            <span>{(awayScore - xgStats!.away.totalXG).toFixed(2)} underperform</span>
+                                            <span>{Math.abs(awayScore - xgStats!.away.totalXG).toFixed(2)} underperform</span>
                                         ) : (
                                             <span>On target</span>
                                         )}
