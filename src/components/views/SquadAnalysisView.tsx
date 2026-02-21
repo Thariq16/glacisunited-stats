@@ -17,6 +17,7 @@ import { DefensiveHeatmap, DefensiveEvent } from "@/components/views/DefensiveHe
 import { SetPieceEfficiency, SetPieceStats, PlayerSetPieceStats } from "@/components/views/SetPieceEfficiency";
 import { AttackingThreatMap, LaneStats } from "@/components/views/AttackingThreatMap";
 import { LostPossessionHeatmap, PossessionLossEvent } from "@/components/views/LostPossessionHeatmap";
+import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
 
 interface SquadAnalysisViewProps {
     players: PlayerStats[];
@@ -44,6 +45,8 @@ interface SquadAnalysisViewProps {
     opponentName?: string;
     focusTeamId?: string;
     matchCount?: number;
+    matchId?: string;
+    opponentTeamId?: string;
 }
 
 export function SquadAnalysisView({
@@ -63,7 +66,9 @@ export function SquadAnalysisView({
     teamName = "Demo Team",
     opponentName = "Opposition",
     focusTeamId,
-    matchCount = 1
+    matchCount = 1,
+    matchId,
+    opponentTeamId
 }: SquadAnalysisViewProps) {
     const [selectedHalf, setSelectedHalf] = useState<'all' | 'first' | 'second'>('all');
 
@@ -519,7 +524,7 @@ export function SquadAnalysisView({
                         <TabsTrigger value="own">{teamName}</TabsTrigger>
                         <TabsTrigger value="opponent">{opponentName}</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="own">
+                    <TabsContent value="own" className="space-y-6">
                         {filteredSetPieceStats && filteredSetPieceStats.length > 0 ? (
                             <div className="grid grid-cols-1">
                                 <SetPieceEfficiency stats={filteredSetPieceStats} playerStats={filteredPlayerSetPieceStats} />
@@ -531,8 +536,12 @@ export function SquadAnalysisView({
                                 </CardContent>
                             </Card>
                         )}
+
+                        {matchId && focusTeamId && (
+                            <SetPieceAnalyticsTab matchId={matchId} teamId={focusTeamId} teamName={teamName} />
+                        )}
                     </TabsContent>
-                    <TabsContent value="opponent">
+                    <TabsContent value="opponent" className="space-y-6">
                         {filteredOpponentSetPieceStats && filteredOpponentSetPieceStats.length > 0 ? (
                             <div className="grid grid-cols-1">
                                 <SetPieceEfficiency stats={filteredOpponentSetPieceStats} playerStats={filteredOpponentPlayerSetPieceStats} />
@@ -543,6 +552,10 @@ export function SquadAnalysisView({
                                     <p className="text-center text-muted-foreground">No set piece data available for {opponentName}.</p>
                                 </CardContent>
                             </Card>
+                        )}
+
+                        {matchId && opponentTeamId && (
+                            <SetPieceAnalyticsTab matchId={matchId} teamId={opponentTeamId} teamName={opponentName} />
                         )}
                     </TabsContent>
                 </Tabs>

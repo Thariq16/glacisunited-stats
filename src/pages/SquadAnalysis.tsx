@@ -61,6 +61,9 @@ export default function SquadAnalysis() {
   const focusTeamId = isGlacisHome
     ? (latestMatch as any)?.home_team_id
     : (latestMatch as any)?.away_team_id;
+  const opponentTeamId = isGlacisHome
+    ? (latestMatch as any)?.away_team_id
+    : (latestMatch as any)?.home_team_id;
 
   // Swap set piece data so Glacis data is always primary
   const glacisSetPieceData = isGlacisHome
@@ -120,6 +123,8 @@ export default function SquadAnalysis() {
             opponentName={opponentName || 'Opposition'}
             focusTeamId={focusTeamId}
             matchCount={matchFilter === 'last1' ? 1 : matchFilter === 'last3' ? 1 : 1}
+            matchId={(latestMatch as any)?.id}
+            opponentTeamId={opponentTeamId}
           />
         )}
       </main>
