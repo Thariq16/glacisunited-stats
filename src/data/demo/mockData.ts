@@ -49,7 +49,8 @@ export const DEMO_SQUAD: PlayerStats[] = [
         minutesPlayed: 1850,
         substituteAppearances: 2,
         yellowCards: 3,
-        redCards: 0
+        redCards: 0,
+        blocks: 2, interceptions: 1, badTouches: 0
     },
     {
         jerseyNumber: "10",
@@ -98,7 +99,8 @@ export const DEMO_SQUAD: PlayerStats[] = [
         minutesPlayed: 1980,
         substituteAppearances: 0,
         yellowCards: 1,
-        redCards: 0
+        redCards: 0,
+        blocks: 1, interceptions: 8, badTouches: 2
     },
     {
         jerseyNumber: "4",
@@ -147,7 +149,8 @@ export const DEMO_SQUAD: PlayerStats[] = [
         minutesPlayed: 2050,
         substituteAppearances: 0,
         yellowCards: 0,
-        redCards: 0
+        redCards: 0,
+        blocks: 15, interceptions: 12, badTouches: 1
     },
     {
         jerseyNumber: "1",
@@ -196,7 +199,8 @@ export const DEMO_SQUAD: PlayerStats[] = [
         minutesPlayed: 2100,
         substituteAppearances: 0,
         yellowCards: 2,
-        redCards: 0
+        redCards: 0,
+        blocks: 3, interceptions: 5, badTouches: 3
     },
     {
         jerseyNumber: "7",
@@ -245,7 +249,8 @@ export const DEMO_SQUAD: PlayerStats[] = [
         minutesPlayed: 1650,
         substituteAppearances: 5,
         yellowCards: 4,
-        redCards: 1
+        redCards: 1,
+        blocks: 8, interceptions: 10, badTouches: 4
     },
     {
         jerseyNumber: "6",
@@ -294,7 +299,8 @@ export const DEMO_SQUAD: PlayerStats[] = [
         minutesPlayed: 1900,
         substituteAppearances: 1,
         yellowCards: 1,
-        redCards: 0
+        redCards: 0,
+        blocks: 10, interceptions: 15, badTouches: 1
     },
     // Add more bench players to simulate depth analysis
     ...Array.from({ length: 10 }).map((_, i) => ({
@@ -344,7 +350,10 @@ export const DEMO_SQUAD: PlayerStats[] = [
         minutesPlayed: Math.floor(Math.random() * 1000),
         substituteAppearances: Math.floor(Math.random() * 10),
         yellowCards: Math.floor(Math.random() * 3),
-        redCards: Math.floor(Math.random() * 1)
+        redCards: Math.floor(Math.random() * 1),
+        blocks: Math.floor(Math.random() * 5),
+        interceptions: Math.floor(Math.random() * 8),
+        badTouches: Math.floor(Math.random() * 3)
     }))
 ];
 

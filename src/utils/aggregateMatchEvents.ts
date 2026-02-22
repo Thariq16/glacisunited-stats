@@ -264,7 +264,15 @@ export function aggregateEventsToPlayerStats(
         break;
 
       case 'block':
+        stats.blocks++;
+        break;
+
       case 'interception':
+        stats.interceptions++;
+        break;
+
+      case 'bad_touch':
+        stats.badTouches++;
         break;
 
       default:
@@ -357,6 +365,9 @@ export function createEmptyPlayerStats(
     substituteAppearances: 0,
     yellowCards: 0,
     redCards: 0,
+    blocks: 0,
+    interceptions: 0,
+    badTouches: 0,
   };
 }
 
