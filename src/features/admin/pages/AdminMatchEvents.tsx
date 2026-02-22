@@ -208,9 +208,9 @@ function AdminMatchEventsContent() {
     }
   }, [matchData, savedEvents.length]);
 
-  // Set match status to "in_progress" when entering
+  // Set match status to "in_progress" only for scheduled matches (not completed ones)
   useEffect(() => {
-    if (matchId && matchData && !hasSetInProgress.current && matchData.status !== 'in_progress') {
+    if (matchId && matchData && !hasSetInProgress.current && matchData.status === 'scheduled') {
       hasSetInProgress.current = true;
       supabase
         .from('matches')
