@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface MatchEvent {
   id: string;
+  match_id?: string;
   player_id: string;
   event_type: string;
   x: number;
@@ -37,10 +38,47 @@ const DEFENSIVE_THIRD_MAX = 33.33;
 const MIDDLE_THIRD_MAX = 66.66;
 const PENALTY_AREA_X_START = 83; // Approximate penalty area start
 
-function getZone(x: number): 'defensive' | 'middle' | 'final' {
-  if (x < DEFENSIVE_THIRD_MAX) return 'defensive';
-  if (x < MIDDLE_THIRD_MAX) return 'middle';
-  return 'final';
+/**
+ * Determine which third of the pitch an event is in, relative to the player's team.
+ * @param x - Raw X coordinate (0-100)
+ * @param attacksRight - Whether the player's team attacks toward high X in this half.
+ *   If true:  high X = final third (opponent's end), low X = defensive third
+ *   If false: low X = final third, high X = defensive third
+ */
+function getZone(x: number, attacksRight: boolean): 'defensive' | 'middle' | 'final' {
+  if (attacksRight) {
+    // Standard: team attacks right, high X = final third
+    if (x < DEFENSIVE_THIRD_MAX) return 'defensive';
+    if (x < MIDDLE_THIRD_MAX) return 'middle';
+    return 'final';
+  } else {
+    // Inverted: team attacks left, low X = final third
+    if (x > MIDDLE_THIRD_MAX) return 'defensive';
+    if (x > DEFENSIVE_THIRD_MAX) return 'middle';
+    return 'final';
+  }
+}
+
+/**
+ * Determine if a team attacks right (toward high X) for a given half.
+ * @param half - 1 or 2
+ * @param isHomeTeam - Whether the player belongs to the home team
+ * @param homeAttacksLeft - The match's home_attacks_left setting for the 1st half.
+ *   If null/undefined, defaults to true (home attacks left in H1).
+ */
+function doesTeamAttackRight(half: number, isHomeTeam: boolean, homeAttacksLeft: boolean | null): boolean {
+  // Default: home attacks left in H1 (i.e., home attacks right = false in H1)
+  const hal = homeAttacksLeft ?? true;
+
+  if (isHomeTeam) {
+    // H1: home attacks left => attacksRight = false
+    // H2: direction flips => attacksRight = true
+    return half === 1 ? !hal : hal;
+  } else {
+    // Away is opposite of home
+    // H1: if home attacks left, away attacks right
+    return half === 1 ? hal : !hal;
+  }
 }
 
 function isInPenaltyArea(x: number, y: number): boolean {
@@ -59,7 +97,9 @@ const NON_PASS_EVENTS = ['shot', 'goal', 'tackle', 'tackle_won', 'interception',
 export function aggregateEventsToPlayerStats(
   events: MatchEvent[],
   teamIdFilter?: string,
-  totalMatchMinutes: number = 90
+  totalMatchMinutes: number = 90,
+  homeAttacksLeft: boolean | null = true,
+  isHomeTeam: boolean = true
 ): Map<string, PlayerStats> {
   const playersMap = new Map<string, PlayerStats>();
 
@@ -112,6 +152,14 @@ export function aggregateEventsToPlayerStats(
     const endX = event.end_x;
     const endY = event.end_y;
 
+    // Determine attack direction for this event based on half
+    const attacksRight = doesTeamAttackRight(event.half, isHomeTeam, homeAttacksLeft);
+    const zone = getZone(x, attacksRight);
+
+    // Determine forward/backward pass direction relative to attack direction
+    const isForwardPass = (endX !== undefined) && (attacksRight ? endX > x : endX < x);
+    const isBackwardPass = (endX !== undefined) && (attacksRight ? endX < x : endX > x);
+
     // Process event based on type
     switch (eventType) {
       case 'pass':
@@ -120,18 +168,13 @@ export function aggregateEventsToPlayerStats(
       case 'long_ball':
       case 'through_ball':
         stats.passCount++;
-        { const pZone = getZone(x);
-          if (pZone === 'final') stats.passesFinalThird++;
-          else if (pZone === 'middle') stats.passesMiddleThird++;
-          else stats.passesDefensiveThird++;
-        }
+        if (zone === 'final') stats.passesFinalThird++;
+        else if (zone === 'middle') stats.passesMiddleThird++;
+        else stats.passesDefensiveThird++;
         if (successful) {
           stats.successfulPass++;
-          if (endX !== undefined && endX > x) {
-            stats.forwardPass++;
-          } else if (endX !== undefined && endX < x) {
-            stats.backwardPass++;
-          }
+          if (isForwardPass) stats.forwardPass++;
+          else if (isBackwardPass) stats.backwardPass++;
         } else {
           stats.missPass++;
         }
@@ -140,11 +183,9 @@ export function aggregateEventsToPlayerStats(
       case 'cross':
         stats.crosses++;
         stats.passCount++;
-        { const cZone = getZone(x);
-          if (cZone === 'final') stats.passesFinalThird++;
-          else if (cZone === 'middle') stats.passesMiddleThird++;
-          else stats.passesDefensiveThird++;
-        }
+        if (zone === 'final') stats.passesFinalThird++;
+        else if (zone === 'middle') stats.passesMiddleThird++;
+        else stats.passesDefensiveThird++;
         if (successful) {
           stats.successfulPass++;
           stats.forwardPass++;
@@ -171,11 +212,9 @@ export function aggregateEventsToPlayerStats(
 
       case 'shot':
         stats.shotsAttempted++;
-        { const sZone = getZone(x);
-          if (sZone === 'final') stats.shotsFinalThird++;
-          else if (sZone === 'middle') stats.shotsMiddleThird++;
-          else stats.shotsDefensiveThird++;
-        }
+        if (zone === 'final') stats.shotsFinalThird++;
+        else if (zone === 'middle') stats.shotsMiddleThird++;
+        else stats.shotsDefensiveThird++;
         if (event.shot_outcome === 'goal' || event.shot_outcome === 'on_target') {
           stats.shotsOnTarget++;
         }
@@ -194,20 +233,16 @@ export function aggregateEventsToPlayerStats(
       case 'tackle':
       case 'tackle_won':
         stats.tackles++;
-        { const tZone = getZone(x);
-          if (tZone === 'final') stats.tacklesFinalThird++;
-          else if (tZone === 'middle') stats.tacklesMiddleThird++;
-          else stats.tacklesDefensiveThird++;
-        }
+        if (zone === 'final') stats.tacklesFinalThird++;
+        else if (zone === 'middle') stats.tacklesMiddleThird++;
+        else stats.tacklesDefensiveThird++;
         break;
 
       case 'clearance':
         stats.clearance++;
-        { const clZone = getZone(x);
-          if (clZone === 'final') stats.clearancesFinalThird++;
-          else if (clZone === 'middle') stats.clearancesMiddleThird++;
-          else stats.clearancesDefensiveThird++;
-        }
+        if (zone === 'final') stats.clearancesFinalThird++;
+        else if (zone === 'middle') stats.clearancesMiddleThird++;
+        else stats.clearancesDefensiveThird++;
         break;
 
       case 'save':
@@ -216,17 +251,15 @@ export function aggregateEventsToPlayerStats(
 
       case 'foul_committed':
         stats.fouls++;
-        const foulZone = getZone(x);
-        if (foulZone === 'final') stats.foulsInFinalThird++;
-        else if (foulZone === 'middle') stats.foulsInMiddleThird++;
+        if (zone === 'final') stats.foulsInFinalThird++;
+        else if (zone === 'middle') stats.foulsInMiddleThird++;
         else stats.foulsInDefensiveThird++;
         break;
 
       case 'foul_won':
         stats.foulWon++;
-        const fwZone = getZone(x);
-        if (fwZone === 'final') stats.fwFinalThird++;
-        else if (fwZone === 'middle') stats.fwMiddleThird++;
+        if (zone === 'final') stats.fwFinalThird++;
+        else if (zone === 'middle') stats.fwMiddleThird++;
         else stats.fwDefensiveThird++;
         break;
 
@@ -236,11 +269,9 @@ export function aggregateEventsToPlayerStats(
         } else {
           stats.aerialDuelsLost++;
         }
-        { const aZone = getZone(x);
-          if (aZone === 'final') stats.aerialsFinalThird++;
-          else if (aZone === 'middle') stats.aerialsMiddleThird++;
-          else stats.aerialsDefensiveThird++;
-        }
+        if (zone === 'final') stats.aerialsFinalThird++;
+        else if (zone === 'middle') stats.aerialsMiddleThird++;
+        else stats.aerialsDefensiveThird++;
         break;
 
       case 'corner':
@@ -252,15 +283,13 @@ export function aggregateEventsToPlayerStats(
       case 'throw_in':
         stats.throwIns++;
         stats.passCount++;
-        { const tiZone = getZone(x);
-          if (tiZone === 'final') stats.passesFinalThird++;
-          else if (tiZone === 'middle') stats.passesMiddleThird++;
-          else stats.passesDefensiveThird++;
-        }
+        if (zone === 'final') stats.passesFinalThird++;
+        else if (zone === 'middle') stats.passesMiddleThird++;
+        else stats.passesDefensiveThird++;
         if (successful) {
           stats.tiSuccess++;
           stats.successfulPass++;
-          stats.forwardPass++;
+          if (isForwardPass) stats.forwardPass++;
         } else {
           stats.tiFailed++;
           stats.missPass++;
@@ -301,29 +330,23 @@ export function aggregateEventsToPlayerStats(
 
       case 'block':
         stats.blocks++;
-        { const bZone = getZone(x);
-          if (bZone === 'final') stats.blocksFinalThird++;
-          else if (bZone === 'middle') stats.blocksMiddleThird++;
-          else stats.blocksDefensiveThird++;
-        }
+        if (zone === 'final') stats.blocksFinalThird++;
+        else if (zone === 'middle') stats.blocksMiddleThird++;
+        else stats.blocksDefensiveThird++;
         break;
 
       case 'interception':
         stats.interceptions++;
-        { const iZone = getZone(x);
-          if (iZone === 'final') stats.interceptionsFinalThird++;
-          else if (iZone === 'middle') stats.interceptionsMiddleThird++;
-          else stats.interceptionsDefensiveThird++;
-        }
+        if (zone === 'final') stats.interceptionsFinalThird++;
+        else if (zone === 'middle') stats.interceptionsMiddleThird++;
+        else stats.interceptionsDefensiveThird++;
         break;
 
       case 'bad_touch':
         stats.badTouches++;
-        { const btZone = getZone(x);
-          if (btZone === 'final') stats.badTouchesFinalThird++;
-          else if (btZone === 'middle') stats.badTouchesMiddleThird++;
-          else stats.badTouchesDefensiveThird++;
-        }
+        if (zone === 'final') stats.badTouchesFinalThird++;
+        else if (zone === 'middle') stats.badTouchesMiddleThird++;
+        else stats.badTouchesFinalThird++;
         break;
 
       default:
@@ -502,7 +525,7 @@ export async function fetchAndAggregateMatchEvents(
     fetchAllMatchEvents(matchId),
     supabase
       .from('matches')
-      .select('h1_playing_time_seconds, h2_playing_time_seconds, h1_injury_time_seconds, h2_injury_time_seconds')
+      .select('h1_playing_time_seconds, h2_playing_time_seconds, h1_injury_time_seconds, h2_injury_time_seconds, home_attacks_left')
       .eq('id', matchId)
       .maybeSingle()
   ]);
@@ -517,13 +540,14 @@ export async function fetchAndAggregateMatchEvents(
   const h1InjurySeconds = matchTimeResult.data?.h1_injury_time_seconds ?? 0;
   const h2InjurySeconds = matchTimeResult.data?.h2_injury_time_seconds ?? 0;
   const totalMatchMinutes = Math.round((h1Seconds + h1InjurySeconds + h2Seconds + h2InjurySeconds) / 60);
+  const homeAttacksLeft = matchTimeResult.data?.home_attacks_left ?? true;
 
   // Get all events and separate by team
   const homeEvents = events.filter((e: any) => e.player?.team_id === homeTeamId);
   const awayEvents = events.filter((e: any) => e.player?.team_id === awayTeamId);
 
-  const homePlayersMap = aggregateEventsToPlayerStats(homeEvents as MatchEvent[], undefined, totalMatchMinutes);
-  const awayPlayersMap = aggregateEventsToPlayerStats(awayEvents as MatchEvent[], undefined, totalMatchMinutes);
+  const homePlayersMap = aggregateEventsToPlayerStats(homeEvents as MatchEvent[], undefined, totalMatchMinutes, homeAttacksLeft, true);
+  const awayPlayersMap = aggregateEventsToPlayerStats(awayEvents as MatchEvent[], undefined, totalMatchMinutes, homeAttacksLeft, false);
 
   // Calculate goals from shot events with 'goal' outcome
   const homeGoals = events.filter(
@@ -553,6 +577,7 @@ async function fetchAllEventsForMatches(matchIds: string[]): Promise<any[]> {
       .from('match_events')
       .select(`
         id,
+        match_id,
         player_id,
         event_type,
         x,
@@ -593,14 +618,71 @@ export async function fetchAndAggregateEventsForTeam(
 ): Promise<Map<string, PlayerStats>> {
   if (matchIds.length === 0) return new Map();
 
-  const events = await fetchAllEventsForMatches(matchIds);
+  // Fetch events and match directions in parallel
+  const [events, matchDirections] = await Promise.all([
+    fetchAllEventsForMatches(matchIds),
+    supabase
+      .from('matches')
+      .select('id, home_team_id, home_attacks_left')
+      .in('id', matchIds)
+  ]);
 
   if (!events || events.length === 0) return new Map();
+
+  // Build direction lookup: matchId -> { homeAttacksLeft, isHomeTeam }
+  const directionMap = new Map<string, { homeAttacksLeft: boolean | null; isHomeTeam: boolean }>();
+  matchDirections.data?.forEach((m: any) => {
+    directionMap.set(m.id, {
+      homeAttacksLeft: m.home_attacks_left ?? true,
+      isHomeTeam: m.home_team_id === teamId,
+    });
+  });
 
   // Filter to only team's events
   const teamEvents = events.filter((e: any) => e.player?.team_id === teamId);
 
-  return aggregateEventsToPlayerStats(teamEvents as MatchEvent[]);
+  // Process events per match to use correct direction, then merge
+  const eventsByMatch = new Map<string, MatchEvent[]>();
+  teamEvents.forEach((e: any) => {
+    const mid = e.match_id;
+    if (!eventsByMatch.has(mid)) eventsByMatch.set(mid, []);
+    eventsByMatch.get(mid)!.push(e as MatchEvent);
+  });
+
+  // Aggregate per-match with correct direction, then merge all players
+  const mergedPlayers = new Map<string, PlayerStats>();
+
+  eventsByMatch.forEach((matchEvents, matchId) => {
+    const dir = directionMap.get(matchId) || { homeAttacksLeft: true, isHomeTeam: true };
+    const matchPlayersMap = aggregateEventsToPlayerStats(
+      matchEvents, undefined, 90, dir.homeAttacksLeft, dir.isHomeTeam
+    );
+
+    // Merge into overall map
+    matchPlayersMap.forEach((stats, playerId) => {
+      if (!mergedPlayers.has(playerId)) {
+        mergedPlayers.set(playerId, { ...stats });
+      } else {
+        const existing = mergedPlayers.get(playerId)!;
+        // Sum all numeric fields
+        Object.keys(stats).forEach((key) => {
+          if (typeof (stats as any)[key] === 'number') {
+            (existing as any)[key] = ((existing as any)[key] || 0) + ((stats as any)[key] || 0);
+          }
+        });
+        // Recalculate percentages
+        if (existing.passCount > 0) {
+          existing.successPassPercent = `${((existing.successfulPass / existing.passCount) * 100).toFixed(2)}%`;
+          existing.missPassPercent = `${((existing.missPass / existing.passCount) * 100).toFixed(2)}%`;
+          existing.forwardPassPercent = `${((existing.forwardPass / existing.passCount) * 100).toFixed(2)}%`;
+          existing.backwardPassPercent = `${((existing.backwardPass / existing.passCount) * 100).toFixed(2)}%`;
+        }
+        mergedPlayers.set(playerId, existing);
+      }
+    });
+  });
+
+  return mergedPlayers;
 }
 
 // Check if a match has events logged (to determine data source)
