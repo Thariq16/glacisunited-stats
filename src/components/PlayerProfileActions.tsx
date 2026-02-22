@@ -43,7 +43,7 @@ interface PlayerProfileActionsProps {
 }
 
 export function PlayerProfileActions({ playerName, teamSlug }: PlayerProfileActionsProps) {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isCoach } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -53,7 +53,7 @@ export function PlayerProfileActions({ playerName, teamSlug }: PlayerProfileActi
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Partial<PlayerProfile>>({});
 
-  if (!isAdmin) return null;
+  if (!isAdmin && !isCoach) return null;
 
   const fetchPlayer = async () => {
     const { data: team } = await supabase
