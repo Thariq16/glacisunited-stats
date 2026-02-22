@@ -653,8 +653,7 @@ Deno.serve(async (req) => {
     console.error('Error importing match data:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'An error occurred',
-        details: error instanceof Error ? error.stack : undefined
+        error: error instanceof Error ? error.message : 'An error occurred'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
