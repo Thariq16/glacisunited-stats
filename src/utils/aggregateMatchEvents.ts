@@ -416,7 +416,7 @@ export async function fetchAndAggregateMatchEvents(
     fetchAllMatchEvents(matchId),
     supabase
       .from('matches')
-      .select('h1_playing_time_seconds, h2_playing_time_seconds')
+      .select('h1_playing_time_seconds, h2_playing_time_seconds, h1_injury_time_seconds, h2_injury_time_seconds')
       .eq('id', matchId)
       .maybeSingle()
   ]);
@@ -425,10 +425,12 @@ export async function fetchAndAggregateMatchEvents(
     return { homePlayers: [], awayPlayers: [], homeGoals: 0, awayGoals: 0 };
   }
 
-  // Calculate total match minutes from actual playing time
+  // Calculate total match minutes from actual playing time + injury time
   const h1Seconds = matchTimeResult.data?.h1_playing_time_seconds ?? 2700;
   const h2Seconds = matchTimeResult.data?.h2_playing_time_seconds ?? 2700;
-  const totalMatchMinutes = Math.round((h1Seconds + h2Seconds) / 60);
+  const h1InjurySeconds = matchTimeResult.data?.h1_injury_time_seconds ?? 0;
+  const h2InjurySeconds = matchTimeResult.data?.h2_injury_time_seconds ?? 0;
+  const totalMatchMinutes = Math.round((h1Seconds + h1InjurySeconds + h2Seconds + h2InjurySeconds) / 60);
 
   // Get all events and separate by team
   const homeEvents = events.filter((e: any) => e.player?.team_id === homeTeamId);
