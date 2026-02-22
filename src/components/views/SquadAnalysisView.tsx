@@ -11,6 +11,7 @@ import { AttackingPhase } from "@/hooks/useMatchVisualizationData";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
 import { SquadShotMap, ShotEvent } from "@/components/match-visualizations/SquadShotMap";
 import { LocalEvent } from "@/components/match-events/types";
+import { PassEvent } from "@/hooks/usePlayerPassEvents";
 import { ConsistencyMetrics, MatchStats } from "@/components/views/ConsistencyMetrics";
 
 import { DefensiveHeatmap, DefensiveEvent } from "@/components/views/DefensiveHeatmap";
@@ -18,6 +19,7 @@ import { SetPieceEfficiency, SetPieceStats, PlayerSetPieceStats } from "@/compon
 import { AttackingThreatMap, LaneStats } from "@/components/views/AttackingThreatMap";
 import { LostPossessionHeatmap, PossessionLossEvent } from "@/components/views/LostPossessionHeatmap";
 import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
+import { DirectionalPassMap } from "@/components/DirectionalPassMap";
 
 interface SquadAnalysisViewProps {
     players: PlayerStats[];
@@ -47,6 +49,7 @@ interface SquadAnalysisViewProps {
     matchCount?: number;
     matchId?: string;
     opponentTeamId?: string;
+    teamPassEvents?: PassEvent[];
 }
 
 export function SquadAnalysisView({
@@ -68,7 +71,8 @@ export function SquadAnalysisView({
     focusTeamId,
     matchCount = 1,
     matchId,
-    opponentTeamId
+    opponentTeamId,
+    teamPassEvents = []
 }: SquadAnalysisViewProps) {
     const [selectedHalf, setSelectedHalf] = useState<'all' | 'first' | 'second'>('all');
 
@@ -437,6 +441,15 @@ export function SquadAnalysisView({
             </TabsContent>
 
             <TabsContent value="attacking" className="space-y-6">
+                <FilterControl />
+
+                {/* Directional Pass Map */}
+                {teamPassEvents.length > 0 && (
+                    <DirectionalPassMap
+                        passes={teamPassEvents}
+                        title="Team Forward & Backward Pass Map"
+                    />
+                )}
                 <FilterControl />
 
                 {derivedShots.length > 0 && (
