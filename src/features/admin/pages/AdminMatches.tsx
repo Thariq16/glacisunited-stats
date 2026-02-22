@@ -243,7 +243,8 @@ function AdminMatchesContent() {
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => handleEditOpen(match)}
+                  onClick={() => navigate(`/admin/match-events/${match.id}`)}
+                  title="Edit match events"
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
