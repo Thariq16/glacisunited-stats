@@ -208,24 +208,50 @@ export default function PlayerProfile() {
               <TabsTrigger value="analysis">Tactical & Advanced</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="space-y-8">
-              {/* Key Stats */}
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-foreground mb-4">Key Statistics</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                  <StatCard title="Minutes Played" value={player.minutesPlayed} icon={Activity} />
-                  <StatCard title="Sub Appearances" value={player.substituteAppearances} icon={Users} />
-                  <StatCard title="Goals" value={player.goals} icon={Target} />
-                  <StatCard title="Total Passes" value={player.passCount} icon={Users} />
-                  <StatCard title="Pass Accuracy" value={player.successPassPercent} icon={TrendingUp} />
-                  <StatCard title="Tackles" value={player.tackles} icon={Shield} />
-                  <StatCard title="Shots Attempted" value={player.shotsAttempted} icon={Activity} />
-                </div>
+            <TabsContent value="overview" className="space-y-6">
+              {/* Hero Stats Banner */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {[
+                  { label: 'Minutes', value: player.minutesPlayed, accent: false },
+                  { label: 'Goals', value: player.goals, accent: true },
+                  { label: 'Pass Accuracy', value: `${player.successPassPercent}`, accent: true },
+                  { label: 'Tackles', value: player.tackles, accent: false },
+                  { label: 'Rating', value: advancedMetrics?.performanceRating ?? '-', accent: true },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className={`relative rounded-xl border p-4 text-center transition-shadow hover:shadow-md ${
+                      stat.accent ? 'bg-primary/5 border-primary/20' : 'bg-card'
+                    }`}
+                  >
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">{stat.label}</p>
+                    <p className={`text-3xl font-bold ${stat.accent ? 'text-primary' : 'text-foreground'}`}>{stat.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Secondary quick stats */}
+              <div className="flex flex-wrap gap-3 justify-center">
+                {[
+                  { label: 'Sub Apps', value: player.substituteAppearances },
+                  { label: 'Shots', value: player.shotsAttempted },
+                  { label: 'On Target', value: player.shotsOnTarget },
+                  { label: 'Passes', value: player.passCount },
+                  { label: 'Clearances', value: player.clearance },
+                  { label: 'Saves', value: player.saves },
+                  { label: 'Aerial Won', value: player.aerialDuelsWon },
+                  { label: 'Aerial Lost', value: player.aerialDuelsLost },
+                ].filter(s => s.value > 0).map((stat) => (
+                  <Badge key={stat.label} variant="secondary" className="text-xs px-3 py-1.5 gap-1.5">
+                    <span className="font-bold">{stat.value}</span>
+                    <span className="text-muted-foreground">{stat.label}</span>
+                  </Badge>
+                ))}
               </div>
 
               {/* Efficiency Metrics & Tactical Insights */}
               {advancedMetrics && tacticalProfile && positioning && (
-                <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <div className="grid md:grid-cols-2 gap-6">
                   <PlayerEfficiencyMetrics metrics={advancedMetrics} />
                   <TacticalInsightsCard
                     player={player}
@@ -236,207 +262,120 @@ export default function PlayerProfile() {
                 </div>
               )}
 
-              {/* Attacking Stats */}
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" />
-                    Attacking Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {/* xG Stats Row */}
-                  {xgStats && xgStats.shotCount > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Expected Goals (xG)</p>
-                        <p className="text-2xl font-bold text-primary">{xgStats.totalXG.toFixed(2)}</p>
+              {/* Consolidated Detailed Stats */}
+              <Card>
+                <CardContent className="p-0">
+                  <Tabs defaultValue="attacking" className="w-full">
+                    <TabsList className="w-full grid grid-cols-3 rounded-none rounded-t-lg">
+                      <TabsTrigger value="attacking" className="gap-1.5 text-xs sm:text-sm">
+                        <Target className="h-3.5 w-3.5" /> Attacking
+                      </TabsTrigger>
+                      <TabsTrigger value="defensive" className="gap-1.5 text-xs sm:text-sm">
+                        <Shield className="h-3.5 w-3.5" /> Defensive
+                      </TabsTrigger>
+                      <TabsTrigger value="setpieces" className="gap-1.5 text-xs sm:text-sm">
+                        <Flag className="h-3.5 w-3.5" /> Set Pieces
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="attacking" className="p-5 space-y-4">
+                      {/* xG Stats */}
+                      {xgStats && xgStats.shotCount > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">xG</p>
+                            <p className="text-xl font-bold text-primary">{xgStats.totalXG.toFixed(2)}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">xG/Shot</p>
+                            <p className="text-xl font-bold">{xgStats.xGPerShot.toFixed(2)}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Goals vs xG</p>
+                            <p className={`text-xl font-bold ${xgStats.overperformance >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {xgStats.overperformance >= 0 ? '+' : ''}{xgStats.overperformance.toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground mb-1">Finishing</p>
+                            <p className="text-xl font-bold">{xgStats.actualGoals}/{xgStats.shotCount}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3">
+                        {[
+                          { label: 'Run in Behind', value: player.runInBehind },
+                          { label: 'Overlaps', value: player.overlaps },
+                          { label: 'Shots on Target', value: player.shotsOnTarget },
+                          { label: 'Shot Accuracy', value: `${player.shotsAttempted > 0 ? ((player.shotsOnTarget / player.shotsAttempted) * 100).toFixed(1) : 0}%` },
+                          { label: 'Conversion Rate', value: `${player.shotsAttempted > 0 ? ((player.goals / player.shotsAttempted) * 100).toFixed(1) : 0}%` },
+                          { label: 'PA Passes', value: player.penaltyAreaPass },
+                          { label: 'PA Entries', value: player.penaltyAreaEntry },
+                          { label: 'Crosses', value: player.crosses },
+                          { label: 'Cut Backs', value: player.cutBacks },
+                          { label: 'Offside', value: player.offside },
+                        ].map((stat) => (
+                          <div key={stat.label} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
+                            <span className="text-sm text-muted-foreground">{stat.label}</span>
+                            <span className="font-semibold text-sm">{stat.value}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">xG per Shot</p>
-                        <p className="text-2xl font-bold">{xgStats.xGPerShot.toFixed(2)}</p>
+                    </TabsContent>
+
+                    <TabsContent value="defensive" className="p-5">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3">
+                        {[
+                          { label: 'Tackles', value: player.tackles },
+                          { label: 'Clearances', value: player.clearance },
+                          { label: 'Aerial Won', value: player.aerialDuelsWon },
+                          { label: 'Aerial Lost', value: player.aerialDuelsLost },
+                          { label: 'Saves', value: player.saves },
+                          { label: 'Defensive Errors', value: player.defensiveErrors },
+                          { label: 'Fouls Committed', value: player.fouls },
+                          { label: 'Fouls Won', value: player.foulWon },
+                          { label: 'Fouls (Final 3rd)', value: player.foulsInFinalThird },
+                          { label: 'Fouls (Mid 3rd)', value: player.foulsInMiddleThird },
+                          { label: 'Fouls (Def 3rd)', value: player.foulsInDefensiveThird },
+                        ].map((stat) => (
+                          <div key={stat.label} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
+                            <span className="text-sm text-muted-foreground">{stat.label}</span>
+                            <span className="font-semibold text-sm">{stat.value}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Goals vs xG</p>
-                        <p className={`text-2xl font-bold ${xgStats.overperformance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {xgStats.overperformance >= 0 ? '+' : ''}{xgStats.overperformance.toFixed(2)}
-                        </p>
+                    </TabsContent>
+
+                    <TabsContent value="setpieces" className="p-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                        {[
+                          { label: 'Corners', value: player.corners, sub: `${player.corners > 0 ? ((player.cornerSuccess / player.corners) * 100).toFixed(1) : 0}% success` },
+                          { label: 'Throw Ins', value: player.throwIns, sub: `${player.throwIns > 0 ? ((player.tiSuccess / player.throwIns) * 100).toFixed(1) : 0}% success` },
+                          { label: 'Free Kicks', value: player.freeKicks },
+                          { label: 'Crosses', value: player.crosses },
+                          { label: 'Cut Backs', value: player.cutBacks },
+                        ].map((stat) => (
+                          <div key={stat.label} className="flex justify-between items-center py-2.5 border-b border-border/50 last:border-0">
+                            <span className="text-sm text-muted-foreground">{stat.label}</span>
+                            <div className="text-right">
+                              <span className="font-semibold text-sm">{stat.value}</span>
+                              {stat.sub && (
+                                <span className="text-xs text-muted-foreground ml-2">({stat.sub})</span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-1">Finishing Quality</p>
-                        <p className="text-2xl font-bold">
-                          {xgStats.actualGoals} / {xgStats.shotCount}
-                          <span className="text-sm text-muted-foreground ml-1">goals</span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Run in Behind</p>
-                      <p className="text-2xl font-bold text-primary">{player.runInBehind}</p>
-                    </div>
-                    {/* ... Rest of Attacking Stats content matches what was overwritten ... */}
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Overlaps</p>
-                      <p className="text-2xl font-bold text-primary">{player.overlaps}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Shots on Target</p>
-                      <p className="text-2xl font-bold">{player.shotsOnTarget}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Shot Accuracy</p>
-                      <p className="text-2xl font-bold text-primary">
-                        {player.shotsAttempted > 0 ? ((player.shotsOnTarget / player.shotsAttempted) * 100).toFixed(1) : 0}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Conversion Rate</p>
-                      <p className="text-2xl font-bold text-primary">
-                        {player.shotsAttempted > 0 ? ((player.goals / player.shotsAttempted) * 100).toFixed(1) : 0}%
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Penalty Area Pass</p>
-                      <p className="text-2xl font-bold">{player.penaltyAreaPass}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Penalty Area Entry</p>
-                      <p className="text-2xl font-bold">{player.penaltyAreaEntry}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Crosses</p>
-                      <p className="text-2xl font-bold">{player.crosses}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Cut Backs</p>
-                      <p className="text-2xl font-bold">{player.cutBacks}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Offside</p>
-                      <p className="text-2xl font-bold">{player.offside}</p>
-                    </div>
-                  </div>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
 
               {/* Shot Map */}
               {playerShots && playerShots.length > 0 && (
-                <div className="mb-8">
-                  <PlayerShotMap shots={playerShots} />
-                </div>
+                <PlayerShotMap shots={playerShots} />
               )}
-
-              {/* Defensive Stats */}
-              <Card className="mb-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    Defensive Statistics
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Clearances</p>
-                      <p className="text-2xl font-bold">{player.clearance}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Aerial Duels Won</p>
-                      <p className="text-2xl font-bold text-primary">{player.aerialDuelsWon}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Aerial Duels Lost</p>
-                      <p className="text-2xl font-bold">{player.aerialDuelsLost}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Saves</p>
-                      <p className="text-2xl font-bold">{player.saves}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Discipline & Set Pieces - Re-adding Cards */}
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-primary" />
-                      Discipline
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* ... Discipline content ... */}
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Total Fouls</span>
-                        <span className="font-bold">{player.fouls}</span>
-                      </div>
-                      <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
-                        <span className="text-sm text-muted-foreground">Final Third</span>
-                        <span className="font-semibold">{player.foulsInFinalThird}</span>
-                      </div>
-                      <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
-                        <span className="text-sm text-muted-foreground">Middle Third</span>
-                        <span className="font-semibold">{player.foulsInMiddleThird}</span>
-                      </div>
-                      <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
-                        <span className="text-sm text-muted-foreground">Defensive Third</span>
-                        <span className="font-semibold">{player.foulsInDefensiveThird}</span>
-                      </div>
-                      {/* ... other discipline stats ... */}
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span className="text-muted-foreground">Fouls Won</span>
-                        <span className="font-bold text-primary">{player.foulWon}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span className="text-muted-foreground">Defensive Errors</span>
-                        <span className="font-bold">{player.defensiveErrors}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Flag className="h-5 w-5 text-primary" />
-                      Set Pieces
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {/* ... Set Pieces Content ... */}
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Corners</span>
-                        <span className="font-bold">{player.corners}</span>
-                      </div>
-                      <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
-                        <span className="text-sm text-muted-foreground">Success Rate</span>
-                        <span className="font-semibold text-primary">
-                          {player.corners > 0 ? ((player.cornerSuccess / player.corners) * 100).toFixed(1) : 0}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span className="text-muted-foreground">Throw Ins</span>
-                        <span className="font-bold">{player.throwIns}</span>
-                      </div>
-                      <div className="flex justify-between items-center pl-4 border-l-2 border-muted">
-                        <span className="text-sm text-muted-foreground">Success Rate</span>
-                        <span className="font-semibold text-primary">
-                          {player.throwIns > 0 ? ((player.tiSuccess / player.throwIns) * 100).toFixed(1) : 0}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <span className="text-muted-foreground">Free Kicks</span>
-                        <span className="font-bold">{player.freeKicks}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </TabsContent>
 
 
