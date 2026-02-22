@@ -120,9 +120,13 @@ export function aggregateEventsToPlayerStats(
       case 'long_ball':
       case 'through_ball':
         stats.passCount++;
+        { const pZone = getZone(x);
+          if (pZone === 'final') stats.passesFinalThird++;
+          else if (pZone === 'middle') stats.passesMiddleThird++;
+          else stats.passesDefensiveThird++;
+        }
         if (successful) {
           stats.successfulPass++;
-          // Determine pass direction based on end position
           if (endX !== undefined && endX > x) {
             stats.forwardPass++;
           } else if (endX !== undefined && endX < x) {
@@ -136,6 +140,11 @@ export function aggregateEventsToPlayerStats(
       case 'cross':
         stats.crosses++;
         stats.passCount++;
+        { const cZone = getZone(x);
+          if (cZone === 'final') stats.passesFinalThird++;
+          else if (cZone === 'middle') stats.passesMiddleThird++;
+          else stats.passesDefensiveThird++;
+        }
         if (successful) {
           stats.successfulPass++;
           stats.forwardPass++;
@@ -147,6 +156,7 @@ export function aggregateEventsToPlayerStats(
       case 'penalty_area_pass':
         stats.penaltyAreaPass++;
         stats.passCount++;
+        stats.passesFinalThird++; // PA passes are always in the final third
         if (successful) {
           stats.successfulPass++;
           stats.forwardPass++;
@@ -161,6 +171,11 @@ export function aggregateEventsToPlayerStats(
 
       case 'shot':
         stats.shotsAttempted++;
+        { const sZone = getZone(x);
+          if (sZone === 'final') stats.shotsFinalThird++;
+          else if (sZone === 'middle') stats.shotsMiddleThird++;
+          else stats.shotsDefensiveThird++;
+        }
         if (event.shot_outcome === 'goal' || event.shot_outcome === 'on_target') {
           stats.shotsOnTarget++;
         }
@@ -173,15 +188,26 @@ export function aggregateEventsToPlayerStats(
         stats.goals++;
         stats.shotsAttempted++;
         stats.shotsOnTarget++;
+        stats.shotsFinalThird++;
         break;
 
       case 'tackle':
       case 'tackle_won':
         stats.tackles++;
+        { const tZone = getZone(x);
+          if (tZone === 'final') stats.tacklesFinalThird++;
+          else if (tZone === 'middle') stats.tacklesMiddleThird++;
+          else stats.tacklesDefensiveThird++;
+        }
         break;
 
       case 'clearance':
         stats.clearance++;
+        { const clZone = getZone(x);
+          if (clZone === 'final') stats.clearancesFinalThird++;
+          else if (clZone === 'middle') stats.clearancesMiddleThird++;
+          else stats.clearancesDefensiveThird++;
+        }
         break;
 
       case 'save':
@@ -210,6 +236,11 @@ export function aggregateEventsToPlayerStats(
         } else {
           stats.aerialDuelsLost++;
         }
+        { const aZone = getZone(x);
+          if (aZone === 'final') stats.aerialsFinalThird++;
+          else if (aZone === 'middle') stats.aerialsMiddleThird++;
+          else stats.aerialsDefensiveThird++;
+        }
         break;
 
       case 'corner':
@@ -221,6 +252,11 @@ export function aggregateEventsToPlayerStats(
       case 'throw_in':
         stats.throwIns++;
         stats.passCount++;
+        { const tiZone = getZone(x);
+          if (tiZone === 'final') stats.passesFinalThird++;
+          else if (tiZone === 'middle') stats.passesMiddleThird++;
+          else stats.passesDefensiveThird++;
+        }
         if (successful) {
           stats.tiSuccess++;
           stats.successfulPass++;
@@ -265,14 +301,29 @@ export function aggregateEventsToPlayerStats(
 
       case 'block':
         stats.blocks++;
+        { const bZone = getZone(x);
+          if (bZone === 'final') stats.blocksFinalThird++;
+          else if (bZone === 'middle') stats.blocksMiddleThird++;
+          else stats.blocksDefensiveThird++;
+        }
         break;
 
       case 'interception':
         stats.interceptions++;
+        { const iZone = getZone(x);
+          if (iZone === 'final') stats.interceptionsFinalThird++;
+          else if (iZone === 'middle') stats.interceptionsMiddleThird++;
+          else stats.interceptionsDefensiveThird++;
+        }
         break;
 
       case 'bad_touch':
         stats.badTouches++;
+        { const btZone = getZone(x);
+          if (btZone === 'final') stats.badTouchesFinalThird++;
+          else if (btZone === 'middle') stats.badTouchesMiddleThird++;
+          else stats.badTouchesDefensiveThird++;
+        }
         break;
 
       default:
@@ -368,6 +419,30 @@ export function createEmptyPlayerStats(
     blocks: 0,
     interceptions: 0,
     badTouches: 0,
+    tacklesDefensiveThird: 0,
+    tacklesMiddleThird: 0,
+    tacklesFinalThird: 0,
+    passesDefensiveThird: 0,
+    passesMiddleThird: 0,
+    passesFinalThird: 0,
+    clearancesDefensiveThird: 0,
+    clearancesMiddleThird: 0,
+    clearancesFinalThird: 0,
+    blocksDefensiveThird: 0,
+    blocksMiddleThird: 0,
+    blocksFinalThird: 0,
+    interceptionsDefensiveThird: 0,
+    interceptionsMiddleThird: 0,
+    interceptionsFinalThird: 0,
+    shotsDefensiveThird: 0,
+    shotsMiddleThird: 0,
+    shotsFinalThird: 0,
+    aerialsDefensiveThird: 0,
+    aerialsMiddleThird: 0,
+    aerialsFinalThird: 0,
+    badTouchesDefensiveThird: 0,
+    badTouchesMiddleThird: 0,
+    badTouchesFinalThird: 0,
   };
 }
 

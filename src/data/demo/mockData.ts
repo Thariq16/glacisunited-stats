@@ -50,7 +50,15 @@ export const DEMO_SQUAD: PlayerStats[] = [
         substituteAppearances: 2,
         yellowCards: 3,
         redCards: 0,
-        blocks: 2, interceptions: 1, badTouches: 0
+        blocks: 2, interceptions: 1, badTouches: 0,
+        tacklesDefensiveThird: 1, tacklesMiddleThird: 3, tacklesFinalThird: 4,
+        passesDefensiveThird: 3, passesMiddleThird: 8, passesFinalThird: 14,
+        clearancesDefensiveThird: 1, clearancesMiddleThird: 1, clearancesFinalThird: 0,
+        blocksDefensiveThird: 1, blocksMiddleThird: 1, blocksFinalThird: 0,
+        interceptionsDefensiveThird: 0, interceptionsMiddleThird: 0, interceptionsFinalThird: 1,
+        shotsDefensiveThird: 0, shotsMiddleThird: 5, shotsFinalThird: 80,
+        aerialsDefensiveThird: 2, aerialsMiddleThird: 8, aerialsFinalThird: 20,
+        badTouchesDefensiveThird: 0, badTouchesMiddleThird: 0, badTouchesFinalThird: 0
     },
     {
         jerseyNumber: "10",
@@ -100,7 +108,15 @@ export const DEMO_SQUAD: PlayerStats[] = [
         substituteAppearances: 0,
         yellowCards: 1,
         redCards: 0,
-        blocks: 1, interceptions: 8, badTouches: 2
+        blocks: 1, interceptions: 8, badTouches: 2,
+        tacklesDefensiveThird: 5, tacklesMiddleThird: 25, tacklesFinalThird: 15,
+        passesDefensiveThird: 200, passesMiddleThird: 700, passesFinalThird: 550,
+        clearancesDefensiveThird: 5, clearancesMiddleThird: 5, clearancesFinalThird: 2,
+        blocksDefensiveThird: 0, blocksMiddleThird: 1, blocksFinalThird: 0,
+        interceptionsDefensiveThird: 1, interceptionsMiddleThird: 5, interceptionsFinalThird: 2,
+        shotsDefensiveThird: 0, shotsMiddleThird: 10, shotsFinalThird: 35,
+        aerialsDefensiveThird: 2, aerialsMiddleThird: 15, aerialsFinalThird: 13,
+        badTouchesDefensiveThird: 0, badTouchesMiddleThird: 1, badTouchesFinalThird: 1
     },
     {
         jerseyNumber: "4",
@@ -150,7 +166,15 @@ export const DEMO_SQUAD: PlayerStats[] = [
         substituteAppearances: 0,
         yellowCards: 0,
         redCards: 0,
-        blocks: 15, interceptions: 12, badTouches: 1
+        blocks: 15, interceptions: 12, badTouches: 1,
+        tacklesDefensiveThird: 50, tacklesMiddleThird: 35, tacklesFinalThird: 5,
+        passesDefensiveThird: 400, passesMiddleThird: 400, passesFinalThird: 150,
+        clearancesDefensiveThird: 40, clearancesMiddleThird: 20, clearancesFinalThird: 5,
+        blocksDefensiveThird: 10, blocksMiddleThird: 4, blocksFinalThird: 1,
+        interceptionsDefensiveThird: 6, interceptionsMiddleThird: 4, interceptionsFinalThird: 2,
+        shotsDefensiveThird: 0, shotsMiddleThird: 2, shotsFinalThird: 10,
+        aerialsDefensiveThird: 35, aerialsMiddleThird: 20, aerialsFinalThird: 10,
+        badTouchesDefensiveThird: 1, badTouchesMiddleThird: 0, badTouchesFinalThird: 0
     },
     {
         jerseyNumber: "1",
@@ -200,7 +224,15 @@ export const DEMO_SQUAD: PlayerStats[] = [
         substituteAppearances: 0,
         yellowCards: 2,
         redCards: 0,
-        blocks: 3, interceptions: 5, badTouches: 3
+        blocks: 3, interceptions: 5, badTouches: 3,
+        tacklesDefensiveThird: 3, tacklesMiddleThird: 10, tacklesFinalThird: 7,
+        passesDefensiveThird: 50, passesMiddleThird: 250, passesFinalThird: 350,
+        clearancesDefensiveThird: 2, clearancesMiddleThird: 3, clearancesFinalThird: 0,
+        blocksDefensiveThird: 1, blocksMiddleThird: 1, blocksFinalThird: 1,
+        interceptionsDefensiveThird: 1, interceptionsMiddleThird: 2, interceptionsFinalThird: 2,
+        shotsDefensiveThird: 0, shotsMiddleThird: 5, shotsFinalThird: 40,
+        aerialsDefensiveThird: 3, aerialsMiddleThird: 10, aerialsFinalThird: 5,
+        badTouchesDefensiveThird: 0, badTouchesMiddleThird: 1, badTouchesFinalThird: 2
     },
     {
         jerseyNumber: "7",
@@ -250,7 +282,15 @@ export const DEMO_SQUAD: PlayerStats[] = [
         substituteAppearances: 5,
         yellowCards: 4,
         redCards: 1,
-        blocks: 8, interceptions: 10, badTouches: 4
+        blocks: 8, interceptions: 10, badTouches: 4,
+        tacklesDefensiveThird: 20, tacklesMiddleThird: 40, tacklesFinalThird: 15,
+        passesDefensiveThird: 150, passesMiddleThird: 400, passesFinalThird: 200,
+        clearancesDefensiveThird: 10, clearancesMiddleThird: 8, clearancesFinalThird: 2,
+        blocksDefensiveThird: 4, blocksMiddleThird: 3, blocksFinalThird: 1,
+        interceptionsDefensiveThird: 3, interceptionsMiddleThird: 5, interceptionsFinalThird: 2,
+        shotsDefensiveThird: 0, shotsMiddleThird: 5, shotsFinalThird: 25,
+        aerialsDefensiveThird: 10, aerialsMiddleThird: 15, aerialsFinalThird: 5,
+        badTouchesDefensiveThird: 1, badTouchesMiddleThird: 2, badTouchesFinalThird: 1
     },
     {
         jerseyNumber: "6",
@@ -300,7 +340,15 @@ export const DEMO_SQUAD: PlayerStats[] = [
         substituteAppearances: 1,
         yellowCards: 1,
         redCards: 0,
-        blocks: 10, interceptions: 15, badTouches: 1
+        blocks: 10, interceptions: 15, badTouches: 1,
+        tacklesDefensiveThird: 40, tacklesMiddleThird: 30, tacklesFinalThird: 5,
+        passesDefensiveThird: 350, passesMiddleThird: 350, passesFinalThird: 100,
+        clearancesDefensiveThird: 35, clearancesMiddleThird: 15, clearancesFinalThird: 2,
+        blocksDefensiveThird: 6, blocksMiddleThird: 3, blocksFinalThird: 1,
+        interceptionsDefensiveThird: 8, interceptionsMiddleThird: 5, interceptionsFinalThird: 2,
+        shotsDefensiveThird: 0, shotsMiddleThird: 1, shotsFinalThird: 5,
+        aerialsDefensiveThird: 25, aerialsMiddleThird: 15, aerialsFinalThird: 5,
+        badTouchesDefensiveThird: 0, badTouchesMiddleThird: 1, badTouchesFinalThird: 0
     },
     // Add more bench players to simulate depth analysis
     ...Array.from({ length: 10 }).map((_, i) => ({
@@ -353,7 +401,15 @@ export const DEMO_SQUAD: PlayerStats[] = [
         redCards: Math.floor(Math.random() * 1),
         blocks: Math.floor(Math.random() * 5),
         interceptions: Math.floor(Math.random() * 8),
-        badTouches: Math.floor(Math.random() * 3)
+        badTouches: Math.floor(Math.random() * 3),
+        tacklesDefensiveThird: Math.floor(Math.random() * 10), tacklesMiddleThird: Math.floor(Math.random() * 15), tacklesFinalThird: Math.floor(Math.random() * 5),
+        passesDefensiveThird: Math.floor(Math.random() * 150), passesMiddleThird: Math.floor(Math.random() * 200), passesFinalThird: Math.floor(Math.random() * 100),
+        clearancesDefensiveThird: Math.floor(Math.random() * 10), clearancesMiddleThird: Math.floor(Math.random() * 5), clearancesFinalThird: Math.floor(Math.random() * 2),
+        blocksDefensiveThird: Math.floor(Math.random() * 3), blocksMiddleThird: Math.floor(Math.random() * 2), blocksFinalThird: 0,
+        interceptionsDefensiveThird: Math.floor(Math.random() * 4), interceptionsMiddleThird: Math.floor(Math.random() * 3), interceptionsFinalThird: Math.floor(Math.random() * 2),
+        shotsDefensiveThird: 0, shotsMiddleThird: Math.floor(Math.random() * 2), shotsFinalThird: Math.floor(Math.random() * 8),
+        aerialsDefensiveThird: Math.floor(Math.random() * 10), aerialsMiddleThird: Math.floor(Math.random() * 8), aerialsFinalThird: Math.floor(Math.random() * 5),
+        badTouchesDefensiveThird: Math.floor(Math.random() * 1), badTouchesMiddleThird: Math.floor(Math.random() * 2), badTouchesFinalThird: Math.floor(Math.random() * 1)
     }))
 ];
 
