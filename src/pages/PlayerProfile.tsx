@@ -448,13 +448,6 @@ export default function PlayerProfile() {
             </TabsContent>
 
             <TabsContent value="analysis" className="space-y-6">
-              {passData && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <PlayerPassPositionMap passData={passData} />
-                  <PlayerPassThirdMap passData={passData} />
-                </div>
-              )}
-
               {passData && passData.passes.length > 0 && (
                 <DirectionalPassMap passes={passData.passes} title="Forward & Backward Pass Map" />
               )}
