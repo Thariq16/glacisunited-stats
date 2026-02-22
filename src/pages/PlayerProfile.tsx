@@ -249,17 +249,14 @@ export default function PlayerProfile() {
                 ))}
               </div>
 
-              {/* Efficiency Metrics & Tactical Insights */}
+              {/* Tactical Insights */}
               {advancedMetrics && tacticalProfile && positioning && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  <PlayerEfficiencyMetrics metrics={advancedMetrics} />
-                  <TacticalInsightsCard
-                    player={player}
-                    tacticalProfile={tacticalProfile}
-                    positioning={positioning}
-                    metrics={advancedMetrics}
-                  />
-                </div>
+                <TacticalInsightsCard
+                  player={player}
+                  tacticalProfile={tacticalProfile}
+                  positioning={positioning}
+                  metrics={advancedMetrics}
+                />
               )}
 
               {/* Consolidated Detailed Stats */}
@@ -372,10 +369,15 @@ export default function PlayerProfile() {
                 </CardContent>
               </Card>
 
-              {/* Shot Map */}
-              {playerShots && playerShots.length > 0 && (
-                <PlayerShotMap shots={playerShots} />
-              )}
+              {/* Efficiency Metrics & Shot Map side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {advancedMetrics && (
+                  <PlayerEfficiencyMetrics metrics={advancedMetrics} />
+                )}
+                {playerShots && playerShots.length > 0 && (
+                  <PlayerShotMap shots={playerShots} />
+                )}
+              </div>
             </TabsContent>
 
 
