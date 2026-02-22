@@ -456,13 +456,17 @@ export default function PlayerProfile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <AttackingThreatMap stats={advancedStats.attackingThreat.all} />
                   {passData && <PlayerPassThirdMap passData={passData} />}
-                  <LostPossessionHeatmap events={advancedStats.possessionLossEvents} />
                 </div>
               )}
 
-              {defensiveEvents && defensiveEvents.length > 0 && (
-                <DefensiveHeatmap events={defensiveEvents} />
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {advancedStats && (
+                  <LostPossessionHeatmap events={advancedStats.possessionLossEvents} />
+                )}
+                {defensiveEvents && defensiveEvents.length > 0 && (
+                  <DefensiveHeatmap events={defensiveEvents} />
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         )}
