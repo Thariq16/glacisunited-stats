@@ -49,6 +49,31 @@ export interface PlayerStats {
   blocks: number;
   interceptions: number;
   badTouches: number;
+  // Zone-based tracking (defensive/middle/final third)
+  tacklesDefensiveThird: number;
+  tacklesMiddleThird: number;
+  tacklesFinalThird: number;
+  passesDefensiveThird: number;
+  passesMiddleThird: number;
+  passesFinalThird: number;
+  clearancesDefensiveThird: number;
+  clearancesMiddleThird: number;
+  clearancesFinalThird: number;
+  blocksDefensiveThird: number;
+  blocksMiddleThird: number;
+  blocksFinalThird: number;
+  interceptionsDefensiveThird: number;
+  interceptionsMiddleThird: number;
+  interceptionsFinalThird: number;
+  shotsDefensiveThird: number;
+  shotsMiddleThird: number;
+  shotsFinalThird: number;
+  aerialsDefensiveThird: number;
+  aerialsMiddleThird: number;
+  aerialsFinalThird: number;
+  badTouchesDefensiveThird: number;
+  badTouchesMiddleThird: number;
+  badTouchesFinalThird: number;
 }
 
 export function parseCSV(csvText: string): PlayerStats[] {
@@ -122,6 +147,14 @@ export function parseCSV(csvText: string): PlayerStats[] {
       blocks: 0,
       interceptions: 0,
       badTouches: 0,
+      tacklesDefensiveThird: 0, tacklesMiddleThird: 0, tacklesFinalThird: 0,
+      passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0,
+      clearancesDefensiveThird: 0, clearancesMiddleThird: 0, clearancesFinalThird: 0,
+      blocksDefensiveThird: 0, blocksMiddleThird: 0, blocksFinalThird: 0,
+      interceptionsDefensiveThird: 0, interceptionsMiddleThird: 0, interceptionsFinalThird: 0,
+      shotsDefensiveThird: 0, shotsMiddleThird: 0, shotsFinalThird: 0,
+      aerialsDefensiveThird: 0, aerialsMiddleThird: 0, aerialsFinalThird: 0,
+      badTouchesDefensiveThird: 0, badTouchesMiddleThird: 0, badTouchesFinalThird: 0,
     });
   }
 

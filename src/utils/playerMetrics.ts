@@ -103,43 +103,65 @@ export function calculateTacticalProfile(player: PlayerStats, metrics: AdvancedM
     ? (player.successfulPass / player.passCount) * 100 
     : 0;
 
-  // Attacking: goals, shots on target, PA entries, creative actions
-  // Weighted to reward direct goal involvement most, then chance creation
+  // === ATTACKING THREAT ===
+  // Weighted heavily toward final-third activity & direct goal involvement
+  // Final-third passes, shots, PA entries, creative actions all contribute
+  const finalThirdPassRatio = player.passCount > 0 ? player.passesFinalThird / player.passCount : 0;
   const attackingThreat = Math.min(100, (
     player.goals * 15 +
     player.shotsOnTarget * 4 +
+    player.shotsFinalThird * 1.5 +
     player.penaltyAreaEntry * 3 +
     player.penaltyAreaPass * 2 +
     player.cutBacks * 3 +
     player.crosses * 1.5 +
     player.runInBehind * 4 +
-    player.overlaps * 3
+    player.overlaps * 3 +
+    finalThirdPassRatio * 20 + // bonus for final-third passing proportion
+    player.tacklesFinalThird * 2 // pressing high = attacking intent
   ) / 3);
 
-  // Defensive: tackles, clearances, blocks, interceptions, aerials, saves
-  // Penalize defensive errors heavily
+  // === DEFENSIVE STRENGTH ===
+  // Defensive-third actions weighted most, middle-third less, final-third least
+  // Blocks, interceptions, clearances in own third matter most
   const defensiveStrength = Math.min(100, Math.max(0, (
-    player.tackles * 5 +
-    player.clearance * 3 +
-    player.blocks * 4 +
-    player.interceptions * 4 +
-    player.aerialDuelsWon * 3 +
+    player.tacklesDefensiveThird * 6 +
+    player.tacklesMiddleThird * 4 +
+    player.tacklesFinalThird * 2 +
+    player.clearancesDefensiveThird * 5 +
+    player.clearancesMiddleThird * 3 +
+    player.clearancesFinalThird * 1 +
+    player.blocksDefensiveThird * 5 +
+    player.blocksMiddleThird * 3 +
+    player.blocksFinalThird * 1 +
+    player.interceptionsDefensiveThird * 5 +
+    player.interceptionsMiddleThird * 3 +
+    player.interceptionsFinalThird * 1 +
+    player.aerialsDefensiveThird * 3 +
+    player.aerialsMiddleThird * 2 +
     player.saves * 5 -
     player.defensiveErrors * 10
   ) / 3.5));
 
-  // Passing: weighted blend of accuracy and progressive passing, penalized by bad touches
+  // === PASSING QUALITY ===
+  // Pass accuracy + progressive passing + final-third involvement
+  // Penalized by bad touches (especially in own third where it's more costly)
   const badTouchPenalty = player.passCount > 0
-    ? Math.min(20, (player.badTouches / player.passCount) * 200)
+    ? Math.min(20, (
+        (player.badTouchesDefensiveThird * 3 + player.badTouchesMiddleThird * 2 + player.badTouchesFinalThird * 1) 
+        / player.passCount
+      ) * 150)
     : 0;
   const passingQuality = Math.min(100, Math.max(0, (
-    passAccuracy * 0.55 +
-    metrics.progressivePassRate * 0.35 +
+    passAccuracy * 0.50 +
+    metrics.progressivePassRate * 0.30 +
+    (player.passesFinalThird > 0 ? Math.min(15, player.passesFinalThird * 0.3) : 0) +
     (player.penaltyAreaPass > 0 ? 10 : 0)
     - badTouchPenalty
   )));
 
-  // Set pieces: corner & throw-in success rates, free kicks taken
+  // === SET PIECE ABILITY ===
+  // Corner & throw-in success rates, free kicks taken
   const setpieceAbility = Math.min(100, (
     metrics.cornerSuccessRate * 0.4 +
     metrics.throwInSuccessRate * 0.3 +
@@ -147,25 +169,33 @@ export function calculateTacticalProfile(player: PlayerStats, metrics: AdvancedM
     player.corners * 2
   ));
 
-  // Discipline: starts at 100, penalized by fouls, cards, and defensive errors
+  // === DISCIPLINE ===
+  // Fouls in defensive third are more damaging (closer to own goal)
   const discipline = Math.max(0, Math.min(100,
     100 -
-    player.fouls * 4 -
+    player.foulsInDefensiveThird * 6 -
+    player.foulsInMiddleThird * 4 -
+    player.foulsInFinalThird * 2 -
     player.yellowCards * 8 -
     player.redCards * 25 -
     player.defensiveErrors * 6
   ));
 
-  // Work Rate: pass volume, tackles, forward runs, fouls won across all thirds
-  // Reflects overall involvement and effort across the pitch
+  // === WORK RATE ===
+  // Reflects total involvement across the pitch — actions in all zones
+  // Middle-third activity weighted highest (transition zone = effort indicator)
   const totalFoulsWon = player.fwFinalThird + player.fwMiddleThird + player.fwDefensiveThird;
   const workRate = Math.min(100, (
-    player.passCount * 0.4 +
-    player.tackles * 3 +
+    player.passCount * 0.3 +
+    player.tacklesMiddleThird * 4 + // pressing in transition
+    player.tacklesDefensiveThird * 2 +
+    player.tacklesFinalThird * 3 +
+    player.interceptionsMiddleThird * 3 +
+    player.interceptionsDefensiveThird * 2 +
+    player.interceptionsFinalThird * 2 +
     player.runInBehind * 2 +
     player.overlaps * 2 +
-    totalFoulsWon * 1.5 +
-    player.interceptions * 2
+    totalFoulsWon * 1.5
   ) / 2);
 
   return {

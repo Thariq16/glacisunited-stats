@@ -79,6 +79,14 @@ export function useMatchDetail(matchId: string | undefined) {
             crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
             throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0, minutesPlayed: 0, substituteAppearances: 0,
             yellowCards: 0, redCards: 0, blocks: 0, interceptions: 0, badTouches: 0,
+            tacklesDefensiveThird: 0, tacklesMiddleThird: 0, tacklesFinalThird: 0,
+            passesDefensiveThird: 0, passesMiddleThird: 0, passesFinalThird: 0,
+            clearancesDefensiveThird: 0, clearancesMiddleThird: 0, clearancesFinalThird: 0,
+            blocksDefensiveThird: 0, blocksMiddleThird: 0, blocksFinalThird: 0,
+            interceptionsDefensiveThird: 0, interceptionsMiddleThird: 0, interceptionsFinalThird: 0,
+            shotsDefensiveThird: 0, shotsMiddleThird: 0, shotsFinalThird: 0,
+            aerialsDefensiveThird: 0, aerialsMiddleThird: 0, aerialsFinalThird: 0,
+            badTouchesDefensiveThird: 0, badTouchesMiddleThird: 0, badTouchesFinalThird: 0,
           };
 
           const updated: PlayerStats = {
