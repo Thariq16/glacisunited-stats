@@ -78,7 +78,7 @@ export function useMatchDetail(matchId: string | undefined) {
             foulWon: 0, fwFinalThird: 0, fwMiddleThird: 0, fwDefensiveThird: 0, cutBacks: 0,
             crosses: 0, freeKicks: 0, corners: 0, cornerFailed: 0, cornerSuccess: 0,
             throwIns: 0, tiFailed: 0, tiSuccess: 0, offside: 0, minutesPlayed: 0, substituteAppearances: 0,
-            yellowCards: 0, redCards: 0,
+            yellowCards: 0, redCards: 0, blocks: 0, interceptions: 0, badTouches: 0,
           };
 
           const updated: PlayerStats = {
@@ -120,6 +120,9 @@ export function useMatchDetail(matchId: string | undefined) {
             tiSuccess: existing.tiSuccess + (stat.ti_success || 0),
             offside: existing.offside + (stat.offside || 0),
             minutesPlayed: existing.minutesPlayed + (stat.minutes_played || 0),
+            blocks: existing.blocks,
+            interceptions: existing.interceptions,
+            badTouches: existing.badTouches,
           };
 
           // Recalculate percentages
