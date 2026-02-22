@@ -58,7 +58,8 @@ const NON_PASS_EVENTS = ['shot', 'goal', 'tackle', 'tackle_won', 'interception',
 
 export function aggregateEventsToPlayerStats(
   events: MatchEvent[],
-  teamIdFilter?: string
+  teamIdFilter?: string,
+  totalMatchMinutes: number = 90
 ): Map<string, PlayerStats> {
   const playersMap = new Map<string, PlayerStats>();
 
@@ -78,9 +79,9 @@ export function aggregateEventsToPlayerStats(
         player.name,
         player.role || '',
       ));
-      // Assume started => 90 mins by default, corrected by substitutions
+      // Assume started => full match time by default, corrected by substitutions
       const s = playersMap.get(playerId)!;
-      s.minutesPlayed = 90;
+      s.minutesPlayed = totalMatchMinutes;
       playersMap.set(playerId, s);
     }
 
@@ -277,7 +278,7 @@ export function aggregateEventsToPlayerStats(
         if (event.substitute_player_id) {
           const subStats = playersMap.get(event.substitute_player_id);
           if (subStats) {
-            // Assuming 90 min game. If Sub comes on at 60, they play 30.
+            subStats.minutesPlayed = totalMatchMinutes - event.minute;
             subStats.minutesPlayed = 90 - event.minute;
             playersMap.set(event.substitute_player_id, subStats);
           }
@@ -410,18 +411,31 @@ export async function fetchAndAggregateMatchEvents(
   homeTeamId?: string,
   awayTeamId?: string
 ): Promise<{ homePlayers: PlayerStats[]; awayPlayers: PlayerStats[]; homeGoals: number; awayGoals: number }> {
-  const events = await fetchAllMatchEvents(matchId);
+  // Fetch events and match playing time in parallel
+  const [events, matchTimeResult] = await Promise.all([
+    fetchAllMatchEvents(matchId),
+    supabase
+      .from('matches')
+      .select('h1_playing_time_seconds, h2_playing_time_seconds')
+      .eq('id', matchId)
+      .maybeSingle()
+  ]);
 
   if (!events || events.length === 0) {
     return { homePlayers: [], awayPlayers: [], homeGoals: 0, awayGoals: 0 };
   }
 
+  // Calculate total match minutes from actual playing time
+  const h1Seconds = matchTimeResult.data?.h1_playing_time_seconds ?? 2700;
+  const h2Seconds = matchTimeResult.data?.h2_playing_time_seconds ?? 2700;
+  const totalMatchMinutes = Math.round((h1Seconds + h2Seconds) / 60);
+
   // Get all events and separate by team
   const homeEvents = events.filter((e: any) => e.player?.team_id === homeTeamId);
   const awayEvents = events.filter((e: any) => e.player?.team_id === awayTeamId);
 
-  const homePlayersMap = aggregateEventsToPlayerStats(homeEvents as MatchEvent[]);
-  const awayPlayersMap = aggregateEventsToPlayerStats(awayEvents as MatchEvent[]);
+  const homePlayersMap = aggregateEventsToPlayerStats(homeEvents as MatchEvent[], undefined, totalMatchMinutes);
+  const awayPlayersMap = aggregateEventsToPlayerStats(awayEvents as MatchEvent[], undefined, totalMatchMinutes);
 
   // Calculate goals from shot events with 'goal' outcome
   const homeGoals = events.filter(
