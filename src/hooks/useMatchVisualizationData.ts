@@ -196,6 +196,7 @@ export function useMatchVisualizationData(
       const shots: any[] = [];
       const defensiveEvents: any[] = [];
       const possessionLossEvents: any[] = [];
+      const teamPassEvents: any[] = [];
 
       // Match Event Stats (per-team)
       const homeEventStats = createEmptyTeamEventStats();
@@ -361,6 +362,21 @@ export function useMatchVisualizationData(
             passesByThird[halfIndex][zone]++;
           }
         }
+
+        // 7. Collect pass events for directional pass maps
+        if (PASS_EVENTS.includes(event.event_type)) {
+          teamPassEvents.push({
+            id: event.id,
+            x: Number(event.x) || 0,
+            y: Number(event.y) || 0,
+            endX: event.end_x !== null ? Number(event.end_x) : null,
+            endY: event.end_y !== null ? Number(event.end_y) : null,
+            successful: event.successful,
+            eventType: event.event_type,
+            half: event.half,
+            teamId: teamId,
+          });
+        }
       });
 
       // Helper to aggregate stats from a tracker
@@ -444,6 +460,7 @@ export function useMatchVisualizationData(
         shots,
         defensiveEvents,
         possessionLossEvents,
+        teamPassEvents,
         attackingThreat,
         opponentAttackingThreat,
         setPieceData: {

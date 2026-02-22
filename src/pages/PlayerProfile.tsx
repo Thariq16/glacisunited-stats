@@ -15,6 +15,7 @@ import { ArrowLeft, Target, TrendingUp, Shield, Activity, Users, AlertCircle, Fl
 import { PlayerEfficiencyMetrics } from "@/components/PlayerEfficiencyMetrics";
 import { TacticalInsightsCard } from "@/components/TacticalInsightsCard";
 import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
+import { DirectionalPassMap } from "@/components/DirectionalPassMap";
 import { PlayerPassThirdMap } from "@/components/PlayerPassThirdMap";
 import { AttackingThreatMap } from "@/components/views/AttackingThreatMap";
 import { LostPossessionHeatmap } from "@/components/views/LostPossessionHeatmap";
@@ -452,6 +453,10 @@ export default function PlayerProfile() {
                   <PlayerPassPositionMap passData={passData} />
                   <PlayerPassThirdMap passData={passData} />
                 </div>
+              )}
+
+              {passData && passData.passes.length > 0 && (
+                <DirectionalPassMap passes={passData.passes} title="Forward & Backward Pass Map" />
               )}
 
               {advancedStats && (
