@@ -79,12 +79,34 @@ export function useMatchEventMutations(matchId: string | undefined) {
         onSuccess: invalidateEventQueries,
     });
 
-    // Complete match mutation
-    const completeMatchMutation = useMutation({
-        mutationFn: async () => {
+    // End first half mutation - saves injury time and playing time for 1st half
+    const endFirstHalfMutation = useMutation({
+        mutationFn: async ({ injuryTimeSeconds, playingTimeSeconds }: { injuryTimeSeconds: number; playingTimeSeconds: number }) => {
             const { error } = await supabase
                 .from('matches')
-                .update({ status: 'completed' })
+                .update({
+                    h1_injury_time_seconds: injuryTimeSeconds,
+                    h1_playing_time_seconds: playingTimeSeconds,
+                })
+                .eq('id', matchId);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['match-for-events', matchId] });
+            toast.success('1st half ended — time saved');
+        },
+    });
+
+    // Complete match mutation - saves 2nd half time + marks completed
+    const completeMatchMutation = useMutation({
+        mutationFn: async ({ injuryTimeSeconds, playingTimeSeconds }: { injuryTimeSeconds: number; playingTimeSeconds: number }) => {
+            const { error } = await supabase
+                .from('matches')
+                .update({
+                    status: 'completed',
+                    h2_injury_time_seconds: injuryTimeSeconds,
+                    h2_playing_time_seconds: playingTimeSeconds,
+                })
                 .eq('id', matchId);
             if (error) throw error;
         },
@@ -168,6 +190,7 @@ export function useMatchEventMutations(matchId: string | undefined) {
         saveEventMutation,
         deleteEventMutation,
         completeMatchMutation,
+        endFirstHalfMutation,
         createPhaseMutation,
         updatePhaseMutation,
         deletePhaseMutation,
