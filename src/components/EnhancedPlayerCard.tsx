@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlayerStats } from "@/utils/parseCSV";
@@ -8,8 +8,9 @@ import { PlayerPassStats } from "@/components/PlayerPassStats";
 import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
 import { PlayerPassThirdMap } from "@/components/PlayerPassThirdMap";
 import { useNavigate } from "react-router-dom";
-import { Target, TrendingUp, Clock, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 interface EnhancedPlayerCardProps {
   player: PlayerStats;
@@ -23,54 +24,83 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
   const [dialogOpen, setDialogOpen] = useState(false);
   
   const successRate = player.passCount > 0 
-    ? ((player.successfulPass / player.passCount) * 100).toFixed(0)
-    : '0';
+    ? Math.round((player.successfulPass / player.passCount) * 100)
+    : 0;
+
+  const shotAccuracy = player.shotsAttempted > 0
+    ? Math.round((player.shotsOnTarget / player.shotsAttempted) * 100)
+    : 0;
+
+  const aerialTotal = player.aerialDuelsWon + player.aerialDuelsLost;
+  const aerialRate = aerialTotal > 0
+    ? Math.round((player.aerialDuelsWon / aerialTotal) * 100)
+    : 0;
 
   const handleViewProfile = () => {
     setDialogOpen(false);
     navigate(`/team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
   };
 
+  const getRoleColor = (role: string) => {
+    const r = role?.toUpperCase() || '';
+    if (r === 'GK') return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30';
+    if (['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(r)) return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30';
+    if (['CM', 'CDM', 'CAM', 'LM', 'RM'].includes(r)) return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30';
+    if (['CF', 'ST', 'LW', 'RW'].includes(r)) return 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/30';
+    return 'bg-muted text-muted-foreground';
+  };
+
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <Card className="hover:shadow-lg transition-all cursor-pointer hover:border-primary">
-          <CardHeader className="pb-2">
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-lg">{player.playerName}</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  #{player.jerseyNumber}
-                </p>
-              </div>
-              {player.role && (
-                <Badge variant="secondary" className="text-xs">{player.role}</Badge>
-              )}
+        <Card className="hover:shadow-lg transition-all cursor-pointer hover:border-primary group overflow-hidden">
+          {/* Header: Jersey + Name + Role */}
+          <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
+              {player.jerseyNumber}
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  <span className="text-muted-foreground">Minutes</span>
-                </div>
-                <span className="font-semibold">{player.minutesPlayed}</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm truncate">{player.playerName}</h3>
+              <span className="text-xs text-muted-foreground">{player.minutesPlayed} mins played</span>
+            </div>
+            {player.role && (
+              <Badge variant="outline" className={`text-[10px] px-1.5 py-0 font-bold ${getRoleColor(player.role)}`}>
+                {player.role}
+              </Badge>
+            )}
+          </div>
+
+          <CardContent className="px-4 pb-4 pt-2 space-y-3">
+            {/* Pass accuracy bar */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Pass Accuracy</span>
+                <span className="font-semibold">{successRate}% <span className="text-muted-foreground font-normal">({player.successfulPass}/{player.passCount})</span></span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  <span className="text-muted-foreground">Passes</span>
-                </div>
-                <span className="font-semibold">{player.passCount} ({successRate}%)</span>
+              <Progress value={successRate} className="h-1.5" />
+            </div>
+
+            {/* Compact stat grid */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-center p-1.5 rounded bg-muted/50">
+                <p className="text-lg font-bold leading-none">{player.forwardPass}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Fwd Pass</p>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-primary" />
-                  <span className="text-muted-foreground">Goals</span>
-                </div>
-                <span className="font-semibold">{player.goals}</span>
+              <div className="text-center p-1.5 rounded bg-muted/50">
+                <p className="text-lg font-bold leading-none">{player.tackles + player.clearance}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Def Actions</p>
               </div>
+              <div className="text-center p-1.5 rounded bg-muted/50">
+                <p className="text-lg font-bold leading-none">{player.shotsAttempted}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Shots</p>
+              </div>
+            </div>
+
+            {/* Secondary metrics row */}
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground border-t pt-2">
+              <span>Aerials: <span className="font-medium text-foreground">{player.aerialDuelsWon}W/{player.aerialDuelsLost}L</span></span>
+              <span>Fouls Won: <span className="font-medium text-foreground">{player.foulWon}</span></span>
+              <span>Crosses: <span className="font-medium text-foreground">{player.crosses}</span></span>
             </div>
           </CardContent>
         </Card>
@@ -99,21 +129,15 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Passing Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
+                <div className="p-4 space-y-2">
+                  <h4 className="text-sm font-medium">Passing Summary</h4>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Total Passes</span>
                     <span className="font-semibold">{player.passCount}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Successful</span>
-                    <span className="font-semibold text-green-600">{player.successfulPass}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Unsuccessful</span>
-                    <span className="font-semibold text-destructive">{player.missPass}</span>
+                    <span className="font-semibold">{player.successfulPass}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Forward</span>
@@ -123,13 +147,11 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
                     <span className="text-muted-foreground">Backward</span>
                     <span className="font-semibold">{player.backwardPass}</span>
                   </div>
-                </CardContent>
+                </div>
               </Card>
               <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Passes by Zone</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
+                <div className="p-4 space-y-2">
+                  <h4 className="text-sm font-medium">Passes by Zone</h4>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Defensive Third</span>
                     <span className="font-semibold">{player.fwDefensiveThird}</span>
@@ -142,7 +164,7 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
                     <span className="text-muted-foreground">Final Third</span>
                     <span className="font-semibold">{player.fwFinalThird}</span>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             </div>
           )}
