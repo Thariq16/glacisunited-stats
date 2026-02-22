@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight, Link2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight, Link2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { PitchDiagram } from '@/components/match-events/PitchDiagram';
@@ -67,6 +68,7 @@ function AdminMatchEventsContent() {
     saveEventMutation,
     deleteEventMutation,
     completeMatchMutation,
+    endFirstHalfMutation,
     createPhaseMutation,
     updatePhaseMutation,
     deletePhaseMutation,
@@ -111,6 +113,12 @@ function AdminMatchEventsContent() {
   const [recentPlayerIds, setRecentPlayerIds] = useState<string[]>([]);
   const [recentTargetPlayerIds, setRecentTargetPlayerIds] = useState<string[]>([]);
   const [notesOpen, setNotesOpen] = useState(false);
+
+  // Half-time / Full-time playing time dialog state
+  const [halfTimeDialogOpen, setHalfTimeDialogOpen] = useState(false);
+  const [fullTimeDialogOpen, setFullTimeDialogOpen] = useState(false);
+  const [injuryMinutes, setInjuryMinutes] = useState(0);
+  const [injurySeconds2, setInjurySeconds2] = useState(0);
 
   // Penalty area suggestion state - tracks both passer and receiver
   const [penaltyAreaSuggestion, setPenaltyAreaSuggestion] = useState<{
@@ -1334,7 +1342,23 @@ function AdminMatchEventsContent() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => completeMatchMutation.mutate()}
+              size="sm"
+              onClick={() => {
+                setInjuryMinutes(0);
+                setInjurySeconds2(0);
+                setHalfTimeDialogOpen(true);
+              }}
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              End 1st Half
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setInjuryMinutes(0);
+                setInjurySeconds2(0);
+                setFullTimeDialogOpen(true);
+              }}
               disabled={completeMatchMutation.isPending}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
@@ -1666,6 +1690,145 @@ function AdminMatchEventsContent() {
           receiverJerseyNumber={penaltyAreaSuggestion?.receiverJerseyNumber ?? null}
           isSelfEntry={penaltyAreaSuggestion ? ['carry', 'dribble'].includes(penaltyAreaSuggestion.eventType) : false}
         />
+
+        {/* End 1st Half Dialog */}
+        <Dialog open={halfTimeDialogOpen} onOpenChange={setHalfTimeDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>End 1st Half</DialogTitle>
+              <DialogDescription>
+                Enter the injury/stoppage time added at the end of the 1st half.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Injury Time Added</Label>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={20}
+                      value={injuryMinutes}
+                      onChange={(e) => setInjuryMinutes(Math.max(0, Number(e.target.value)))}
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">min</span>
+                  </div>
+                  <span className="text-muted-foreground">:</span>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={59}
+                      value={injurySeconds2}
+                      onChange={(e) => setInjurySeconds2(Math.min(59, Math.max(0, Number(e.target.value))))}
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">sec</span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm font-medium">Total 1st Half Playing Time</p>
+                <p className="text-lg font-bold">
+                  {45 + injuryMinutes}:{String(injurySeconds2).padStart(2, '0')}
+                </p>
+                <p className="text-xs text-muted-foreground">45:00 + {injuryMinutes}:{String(injurySeconds2).padStart(2, '0')} injury time</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setHalfTimeDialogOpen(false)}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  const injuryTotalSeconds = injuryMinutes * 60 + injurySeconds2;
+                  const playingTotalSeconds = 45 * 60 + injuryTotalSeconds;
+                  endFirstHalfMutation.mutate(
+                    { injuryTimeSeconds: injuryTotalSeconds, playingTimeSeconds: playingTotalSeconds },
+                    {
+                      onSuccess: () => {
+                        setHalfTimeDialogOpen(false);
+                        setSelectedHalf(2);
+                        setMinute(45);
+                        setSeconds(0);
+                      },
+                    }
+                  );
+                }}
+                disabled={endFirstHalfMutation.isPending}
+              >
+                {endFirstHalfMutation.isPending ? 'Saving...' : 'End 1st Half'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Complete Match Dialog */}
+        <Dialog open={fullTimeDialogOpen} onOpenChange={setFullTimeDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Complete Match</DialogTitle>
+              <DialogDescription>
+                Enter the injury/stoppage time added at the end of the 2nd half.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Injury Time Added (2nd Half)</Label>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={20}
+                      value={injuryMinutes}
+                      onChange={(e) => setInjuryMinutes(Math.max(0, Number(e.target.value)))}
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">min</span>
+                  </div>
+                  <span className="text-muted-foreground">:</span>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={59}
+                      value={injurySeconds2}
+                      onChange={(e) => setInjurySeconds2(Math.min(59, Math.max(0, Number(e.target.value))))}
+                      className="w-20"
+                    />
+                    <span className="text-sm text-muted-foreground">sec</span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3">
+                <p className="text-sm font-medium">Total 2nd Half Playing Time</p>
+                <p className="text-lg font-bold">
+                  {45 + injuryMinutes}:{String(injurySeconds2).padStart(2, '0')}
+                </p>
+                <p className="text-xs text-muted-foreground">45:00 + {injuryMinutes}:{String(injurySeconds2).padStart(2, '0')} injury time</p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setFullTimeDialogOpen(false)}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  const injuryTotalSeconds = injuryMinutes * 60 + injurySeconds2;
+                  const playingTotalSeconds = 45 * 60 + injuryTotalSeconds;
+                  completeMatchMutation.mutate(
+                    { injuryTimeSeconds: injuryTotalSeconds, playingTimeSeconds: playingTotalSeconds },
+                    {
+                      onSuccess: () => setFullTimeDialogOpen(false),
+                    }
+                  );
+                }}
+                disabled={completeMatchMutation.isPending}
+              >
+                {completeMatchMutation.isPending ? 'Completing...' : 'Complete Match'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

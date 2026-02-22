@@ -256,6 +256,10 @@ export type Database = {
           away_team_id: string
           competition: string | null
           created_at: string | null
+          h1_injury_time_seconds: number | null
+          h1_playing_time_seconds: number | null
+          h2_injury_time_seconds: number | null
+          h2_playing_time_seconds: number | null
           home_attacks_left: boolean | null
           home_score: number
           home_team_id: string
@@ -269,6 +273,10 @@ export type Database = {
           away_team_id: string
           competition?: string | null
           created_at?: string | null
+          h1_injury_time_seconds?: number | null
+          h1_playing_time_seconds?: number | null
+          h2_injury_time_seconds?: number | null
+          h2_playing_time_seconds?: number | null
           home_attacks_left?: boolean | null
           home_score?: number
           home_team_id: string
@@ -282,6 +290,10 @@ export type Database = {
           away_team_id?: string
           competition?: string | null
           created_at?: string | null
+          h1_injury_time_seconds?: number | null
+          h1_playing_time_seconds?: number | null
+          h2_injury_time_seconds?: number | null
+          h2_playing_time_seconds?: number | null
           home_attacks_left?: boolean | null
           home_score?: number
           home_team_id?: string
