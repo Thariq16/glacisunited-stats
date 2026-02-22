@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { PlayerProfileActions } from "@/components/PlayerProfileActions";
+import { supabase } from "@/integrations/supabase/client";
 import { Footer } from "@/components/Footer";
 import { StatCard } from "@/components/StatCard";
 import { useTeamWithPlayers } from "@/hooks/useTeams";
@@ -36,6 +38,25 @@ export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
   const navigate = useNavigate();
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
+  const [playerProfile, setPlayerProfile] = useState<any>(null);
+
+  // Fetch extended player profile data
+  useEffect(() => {
+    if (!teamId || !playerName) return;
+    const fetchProfile = async () => {
+      const { data: team } = await supabase.from('teams').select('id').eq('slug', teamId).single();
+      if (!team) return;
+      const { data } = await supabase
+        .from('players')
+        .select('*')
+        .eq('team_id', team.id)
+        .eq('name', decodeURIComponent(playerName))
+        .or('hidden.is.null,hidden.eq.false')
+        .maybeSingle();
+      setPlayerProfile(data);
+    };
+    fetchProfile();
+  }, [teamId, playerName]);
 
   const { data: team, isLoading: teamLoading } = useTeamWithPlayers(teamId, matchFilter);
   const { data: matches } = useMatches(teamId);
@@ -166,20 +187,55 @@ export default function PlayerProfile() {
         </Button>
 
         <div className="bg-card rounded-lg p-8 mb-8 border">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div className="flex-1">
               <div className="flex items-center gap-4 mb-2">
                 <h1 className="text-4xl font-bold text-foreground">{player.playerName}</h1>
                 <Badge variant="secondary" className="text-lg py-1 px-3">
                   #{player.jerseyNumber}
                 </Badge>
+                {player.role && (
+                  <Badge className="text-lg py-2 px-4">
+                    {player.role}
+                  </Badge>
+                )}
               </div>
-              <p className="text-muted-foreground text-lg">{team.name}</p>
+              <p className="text-muted-foreground text-lg mb-3">{team.name}</p>
+
+              {/* Extended profile details */}
+              {playerProfile && (
+                <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                  {playerProfile.nationality && <span>🌍 {playerProfile.nationality}</span>}
+                  {playerProfile.date_of_birth && (
+                    <span>🎂 {format(new Date(playerProfile.date_of_birth), 'MMM d, yyyy')}</span>
+                  )}
+                  {playerProfile.height_cm && <span>📏 {playerProfile.height_cm}cm</span>}
+                  {playerProfile.weight_kg && <span>⚖️ {playerProfile.weight_kg}kg</span>}
+                  {playerProfile.preferred_foot && <span>🦶 {playerProfile.preferred_foot}</span>}
+                </div>
+              )}
+              {playerProfile && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {playerProfile.injury_status && playerProfile.injury_status !== 'Fit' && (
+                    <Badge variant="destructive" className="text-xs">🏥 {playerProfile.injury_status}</Badge>
+                  )}
+                  {playerProfile.on_loan && (
+                    <Badge variant="secondary" className="text-xs">📋 On Loan</Badge>
+                  )}
+                  {playerProfile.transfer_status && playerProfile.transfer_status !== 'active' && (
+                    <Badge variant="outline" className="text-xs">{playerProfile.transfer_status.replace('_', ' ')}</Badge>
+                  )}
+                </div>
+              )}
+              {playerProfile?.bio && (
+                <p className="text-sm text-muted-foreground mt-3 max-w-2xl">{playerProfile.bio}</p>
+              )}
             </div>
-            {player.role && (
-              <Badge className="text-lg py-2 px-4 w-fit">
-                {player.role}
-              </Badge>
+            {teamId && playerName && (
+              <PlayerProfileActions
+                playerName={decodeURIComponent(playerName)}
+                teamSlug={teamId}
+              />
             )}
           </div>
         </div>

@@ -471,31 +471,64 @@ export type Database = {
       }
       players: {
         Row: {
+          bio: string | null
+          contract_end_date: string | null
           created_at: string | null
+          date_of_birth: string | null
+          height_cm: number | null
           hidden: boolean | null
           id: string
+          injury_status: string | null
           jersey_number: number
           name: string
+          nationality: string | null
+          on_loan: boolean | null
+          photo_url: string | null
+          preferred_foot: string | null
           role: string | null
           team_id: string
+          transfer_status: string | null
+          weight_kg: number | null
         }
         Insert: {
+          bio?: string | null
+          contract_end_date?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
+          height_cm?: number | null
           hidden?: boolean | null
           id?: string
+          injury_status?: string | null
           jersey_number: number
           name: string
+          nationality?: string | null
+          on_loan?: boolean | null
+          photo_url?: string | null
+          preferred_foot?: string | null
           role?: string | null
           team_id: string
+          transfer_status?: string | null
+          weight_kg?: number | null
         }
         Update: {
+          bio?: string | null
+          contract_end_date?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
+          height_cm?: number | null
           hidden?: boolean | null
           id?: string
+          injury_status?: string | null
           jersey_number?: number
           name?: string
+          nationality?: string | null
+          on_loan?: boolean | null
+          photo_url?: string | null
+          preferred_foot?: string | null
           role?: string | null
           team_id?: string
+          transfer_status?: string | null
+          weight_kg?: number | null
         }
         Relationships: [
           {
