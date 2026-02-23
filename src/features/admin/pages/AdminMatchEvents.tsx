@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight, Link2, Clock } from 'lucide-react';
+import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight, Link2, Clock, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 
 import { PitchDiagram } from '@/components/match-events/PitchDiagram';
@@ -48,6 +49,7 @@ function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { theme, setTheme } = useTheme();
   const hasSetInProgress = useRef(false);
 
   // Use extracted queries hook
@@ -1331,6 +1333,14 @@ function AdminMatchEventsContent() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              title="Toggle dark mode"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
             <Button
               variant="outline"
               size="sm"
