@@ -49,6 +49,7 @@ function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { theme, setTheme } = useTheme();
   const hasSetInProgress = useRef(false);
 
   // Use extracted queries hook
