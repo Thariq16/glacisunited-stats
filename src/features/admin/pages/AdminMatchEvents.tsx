@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight, Link2, Clock } from 'lucide-react';
+import { ArrowLeft, Save, Undo2, CheckCircle, MessageSquare, ChevronDown, ArrowRight, MoveLeft, MoveRight, Link2, Clock, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 
 import { PitchDiagram } from '@/components/match-events/PitchDiagram';
