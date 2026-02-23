@@ -1,7 +1,8 @@
 import { NavLink } from "@/components/NavLink";
-import { Menu } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useTheme } from "next-themes";
 export function Navbar() {
   return <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
