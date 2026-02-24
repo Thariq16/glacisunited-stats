@@ -73,6 +73,7 @@ export function EventModifiers({
   const showShotOutcome = selectedEventType === 'shot' || selectedEventType === 'penalty';
   const showAerialOutcome = selectedEventType === 'aerial_duel';
   const showCornerDelivery = selectedEventType === 'corner';
+  const showLongThrow = selectedEventType === 'throw_in';
   const showTargetPlayer = EVENTS_WITH_TARGET_PLAYER.includes(selectedEventType);
   const showSubstitutePlayer = selectedEventType === 'substitution';
   const isTargetRequired = selectedEventType ? EVENT_CONFIG[selectedEventType]?.requiresTargetPlayer : false;
@@ -199,6 +200,20 @@ export function EventModifiers({
               <Label htmlFor="corner_short" className="text-xs cursor-pointer">Short</Label>
             </div>
           </RadioGroup>
+        </div>
+      )}
+
+      {/* Long throw option for throw-ins */}
+      {showLongThrow && (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="long_throw"
+            checked={cornerDeliveryType === 'long_throw'}
+            onCheckedChange={(checked) =>
+              onCornerDeliveryChange(checked ? 'long_throw' as CornerDeliveryType : '' as any)
+            }
+          />
+          <Label htmlFor="long_throw" className="text-sm cursor-pointer">Long Throw</Label>
         </div>
       )}
 

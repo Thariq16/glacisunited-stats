@@ -35,7 +35,7 @@ export type EventType =
 
 export type ShotOutcome = 'goal' | 'on_target' | 'off_target' | 'blocked';
 export type AerialOutcome = 'won' | 'lost';
-export type CornerDeliveryType = 'inswing' | 'outswing' | 'short';
+export type CornerDeliveryType = 'inswing' | 'outswing' | 'short' | 'long_throw';
 export type PhaseOutcome = 'goal' | 'shot' | 'lost_possession';
 
 export interface Position {
