@@ -203,6 +203,20 @@ export function EventModifiers({
         </div>
       )}
 
+      {/* Long throw option for throw-ins */}
+      {showLongThrow && (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="long_throw"
+            checked={cornerDeliveryType === 'long_throw'}
+            onCheckedChange={(checked) =>
+              onCornerDeliveryChange(checked ? 'long_throw' as CornerDeliveryType : '' as any)
+            }
+          />
+          <Label htmlFor="long_throw" className="text-sm cursor-pointer">Long Throw</Label>
+        </div>
+      )}
+
       {/* Target player - hybrid selection */}
       {showTargetPlayer && (
         <div className="space-y-3">
