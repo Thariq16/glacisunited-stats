@@ -164,6 +164,7 @@ function AdminMatchEventsContent() {
         phaseId: e.phase_id,
         goalMouthX: e.goal_mouth_x != null ? Number(e.goal_mouth_x) : undefined,
         goalMouthY: e.goal_mouth_y != null ? Number(e.goal_mouth_y) : undefined,
+        createdAt: e.created_at,
       }));
       setEvents(localEvents);
 

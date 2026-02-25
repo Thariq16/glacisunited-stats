@@ -83,6 +83,13 @@ export function EventList({
     return `${String(minute).padStart(2, '0')}:${String(seconds ?? 0).padStart(2, '0')}`;
   };
 
+  // Helper to format created_at timestamp
+  const formatTimestamp = (createdAt?: string) => {
+    if (!createdAt) return '-';
+    const d = new Date(createdAt);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
+
   // Get events that are not already part of a phase (for current tab)
   const currentTabEvents = activeTab === '1st' ? sortedFirstHalf : sortedSecondHalf;
   const availableEvents = useMemo(() => currentTabEvents.filter(e => !e.phaseId), [currentTabEvents]);
@@ -247,6 +254,9 @@ export function EventList({
         <TableCell>
           {event.successful ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-red-500" />}
         </TableCell>
+        <TableCell className="font-mono text-xs text-muted-foreground">
+          {formatTimestamp(event.createdAt)}
+        </TableCell>
         <TableCell>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(event.id)}>
@@ -280,16 +290,17 @@ export function EventList({
             <TableHead>Player</TableHead>
             <TableHead>Event</TableHead>
             <TableHead>Receiver</TableHead>
-            <TableHead className="w-20">From</TableHead>
+        <TableHead className="w-20">From</TableHead>
             <TableHead className="w-20">To</TableHead>
             <TableHead className="w-16">Status</TableHead>
+            <TableHead className="w-20">Logged</TableHead>
             <TableHead className="w-24">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {events.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={11} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={12} className="text-center text-muted-foreground py-8">
                 No events for this half
               </TableCell>
             </TableRow>
