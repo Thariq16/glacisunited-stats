@@ -328,9 +328,11 @@ function AdminMatchEventsContent() {
     : (awaySquad.length > 0 ? awaySquad : allPlayers);
 
   // Calculate substitution status from events
-  const { subbedOffPlayerIds, subbedOnPlayerIds } = useMemo(() => {
+  const { subbedOffPlayerIds, subbedOnPlayerIds, substitutionMap } = useMemo(() => {
     const subbedOff: string[] = [];
     const subbedOn: string[] = [];
+    // Map: subbedOnPlayerId → subbedOffPlayerId (who they replaced)
+    const subMap: Record<string, string> = {};
 
     // Find all substitution events for the current team
     const teamPlayerIds = new Set(players.map(p => p.id));
@@ -344,11 +346,12 @@ function AdminMatchEventsContent() {
         // The substitute_player_id is the one coming ON
         if (event.substitutePlayerId && teamPlayerIds.has(event.substitutePlayerId)) {
           subbedOn.push(event.substitutePlayerId);
+          subMap[event.substitutePlayerId] = event.playerId;
         }
       }
     });
 
-    return { subbedOffPlayerIds: subbedOff, subbedOnPlayerIds: subbedOn };
+    return { subbedOffPlayerIds: subbedOff, subbedOnPlayerIds: subbedOn, substitutionMap: subMap };
   }, [events, players]);
 
   // Event type config
@@ -1508,6 +1511,7 @@ function AdminMatchEventsContent() {
               onStickyChange={setStickyPlayer}
               subbedOffPlayerIds={subbedOffPlayerIds}
               subbedOnPlayerIds={subbedOnPlayerIds}
+              substitutionMap={substitutionMap}
             />
 
             <EventModifiers
@@ -1529,6 +1533,7 @@ function AdminMatchEventsContent() {
               recentTargetPlayerIds={recentTargetPlayerIds}
               subbedOffPlayerIds={subbedOffPlayerIds}
               subbedOnPlayerIds={subbedOnPlayerIds}
+              substitutionMap={substitutionMap}
             />
 
             {/* Action buttons */}

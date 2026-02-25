@@ -22,6 +22,7 @@ interface PlayerSelectorProps {
   onStickyChange: (sticky: boolean) => void;
   subbedOffPlayerIds?: string[]; // Players who have been substituted off
   subbedOnPlayerIds?: string[]; // Players who have come on as substitutes
+  substitutionMap?: Record<string, string>; // subbedOnId → subbedOffId
 }
 
 export function PlayerSelector({
@@ -32,6 +33,7 @@ export function PlayerSelector({
   onStickyChange,
   subbedOffPlayerIds = [],
   subbedOnPlayerIds = [],
+  substitutionMap = {},
 }: PlayerSelectorProps) {
   const selectedPlayer = players.find((p) => p.id === selectedPlayerId);
 
@@ -92,6 +94,8 @@ export function PlayerSelector({
           <div className="flex flex-wrap gap-1">
             {effectiveStarters.map((player) => {
               const isSubbedOn = subbedOnPlayerIds.includes(player.id);
+              const replacedPlayerId = substitutionMap[player.id];
+              const replacedPlayer = replacedPlayerId ? players.find(p => p.id === replacedPlayerId) : null;
               
               return (
                 <Tooltip key={player.id}>
@@ -99,7 +103,7 @@ export function PlayerSelector({
                     <Button
                       variant={selectedPlayerId === player.id ? 'default' : 'secondary'}
                       size="sm"
-                      className={`w-9 h-9 p-0 text-sm font-bold ${
+                      className={`relative w-9 h-9 p-0 text-sm font-bold ${
                         selectedPlayerId === player.id 
                           ? 'ring-2 ring-offset-1 ring-primary' 
                           : ''
@@ -107,11 +111,16 @@ export function PlayerSelector({
                       onClick={() => onSelect(player.id)}
                     >
                       {player.jersey_number}
+                      {replacedPlayer && (
+                        <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold text-red-500 bg-background rounded-full px-0.5 leading-none border border-red-300">
+                          {replacedPlayer.jersey_number}
+                        </span>
+                      )}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">
                     {player.name}{player.role ? ` (${player.role})` : ''}
-                    {isSubbedOn && ' (ON)'}
+                    {isSubbedOn && ` (ON for #${replacedPlayer?.jersey_number})`}
                   </TooltipContent>
                 </Tooltip>
               );
