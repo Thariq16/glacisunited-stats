@@ -34,6 +34,7 @@ interface EventModifiersProps {
   recentTargetPlayerIds?: string[];
   subbedOffPlayerIds?: string[]; // Players who have been substituted off
   subbedOnPlayerIds?: string[]; // Players who have come on as substitutes
+  substitutionMap?: Record<string, string>; // subbedOnId → subbedOffId
 }
 
 export function EventModifiers({
@@ -55,6 +56,7 @@ export function EventModifiers({
   recentTargetPlayerIds = [],
   subbedOffPlayerIds = [],
   subbedOnPlayerIds = [],
+  substitutionMap = {},
 }: EventModifiersProps) {
   if (!selectedEventType) {
     return (
@@ -231,6 +233,8 @@ export function EventModifiers({
               <div className="flex flex-wrap gap-1">
                 {effectiveStarters.map((player) => {
                   const isSubbedOn = subbedOnPlayerIds.includes(player.id);
+                  const replacedPlayerId = substitutionMap[player.id];
+                  const replacedPlayer = replacedPlayerId ? players.find(p => p.id === replacedPlayerId) : null;
 
                   return (
                     <Tooltip key={player.id}>
@@ -238,18 +242,23 @@ export function EventModifiers({
                         <Button
                           variant={targetPlayerId === player.id ? 'default' : 'secondary'}
                           size="sm"
-                          className={`w-9 h-9 p-0 text-sm font-bold ${targetPlayerId === player.id
+                          className={`relative w-9 h-9 p-0 text-sm font-bold ${targetPlayerId === player.id
                             ? 'ring-2 ring-offset-1 ring-primary'
                             : ''
                             }`}
                           onClick={() => onTargetPlayerChange(player.id)}
                         >
                           {player.jersey_number}
+                          {replacedPlayer && (
+                            <span className="absolute -top-1.5 -right-1.5 text-[9px] font-bold text-red-500 bg-background rounded-full px-0.5 leading-none border border-red-300">
+                              {replacedPlayer.jersey_number}
+                            </span>
+                          )}
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" className="text-xs">
                         {player.name}{player.role ? ` (${player.role})` : ''}
-                        {isSubbedOn && ' (ON)'}
+                        {isSubbedOn && ` (ON for #${replacedPlayer?.jersey_number})`}
                       </TooltipContent>
                     </Tooltip>
                   );
@@ -362,6 +371,7 @@ export function EventModifiers({
             </SelectTrigger>
             <SelectContent>
               {[...substitutes]
+                .filter((p) => !subbedOnPlayerIds.includes(p.id))
                 .sort((a, b) => {
                   // Starting XI first, then substitutes, then by jersey number
                   if (a.status === 'starting' && b.status !== 'starting') return -1;
