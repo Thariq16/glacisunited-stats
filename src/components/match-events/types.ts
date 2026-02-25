@@ -70,6 +70,7 @@ export interface LocalEvent {
   phaseId?: string;
   goalMouthX?: number;
   goalMouthY?: number;
+  createdAt?: string;
 }
 
 export interface Phase {
