@@ -197,6 +197,27 @@ function AdminMatchEventsContent() {
     }
   }, [savedPhases, events, matchId]);
 
+  // Restore half and timer from last recorded event on load
+  const hasRestoredFromLastEvent = useRef(false);
+  useEffect(() => {
+    if (!hasRestoredFromLastEvent.current && savedEvents.length > 0) {
+      hasRestoredFromLastEvent.current = true;
+      // Find the last event chronologically
+      const sorted = [...savedEvents].sort((a: any, b: any) => {
+        if (a.half !== b.half) return a.half - b.half;
+        const timeA = a.minute * 60 + (a.seconds ?? 0);
+        const timeB = b.minute * 60 + (b.seconds ?? 0);
+        return timeA - timeB;
+      });
+      const lastEvent = sorted[sorted.length - 1] as any;
+      if (lastEvent) {
+        setSelectedHalf(lastEvent.half as 1 | 2);
+        setMinute(lastEvent.minute);
+        setSeconds(lastEvent.seconds ?? 0);
+      }
+    }
+  }, [savedEvents]);
+
   // Initialize direction state from match data and check if already confirmed
   useEffect(() => {
     if (matchData) {
