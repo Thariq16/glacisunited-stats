@@ -9,7 +9,7 @@ export function Footer() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
@@ -17,7 +17,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-wrap justify-center gap-6 text-sm">
           <Link 
-            to="/" 
+            to="/dashboard" 
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <Home className="h-4 w-4" />

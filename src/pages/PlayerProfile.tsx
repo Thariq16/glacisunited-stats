@@ -162,7 +162,7 @@ export default function PlayerProfile() {
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Player not found</h1>
-            <Button onClick={() => navigate('/')}>
+            <Button onClick={() => navigate('/dashboard')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>
