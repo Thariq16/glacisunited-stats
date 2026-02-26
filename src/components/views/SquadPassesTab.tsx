@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Activity } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
+import { Activity, TrendingUp } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +17,7 @@ interface SquadPassesTabProps {
 interface MatchPassRow {
   matchLabel: string;
   matchDate: string;
+  matchId: string;
   playerName: string;
   jerseyNumber: number;
   successful: number;
@@ -30,15 +31,13 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
   const { data, isLoading } = useQuery({
     queryKey: ['squad-passes-by-match', teamSlug, matchFilter],
     queryFn: async () => {
-      // Get team
       const { data: team } = await supabase
         .from('teams')
         .select('id')
         .eq('slug', teamSlug)
         .single();
-      if (!team) return [];
+      if (!team) return null;
 
-      // Get matches
       const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
       let matchesQuery;
       if (isSpecificMatch) {
@@ -58,7 +57,7 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
       }
 
       const { data: matches } = await matchesQuery;
-      if (!matches || matches.length === 0) return [];
+      if (!matches || matches.length === 0) return null;
 
       const matchIds = matches.map(m => m.id);
 
@@ -86,12 +85,20 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         }
       }
 
-      // Build per-player per-match data
-      const matchMap = new Map<string, { label: string; date: string }>(matches.map(m => {
+      // Sort matches chronologically for trend display
+      const sortedMatches = [...matches].sort((a, b) =>
+        new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
+      );
+
+      const matchMap = new Map<string, { label: string; date: string; shortLabel: string }>(sortedMatches.map(m => {
         const isHome = m.home_team_id === team.id;
         const opponent = isHome ? (m.away_team as any)?.name : (m.home_team as any)?.name;
         const date = new Date(m.match_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-        return [m.id, { label: `vs ${opponent || 'Unknown'}`, date }];
+        return [m.id, {
+          label: `${date} vs ${opponent || 'Unknown'}`,
+          date,
+          shortLabel: `vs ${opponent || 'Unknown'}`
+        }];
       }));
 
       // Group: matchId -> playerId -> stats
@@ -106,10 +113,11 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         const matchPlayers = grouped.get(matchId)!;
 
         if (!matchPlayers.has(player.id)) {
-          const matchInfo = matchMap.get(matchId) || { label: 'Unknown', date: '' };
+          const matchInfo = matchMap.get(matchId) || { label: 'Unknown', date: '', shortLabel: 'Unknown' };
           matchPlayers.set(player.id, {
             matchLabel: matchInfo.label,
             matchDate: matchInfo.date,
+            matchId,
             playerName: player.name,
             jerseyNumber: player.jersey_number,
             successful: 0,
@@ -133,17 +141,50 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         }
       });
 
-      return { grouped, matchMap, matches };
+      return { grouped, matchMap, sortedMatches: sortedMatches, teamId: team.id };
     },
   });
 
-  const { playerMatchData, playerList, matchLabels } = useMemo(() => {
-    if (!data || !('grouped' in data)) return { playerMatchData: [], playerList: [], matchLabels: [] };
+  const isMultiMatch = data?.sortedMatches && data.sortedMatches.length > 1;
 
-    const { grouped, matches } = data;
-    const playerSet = new Map<string, { name: string; jersey: number }>();
+  // Per-match bar chart data: one card per match
+  const perMatchData = useMemo(() => {
+    if (!data) return [];
+
+    const { grouped, matchMap, sortedMatches } = data;
+
+    return sortedMatches.map((m: any) => {
+      const matchPlayers = grouped.get(m.id);
+      const matchInfo = matchMap.get(m.id) || { label: 'Unknown', date: '', shortLabel: 'Unknown' };
+
+      if (!matchPlayers || matchPlayers.size === 0) return null;
+
+      const sorted = Array.from(matchPlayers.values()).sort((a, b) => a.jerseyNumber - b.jerseyNumber);
+
+      const sfData = sorted.map(p => ({
+        name: `#${p.jerseyNumber} ${p.playerName}`,
+        Successful: p.successful,
+        Failed: p.failed,
+      }));
+
+      const fbData = sorted.map(p => ({
+        name: `#${p.jerseyNumber} ${p.playerName}`,
+        Forward: p.forward,
+        Backward: p.backward,
+      }));
+
+      return { matchInfo, sfData, fbData, matchId: m.id };
+    }).filter(Boolean);
+  }, [data]);
+
+  // Trend data: per player across matches (for multi-match view)
+  const trendData = useMemo(() => {
+    if (!data || !isMultiMatch) return { successFailTrend: [], fwdBwdTrend: [], players: [] };
+
+    const { grouped, matchMap, sortedMatches } = data;
 
     // Collect all players
+    const playerSet = new Map<string, { name: string; jersey: number }>();
     grouped.forEach(matchPlayers => {
       matchPlayers.forEach((row, playerId) => {
         if (!playerSet.has(playerId)) {
@@ -152,76 +193,38 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
       });
     });
 
-    const sortedPlayers = Array.from(playerSet.entries())
+    const players = Array.from(playerSet.entries())
       .sort((a, b) => a[1].jersey - b[1].jersey);
 
-    // Build chart data: one entry per match, with player-specific keys
-    const successFailData: any[] = [];
-    const fwdBwdData: any[] = [];
-
-    matches.forEach((m: any) => {
+    // Build trend: X-axis = matches, lines = players
+    const successFailTrend = sortedMatches.map((m: any) => {
       const matchPlayers = grouped.get(m.id);
-      if (!matchPlayers) return;
+      const matchInfo = matchMap.get(m.id);
+      const entry: any = { match: matchInfo?.label || 'Unknown' };
 
-      const matchInfo = data.matchMap.get(m.id) || { label: 'Unknown', date: '' };
-      const sfEntry: any = { match: `${matchInfo.date}\n${matchInfo.label}` };
-      const fbEntry: any = { match: `${matchInfo.date}\n${matchInfo.label}` };
-
-      matchPlayers.forEach((row, playerId) => {
-        const key = `#${row.jerseyNumber} ${row.playerName}`;
-        sfEntry[`${key}_success`] = row.successful;
-        sfEntry[`${key}_fail`] = row.failed;
-        fbEntry[`${key}_forward`] = row.forward;
-        fbEntry[`${key}_backward`] = row.backward;
+      players.forEach(([playerId, info]) => {
+        const playerData = matchPlayers?.get(playerId);
+        entry[`#${info.jersey} ${info.name}`] = playerData ? playerData.successful : 0;
       });
 
-      successFailData.push(sfEntry);
-      fwdBwdData.push(fbEntry);
+      return entry;
     });
 
-    return {
-      playerMatchData: { successFailData, fwdBwdData },
-      playerList: sortedPlayers,
-      matchLabels: matches.map((m: any) => {
-        const info = data.matchMap.get(m.id);
-        return info ? `${info.date}\n${info.label}` : '';
-      }),
-    };
-  }, [data]);
+    const fwdBwdTrend = sortedMatches.map((m: any) => {
+      const matchPlayers = grouped.get(m.id);
+      const matchInfo = matchMap.get(m.id);
+      const entry: any = { match: matchInfo?.label || 'Unknown' };
 
-  // Build per-player bar data (one bar per match)
-  const { perPlayerSuccessFail, perPlayerFwdBwd } = useMemo(() => {
-    if (!data || !('grouped' in data)) return { perPlayerSuccessFail: [], perPlayerFwdBwd: [] };
-
-    const { grouped, matches } = data;
-    const playerTotals = new Map<string, { name: string; jersey: number; rows: MatchPassRow[] }>();
-
-    grouped.forEach(matchPlayers => {
-      matchPlayers.forEach((row, playerId) => {
-        if (!playerTotals.has(playerId)) {
-          playerTotals.set(playerId, { name: row.playerName, jersey: row.jerseyNumber, rows: [] });
-        }
-        playerTotals.get(playerId)!.rows.push(row);
+      players.forEach(([playerId, info]) => {
+        const playerData = matchPlayers?.get(playerId);
+        entry[`#${info.jersey} ${info.name}`] = playerData ? playerData.forward : 0;
       });
+
+      return entry;
     });
 
-    // Sort by jersey number
-    const sorted = Array.from(playerTotals.values()).sort((a, b) => a.jersey - b.jersey);
-
-    const sfData = sorted.map(p => ({
-      name: `#${p.jersey} ${p.name}`,
-      Successful: p.rows.reduce((s, r) => s + r.successful, 0),
-      Failed: p.rows.reduce((s, r) => s + r.failed, 0),
-    }));
-
-    const fbData = sorted.map(p => ({
-      name: `#${p.jersey} ${p.name}`,
-      Forward: p.rows.reduce((s, r) => s + r.forward, 0),
-      Backward: p.rows.reduce((s, r) => s + r.backward, 0),
-    }));
-
-    return { perPlayerSuccessFail: sfData, perPlayerFwdBwd: fbData };
-  }, [data]);
+    return { successFailTrend, fwdBwdTrend, players };
+  }, [data, isMultiMatch]);
 
   if (isLoading) {
     return (
@@ -232,69 +235,188 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
     );
   }
 
-  const chartHeight = Math.max(300, perPlayerSuccessFail.length * 35);
+  if (!data || perMatchData.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <p className="text-center text-muted-foreground">No pass data available for the selected matches.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Colors for trend lines (up to 20 players)
+  const PLAYER_COLORS = [
+    'hsl(var(--primary))',
+    'hsl(var(--destructive))',
+    'hsl(142, 76%, 36%)',
+    'hsl(38, 92%, 50%)',
+    'hsl(262, 83%, 58%)',
+    'hsl(199, 89%, 48%)',
+    'hsl(350, 89%, 60%)',
+    'hsl(174, 72%, 40%)',
+    'hsl(45, 93%, 47%)',
+    'hsl(280, 65%, 60%)',
+    'hsl(16, 85%, 57%)',
+    'hsl(200, 75%, 45%)',
+    'hsl(120, 60%, 45%)',
+    'hsl(330, 70%, 55%)',
+    'hsl(60, 80%, 45%)',
+    'hsl(240, 60%, 60%)',
+    'hsl(0, 70%, 50%)',
+    'hsl(160, 65%, 45%)',
+    'hsl(300, 60%, 50%)',
+    'hsl(80, 70%, 40%)',
+  ];
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            Successful Passes vs Failed Passes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {perPlayerSuccessFail.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No pass data available</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={chartHeight}>
-              <BarChart
-                data={perPlayerSuccessFail}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="Successful" stackId="a" fill="hsl(var(--primary))" />
-                <Bar dataKey="Failed" stackId="a" fill="hsl(var(--destructive))" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+    <div className="space-y-8">
+      {/* Trend Charts (only for multi-match) */}
+      {isMultiMatch && trendData.players.length > 0 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Successful Passes Trend by Match
+              </CardTitle>
+              <CardDescription>How each player's successful passes are trending across matches</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart data={trendData.successFailTrend} margin={{ top: 5, right: 30, left: 10, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="match"
+                    tick={{ fontSize: 11 }}
+                    angle={-30}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                  {trendData.players.map(([, info], idx) => (
+                    <Line
+                      key={`#${info.jersey} ${info.name}`}
+                      type="monotone"
+                      dataKey={`#${info.jersey} ${info.name}`}
+                      stroke={PLAYER_COLORS[idx % PLAYER_COLORS.length]}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      connectNulls
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            Forward Passes vs Backward Passes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {perPlayerFwdBwd.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No pass data available</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={chartHeight}>
-              <BarChart
-                data={perPlayerFwdBwd}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis type="category" dataKey="name" width={160} tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="Forward" stackId="a" fill="hsl(142, 76%, 36%)" />
-                <Bar dataKey="Backward" stackId="a" fill="hsl(38, 92%, 50%)" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Forward Passes Trend by Match
+              </CardTitle>
+              <CardDescription>How each player's forward passes are trending across matches</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart data={trendData.fwdBwdTrend} margin={{ top: 5, right: 30, left: 10, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="match"
+                    tick={{ fontSize: 11 }}
+                    angle={-30}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                  {trendData.players.map(([, info], idx) => (
+                    <Line
+                      key={`#${info.jersey} ${info.name}`}
+                      type="monotone"
+                      dataKey={`#${info.jersey} ${info.name}`}
+                      stroke={PLAYER_COLORS[idx % PLAYER_COLORS.length]}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      connectNulls
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {/* Per-Match Breakdown */}
+      {perMatchData.map((matchData: any) => {
+        const chartHeight = Math.max(280, matchData.sfData.length * 32);
+        return (
+          <div key={matchData.matchId} className="space-y-4">
+            <h3 className="text-lg font-semibold text-foreground border-b pb-2 border-border">
+              {matchData.matchInfo.label}
+            </h3>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" />
+                    Successful vs Failed Passes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={chartHeight}>
+                    <BarChart
+                      data={matchData.sfData}
+                      layout="vertical"
+                      margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 11 }} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Successful" stackId="a" fill="hsl(var(--primary))" />
+                      <Bar dataKey="Failed" stackId="a" fill="hsl(var(--destructive))" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-primary" />
+                    Forward vs Backward Passes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={chartHeight}>
+                    <BarChart
+                      data={matchData.fbData}
+                      layout="vertical"
+                      margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" />
+                      <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 11 }} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="Forward" stackId="a" fill="hsl(142, 76%, 36%)" />
+                      <Bar dataKey="Backward" stackId="a" fill="hsl(38, 92%, 50%)" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
