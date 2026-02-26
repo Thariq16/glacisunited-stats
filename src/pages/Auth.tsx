@@ -63,7 +63,7 @@ export default function Auth() {
       if (!hasOrg) {
         navigate('/onboarding');
       } else {
-        navigate('/');
+        navigate('/dashboard');
       }
     }
   }, [user, navigate, isResetMode, hasOrg, orgLoading]);
@@ -220,7 +220,7 @@ export default function Auth() {
           title: 'Password updated',
           description: 'Your password has been successfully updated.',
         });
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (error) {
       if (error instanceof z.ZodError) {

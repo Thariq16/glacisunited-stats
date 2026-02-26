@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
 
 // Eagerly loaded pages (public, frequently accessed)
+import Landing from "./pages/Landing";
 import Home from "./pages/Home";
 import Matches from "./pages/Matches";
 import MatchDetail from "./pages/MatchDetail";
@@ -52,8 +53,8 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 {/* Public routes - eagerly loaded */}
-                <Route path="/" element={<Home />} />
-                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<Landing />} />
+                <Route path="/dashboard" element={<Home />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
                 <Route path="/matches" element={<Matches />} />
