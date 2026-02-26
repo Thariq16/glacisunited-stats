@@ -348,21 +348,30 @@ Deno.serve(async (req) => {
 
     console.log('Processing match:', { homeTeamName, awayTeamName, matchDate });
 
+    // Get organization_id if provided
+    const organizationId = formData.get('organizationId') as string | null;
+
     // Create or get teams
     const homeTeamSlug = createSlug(homeTeamName);
     const awayTeamSlug = createSlug(awayTeamName);
 
+    const homeTeamData: Record<string, unknown> = { name: homeTeamName, slug: homeTeamSlug };
+    if (organizationId) homeTeamData.organization_id = organizationId;
+
     const { data: homeTeam, error: homeTeamError } = await supabase
       .from('teams')
-      .upsert({ name: homeTeamName, slug: homeTeamSlug }, { onConflict: 'slug' })
+      .upsert(homeTeamData, { onConflict: 'slug' })
       .select()
       .single();
 
     if (homeTeamError) throw homeTeamError;
 
+    const awayTeamData: Record<string, unknown> = { name: awayTeamName, slug: awayTeamSlug };
+    if (organizationId) awayTeamData.organization_id = organizationId;
+
     const { data: awayTeam, error: awayTeamError } = await supabase
       .from('teams')
-      .upsert({ name: awayTeamName, slug: awayTeamSlug }, { onConflict: 'slug' })
+      .upsert(awayTeamData, { onConflict: 'slug' })
       .select()
       .single();
 

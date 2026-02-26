@@ -3,16 +3,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { PlayerStats } from '@/utils/parseCSV';
 import { MatchFilter } from './usePlayerStats';
 import { fetchAndAggregateEventsForTeam, createEmptyPlayerStats } from '@/utils/aggregateMatchEvents';
+import { useOrganization } from './useOrganization';
 
 export function useTeams() {
+  const { currentOrg } = useOrganization();
+  const orgId = currentOrg?.id;
+
   return useQuery({
-    queryKey: ['teams'],
+    queryKey: ['teams', orgId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('teams')
-        .select('id, name, slug')
+        .select('id, name, slug, organization_id')
         .order('name');
 
+      if (orgId) {
+        query = query.eq('organization_id', orgId);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -333,17 +342,25 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
 }
 
 export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', matchFilter: MatchFilter = 'all') {
+  const { currentOrg } = useOrganization();
+  const orgId = currentOrg?.id;
   const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
 
   return useQuery({
-    queryKey: ['opposition-teams', excludeSlug, matchFilter],
+    queryKey: ['opposition-teams', excludeSlug, matchFilter, orgId],
     queryFn: async () => {
-      // Get all teams except the excluded one
-      const { data: teams, error: teamsError } = await supabase
+      // Get all teams except the excluded one, scoped by org
+      let teamsQuery = supabase
         .from('teams')
         .select('id, name, slug')
         .neq('slug', excludeSlug)
         .order('name');
+
+      if (orgId) {
+        teamsQuery = teamsQuery.eq('organization_id', orgId);
+      }
+
+      const { data: teams, error: teamsError } = await teamsQuery;
 
       if (teamsError) throw teamsError;
       if (!teams || teams.length === 0) return [];
