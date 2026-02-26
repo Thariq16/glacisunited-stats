@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
-import { Activity, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { Activity, TrendingUp, ChevronDown, ChevronUp, ArrowUpDown, Search, X } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const PASS_EVENT_TYPES = ['pass', 'key_pass', 'assist', 'cross', 'cutback', 'penalty_area_pass', 'throw_in', 'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart'];
 
@@ -51,9 +54,9 @@ interface PlayerMatchSummary {
   totalForward: number;
   totalBackward: number;
   avgAccuracy: number;
+  forwardRatio: number;
 }
 
-// Match bar colors
 const MATCH_COLORS = [
   'hsl(var(--primary))',
   'hsl(262, 83%, 58%)',
@@ -66,6 +69,9 @@ const MATCH_COLORS = [
   'hsl(280, 65%, 60%)',
   'hsl(45, 93%, 47%)',
 ];
+
+type SortField = 'jersey' | 'accuracy' | 'volume' | 'forward';
+type SortDir = 'asc' | 'desc';
 
 function getAccuracyColor(accuracy: number): string {
   if (accuracy >= 85) return 'hsl(142, 76%, 36%)';
@@ -89,8 +95,42 @@ function TrendIndicator({ values }: { values: number[] }) {
   return <span className="text-muted-foreground text-xs">—</span>;
 }
 
+function SortButton({ field, currentSort, currentDir, onSort, label }: {
+  field: SortField;
+  currentSort: SortField;
+  currentDir: SortDir;
+  onSort: (field: SortField) => void;
+  label: string;
+}) {
+  const isActive = currentSort === field;
+  return (
+    <button
+      onClick={() => onSort(field)}
+      className={`inline-flex items-center gap-1 text-xs font-semibold transition-colors ${isActive ? 'text-primary' : 'text-foreground hover:text-primary'}`}
+    >
+      {label}
+      <ArrowUpDown className="h-3 w-3" />
+      {isActive && (
+        <span className="text-[10px]">{currentDir === 'asc' ? '↑' : '↓'}</span>
+      )}
+    </button>
+  );
+}
+
 export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-united-fc' }: SquadPassesTabProps) {
-  const [view, setView] = useState<'summary' | 'byMatch'>('summary');
+  const [sortField, setSortField] = useState<SortField>('jersey');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [playerSearch, setPlayerSearch] = useState('');
+  const [positionFilter, setPositionFilter] = useState<string>('all');
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir(field === 'jersey' ? 'asc' : 'desc');
+    }
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ['squad-passes-by-match', teamSlug, matchFilter],
@@ -125,7 +165,6 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
 
       const matchIds = matches.map(m => m.id);
 
-      // Fetch pass events with pagination
       const PAGE_SIZE = 1000;
       let allEvents: any[] = [];
       let offset = 0;
@@ -149,7 +188,6 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         }
       }
 
-      // Sort matches chronologically
       const sortedMatches = [...matches].sort((a, b) =>
         new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
       );
@@ -161,7 +199,6 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         return [m.id, { label: `${date} vs ${opponent || 'Unknown'}`, date, shortLabel: `vs ${opponent || '?'}` }];
       }));
 
-      // Group: matchId -> playerId -> stats
       const grouped = new Map<string, Map<string, MatchPassRow>>();
 
       allEvents.forEach(event => {
@@ -202,7 +239,6 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         }
       });
 
-      // Build player roles map
       const playerRoles = new Map<string, string>();
       allEvents.forEach(event => {
         const player = event.player as any;
@@ -240,6 +276,7 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
             totalForward: 0,
             totalBackward: 0,
             avgAccuracy: 0,
+            forwardRatio: 0,
           });
         }
 
@@ -265,15 +302,58 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
       });
     });
 
-    // Calculate avg accuracy
     playerMap.forEach(summary => {
       summary.avgAccuracy = summary.totalPasses > 0
         ? Math.round((summary.totalSuccessful / summary.totalPasses) * 100)
         : 0;
+      const dirTotal = summary.totalForward + summary.totalBackward;
+      summary.forwardRatio = dirTotal > 0
+        ? Math.round((summary.totalForward / dirTotal) * 100)
+        : 0;
     });
 
-    return Array.from(playerMap.values()).sort((a, b) => a.jersey - b.jersey);
+    return Array.from(playerMap.values());
   }, [data]);
+
+  // Unique positions for filter
+  const positions = useMemo(() => {
+    const posSet = new Set<string>();
+    playerSummaries.forEach(p => { if (p.role) posSet.add(p.role); });
+    return Array.from(posSet).sort();
+  }, [playerSummaries]);
+
+  // Filtered + sorted players
+  const filteredPlayers = useMemo(() => {
+    let list = playerSummaries.filter(p => p.totalPasses > 0);
+
+    // Search filter
+    if (playerSearch.trim()) {
+      const q = playerSearch.toLowerCase();
+      list = list.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        `#${p.jersey}`.includes(q)
+      );
+    }
+
+    // Position filter
+    if (positionFilter !== 'all') {
+      list = list.filter(p => p.role === positionFilter);
+    }
+
+    // Sort
+    list.sort((a, b) => {
+      let cmp = 0;
+      switch (sortField) {
+        case 'jersey': cmp = a.jersey - b.jersey; break;
+        case 'accuracy': cmp = a.avgAccuracy - b.avgAccuracy; break;
+        case 'volume': cmp = a.totalPasses - b.totalPasses; break;
+        case 'forward': cmp = a.forwardRatio - b.forwardRatio; break;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    return list;
+  }, [playerSummaries, playerSearch, positionFilter, sortField, sortDir]);
 
   const isMultiMatch = data?.sortedMatches && data.sortedMatches.length > 1;
   const matchLabels = useMemo(() => {
@@ -285,20 +365,16 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
     }));
   }, [data]);
 
-  // Per-match grouped bar data for the comparison chart
   const comparisonChartData = useMemo(() => {
     if (!data || !isMultiMatch) return [];
-
-    return playerSummaries
-      .filter(p => p.totalPasses > 0)
-      .map(player => {
-        const entry: any = { name: `#${player.jersey} ${player.name}` };
-        player.matchStats.forEach((ms, idx) => {
-          entry[ms.matchLabel] = ms.total;
-        });
-        return entry;
+    return filteredPlayers.map(player => {
+      const entry: any = { name: `#${player.jersey} ${player.name}` };
+      player.matchStats.forEach((ms) => {
+        entry[ms.matchLabel] = ms.total;
       });
-  }, [playerSummaries, isMultiMatch, data]);
+      return entry;
+    });
+  }, [filteredPlayers, isMultiMatch, data]);
 
   if (isLoading) {
     return (
@@ -321,7 +397,42 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
 
   return (
     <div className="space-y-6">
-      {/* Summary Heatmap Table */}
+      {/* Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search player..."
+            value={playerSearch}
+            onChange={(e) => setPlayerSearch(e.target.value)}
+            className="pl-9 h-9"
+          />
+          {playerSearch && (
+            <button
+              onClick={() => setPlayerSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        <Select value={positionFilter} onValueChange={setPositionFilter}>
+          <SelectTrigger className="w-[160px] h-9">
+            <SelectValue placeholder="Position" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Positions</SelectItem>
+            {positions.map(pos => (
+              <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="text-xs text-muted-foreground self-center">
+          {filteredPlayers.length} of {playerSummaries.filter(p => p.totalPasses > 0).length} players
+        </div>
+      </div>
+
+      {/* Summary Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -330,7 +441,7 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
           </CardTitle>
           {isMultiMatch && (
             <CardDescription>
-              Each column shows a match — compare players across games at a glance
+              Each column shows a match — compare players across games at a glance. Click column headers to sort.
             </CardDescription>
           )}
         </CardHeader>
@@ -348,14 +459,16 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left py-3 px-2 font-semibold text-foreground sticky left-0 bg-card z-10 min-w-[140px]">Player</th>
+                      <th className="text-left py-3 px-2 sticky left-0 bg-card z-10 min-w-[140px]">
+                        <SortButton field="jersey" currentSort={sortField} currentDir={sortDir} onSort={handleSort} label="Player" />
+                      </th>
                       {isMultiMatch && matchLabels.map(ml => (
                         <th key={ml.id} className="text-center py-3 px-2 font-medium text-muted-foreground min-w-[100px]">
                           <div className="text-xs leading-tight">{ml.label}</div>
                         </th>
                       ))}
-                      <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[80px]">
-                        {isMultiMatch ? 'Avg' : 'Accuracy'}
+                      <th className="text-center py-3 px-2 min-w-[80px]">
+                        <SortButton field="accuracy" currentSort={sortField} currentDir={sortDir} onSort={handleSort} label={isMultiMatch ? 'Avg' : 'Accuracy'} />
                       </th>
                       {isMultiMatch && (
                         <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[60px]">Trend</th>
@@ -363,7 +476,9 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                     </tr>
                   </thead>
                   <tbody>
-                    {playerSummaries.filter(p => p.totalPasses > 0).map(player => (
+                    {filteredPlayers.length === 0 ? (
+                      <tr><td colSpan={99} className="text-center py-8 text-muted-foreground">No players match your filter</td></tr>
+                    ) : filteredPlayers.map(player => (
                       <tr key={player.playerId} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                         <td className="py-2.5 px-2 sticky left-0 bg-card z-10">
                           <div className="font-medium text-foreground">#{player.jersey} {player.name}</div>
@@ -412,20 +527,26 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left py-3 px-2 font-semibold text-foreground sticky left-0 bg-card z-10 min-w-[140px]">Player</th>
+                      <th className="text-left py-3 px-2 sticky left-0 bg-card z-10 min-w-[140px]">
+                        <SortButton field="jersey" currentSort={sortField} currentDir={sortDir} onSort={handleSort} label="Player" />
+                      </th>
                       {isMultiMatch && matchLabels.map(ml => (
                         <th key={ml.id} className="text-center py-3 px-2 font-medium text-muted-foreground min-w-[100px]">
                           <div className="text-xs leading-tight">{ml.label}</div>
                         </th>
                       ))}
-                      <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[80px]">Total</th>
+                      <th className="text-center py-3 px-2 min-w-[80px]">
+                        <SortButton field="volume" currentSort={sortField} currentDir={sortDir} onSort={handleSort} label="Total" />
+                      </th>
                       {isMultiMatch && (
                         <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[60px]">Trend</th>
                       )}
                     </tr>
                   </thead>
                   <tbody>
-                    {playerSummaries.filter(p => p.totalPasses > 0).map(player => {
+                    {filteredPlayers.length === 0 ? (
+                      <tr><td colSpan={99} className="text-center py-8 text-muted-foreground">No players match your filter</td></tr>
+                    ) : filteredPlayers.map(player => {
                       const maxTotal = Math.max(...player.matchStats.map(ms => ms.total), 1);
                       return (
                         <tr key={player.playerId} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
@@ -439,19 +560,17 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                             const barWidth = Math.max(10, (ms.total / maxTotal) * 100);
                             return (
                               <td key={ml.id} className="py-2.5 px-2">
-                                <div className="flex items-center gap-1.5">
-                                  <div className="flex-1 h-5 bg-muted/50 rounded-sm overflow-hidden relative">
-                                    <div
-                                      className="h-full rounded-sm transition-all"
-                                      style={{
-                                        width: `${barWidth}%`,
-                                        background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))`,
-                                      }}
-                                    />
-                                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
-                                      {ms.total}
-                                    </span>
-                                  </div>
+                                <div className="flex-1 h-5 bg-muted/50 rounded-sm overflow-hidden relative">
+                                  <div
+                                    className="h-full rounded-sm transition-all"
+                                    style={{
+                                      width: `${barWidth}%`,
+                                      background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))`,
+                                    }}
+                                  />
+                                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+                                    {ms.total}
+                                  </span>
                                 </div>
                               </td>
                             );
@@ -478,20 +597,26 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="text-left py-3 px-2 font-semibold text-foreground sticky left-0 bg-card z-10 min-w-[140px]">Player</th>
+                      <th className="text-left py-3 px-2 sticky left-0 bg-card z-10 min-w-[140px]">
+                        <SortButton field="jersey" currentSort={sortField} currentDir={sortDir} onSort={handleSort} label="Player" />
+                      </th>
                       {isMultiMatch && matchLabels.map(ml => (
                         <th key={ml.id} className="text-center py-3 px-2 font-medium text-muted-foreground min-w-[120px]">
                           <div className="text-xs leading-tight">{ml.label}</div>
                         </th>
                       ))}
-                      <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[100px]">Total</th>
+                      <th className="text-center py-3 px-2 min-w-[100px]">
+                        <SortButton field="forward" currentSort={sortField} currentDir={sortDir} onSort={handleSort} label="Total" />
+                      </th>
                       {isMultiMatch && (
                         <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[60px]">Trend</th>
                       )}
                     </tr>
                   </thead>
                   <tbody>
-                    {playerSummaries.filter(p => p.totalPasses > 0).map(player => (
+                    {filteredPlayers.length === 0 ? (
+                      <tr><td colSpan={99} className="text-center py-8 text-muted-foreground">No players match your filter</td></tr>
+                    ) : filteredPlayers.map(player => (
                       <tr key={player.playerId} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                         <td className="py-2.5 px-2 sticky left-0 bg-card z-10">
                           <div className="font-medium text-foreground">#{player.jersey} {player.name}</div>
@@ -504,20 +629,8 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                           return (
                             <td key={ml.id} className="py-2.5 px-2">
                               <div className="flex h-4 rounded-sm overflow-hidden bg-muted/30">
-                                <div
-                                  className="h-full transition-all"
-                                  style={{
-                                    width: `${fwdPct}%`,
-                                    backgroundColor: 'hsl(142, 76%, 36%)',
-                                  }}
-                                />
-                                <div
-                                  className="h-full transition-all"
-                                  style={{
-                                    width: `${100 - fwdPct}%`,
-                                    backgroundColor: 'hsl(38, 92%, 50%)',
-                                  }}
-                                />
+                                <div className="h-full transition-all" style={{ width: `${fwdPct}%`, backgroundColor: 'hsl(142, 76%, 36%)' }} />
+                                <div className="h-full transition-all" style={{ width: `${100 - fwdPct}%`, backgroundColor: 'hsl(38, 92%, 50%)' }} />
                               </div>
                               <div className="flex justify-between text-[10px] mt-0.5">
                                 <span style={{ color: 'hsl(142, 76%, 36%)' }}>{ms.forward}↑</span>
@@ -528,20 +641,14 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                         })}
                         <td className="py-2.5 px-2">
                           <div className="flex h-4 rounded-sm overflow-hidden bg-muted/30">
-                            <div
-                              className="h-full"
-                              style={{
-                                width: `${player.totalForward + player.totalBackward > 0 ? Math.round((player.totalForward / (player.totalForward + player.totalBackward)) * 100) : 0}%`,
-                                backgroundColor: 'hsl(142, 76%, 36%)',
-                              }}
-                            />
-                            <div
-                              className="h-full"
-                              style={{
-                                width: `${player.totalForward + player.totalBackward > 0 ? Math.round((player.totalBackward / (player.totalForward + player.totalBackward)) * 100) : 0}%`,
-                                backgroundColor: 'hsl(38, 92%, 50%)',
-                              }}
-                            />
+                            <div className="h-full" style={{
+                              width: `${player.forwardRatio}%`,
+                              backgroundColor: 'hsl(142, 76%, 36%)',
+                            }} />
+                            <div className="h-full" style={{
+                              width: `${100 - player.forwardRatio}%`,
+                              backgroundColor: 'hsl(38, 92%, 50%)',
+                            }} />
                           </div>
                           <div className="flex justify-between text-[10px] mt-0.5">
                             <span style={{ color: 'hsl(142, 76%, 36%)' }}>{player.totalForward}↑</span>
@@ -558,8 +665,6 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
                   </tbody>
                 </table>
               </div>
-
-              {/* Legend */}
               <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(142, 76%, 36%)' }} />
