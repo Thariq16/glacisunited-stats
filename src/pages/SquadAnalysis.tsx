@@ -129,6 +129,7 @@ export default function SquadAnalysis() {
               ((visualizationData as any)?.teamPassEvents || [])
                 .filter((p: any) => !focusTeamId || p.teamId === focusTeamId)
             }
+            matchFilter={matchFilter === 'last1' && latestMatch?.id ? latestMatch.id : matchFilter}
           />
         )}
       </main>
