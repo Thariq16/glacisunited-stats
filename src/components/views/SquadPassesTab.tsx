@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LineChart, Line } from 'recharts';
-import { Activity, TrendingUp } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
+import { Activity, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const PASS_EVENT_TYPES = ['pass', 'key_pass', 'assist', 'cross', 'cutback', 'penalty_area_pass', 'throw_in', 'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart'];
 
@@ -20,6 +22,7 @@ interface MatchPassRow {
   matchId: string;
   playerName: string;
   jerseyNumber: number;
+  playerId: string;
   successful: number;
   failed: number;
   forward: number;
@@ -27,7 +30,68 @@ interface MatchPassRow {
   total: number;
 }
 
+interface PlayerMatchSummary {
+  playerId: string;
+  name: string;
+  jersey: number;
+  role: string;
+  matchStats: {
+    matchId: string;
+    matchLabel: string;
+    successful: number;
+    failed: number;
+    forward: number;
+    backward: number;
+    total: number;
+    accuracy: number;
+  }[];
+  totalPasses: number;
+  totalSuccessful: number;
+  totalFailed: number;
+  totalForward: number;
+  totalBackward: number;
+  avgAccuracy: number;
+}
+
+// Match bar colors
+const MATCH_COLORS = [
+  'hsl(var(--primary))',
+  'hsl(262, 83%, 58%)',
+  'hsl(199, 89%, 48%)',
+  'hsl(142, 76%, 36%)',
+  'hsl(38, 92%, 50%)',
+  'hsl(350, 89%, 60%)',
+  'hsl(174, 72%, 40%)',
+  'hsl(16, 85%, 57%)',
+  'hsl(280, 65%, 60%)',
+  'hsl(45, 93%, 47%)',
+];
+
+function getAccuracyColor(accuracy: number): string {
+  if (accuracy >= 85) return 'hsl(142, 76%, 36%)';
+  if (accuracy >= 70) return 'hsl(38, 92%, 50%)';
+  return 'hsl(var(--destructive))';
+}
+
+function getAccuracyBadgeVariant(accuracy: number): 'default' | 'secondary' | 'destructive' {
+  if (accuracy >= 85) return 'default';
+  if (accuracy >= 70) return 'secondary';
+  return 'destructive';
+}
+
+function TrendIndicator({ values }: { values: number[] }) {
+  if (values.length < 2) return null;
+  const last = values[values.length - 1];
+  const prev = values[values.length - 2];
+  const diff = last - prev;
+  if (diff > 0) return <ChevronUp className="h-4 w-4 text-green-500 inline" />;
+  if (diff < 0) return <ChevronDown className="h-4 w-4 text-red-500 inline" />;
+  return <span className="text-muted-foreground text-xs">—</span>;
+}
+
 export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-united-fc' }: SquadPassesTabProps) {
+  const [view, setView] = useState<'summary' | 'byMatch'>('summary');
+
   const { data, isLoading } = useQuery({
     queryKey: ['squad-passes-by-match', teamSlug, matchFilter],
     queryFn: async () => {
@@ -70,7 +134,7 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
       while (hasMore) {
         const { data: events, error } = await supabase
           .from('match_events')
-          .select('id, match_id, player_id, event_type, x, end_x, successful, player:players!match_events_player_id_fkey(id, name, jersey_number, team_id)')
+          .select('id, match_id, player_id, event_type, x, end_x, successful, player:players!match_events_player_id_fkey(id, name, jersey_number, team_id, role)')
           .in('match_id', matchIds)
           .in('event_type', PASS_EVENT_TYPES)
           .range(offset, offset + PAGE_SIZE - 1);
@@ -85,20 +149,16 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         }
       }
 
-      // Sort matches chronologically for trend display
+      // Sort matches chronologically
       const sortedMatches = [...matches].sort((a, b) =>
         new Date(a.match_date).getTime() - new Date(b.match_date).getTime()
       );
 
-      const matchMap = new Map<string, { label: string; date: string; shortLabel: string }>(sortedMatches.map(m => {
+      const matchMap = new Map(sortedMatches.map(m => {
         const isHome = m.home_team_id === team.id;
         const opponent = isHome ? (m.away_team as any)?.name : (m.home_team as any)?.name;
         const date = new Date(m.match_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-        return [m.id, {
-          label: `${date} vs ${opponent || 'Unknown'}`,
-          date,
-          shortLabel: `vs ${opponent || 'Unknown'}`
-        }];
+        return [m.id, { label: `${date} vs ${opponent || 'Unknown'}`, date, shortLabel: `vs ${opponent || '?'}` }];
       }));
 
       // Group: matchId -> playerId -> stats
@@ -113,13 +173,14 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         const matchPlayers = grouped.get(matchId)!;
 
         if (!matchPlayers.has(player.id)) {
-          const matchInfo = matchMap.get(matchId) || { label: 'Unknown', date: '', shortLabel: 'Unknown' };
+          const matchInfo = matchMap.get(matchId) || { label: 'Unknown', date: '', shortLabel: '?' };
           matchPlayers.set(player.id, {
             matchLabel: matchInfo.label,
             matchDate: matchInfo.date,
             matchId,
             playerName: player.name,
             jerseyNumber: player.jersey_number,
+            playerId: player.id,
             successful: 0,
             failed: 0,
             forward: 0,
@@ -141,90 +202,103 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
         }
       });
 
-      return { grouped, matchMap, sortedMatches: sortedMatches, teamId: team.id };
+      // Build player roles map
+      const playerRoles = new Map<string, string>();
+      allEvents.forEach(event => {
+        const player = event.player as any;
+        if (player && player.team_id === team.id && !playerRoles.has(player.id)) {
+          playerRoles.set(player.id, player.role || '');
+        }
+      });
+
+      return { grouped, matchMap, sortedMatches, teamId: team.id, playerRoles };
     },
   });
 
-  const isMultiMatch = data?.sortedMatches && data.sortedMatches.length > 1;
-
-  // Per-match bar chart data: one card per match
-  const perMatchData = useMemo(() => {
+  // Build player summaries
+  const playerSummaries: PlayerMatchSummary[] = useMemo(() => {
     if (!data) return [];
 
-    const { grouped, matchMap, sortedMatches } = data;
+    const { grouped, matchMap, sortedMatches, playerRoles } = data;
+    const playerMap = new Map<string, PlayerMatchSummary>();
 
-    return sortedMatches.map((m: any) => {
+    sortedMatches.forEach((m: any) => {
       const matchPlayers = grouped.get(m.id);
-      const matchInfo = matchMap.get(m.id) || { label: 'Unknown', date: '', shortLabel: 'Unknown' };
+      if (!matchPlayers) return;
 
-      if (!matchPlayers || matchPlayers.size === 0) return null;
+      matchPlayers.forEach((row, playerId) => {
+        if (!playerMap.has(playerId)) {
+          playerMap.set(playerId, {
+            playerId,
+            name: row.playerName,
+            jersey: row.jerseyNumber,
+            role: playerRoles.get(playerId) || '',
+            matchStats: [],
+            totalPasses: 0,
+            totalSuccessful: 0,
+            totalFailed: 0,
+            totalForward: 0,
+            totalBackward: 0,
+            avgAccuracy: 0,
+          });
+        }
 
-      const sorted = Array.from(matchPlayers.values()).sort((a, b) => a.jerseyNumber - b.jerseyNumber);
+        const summary = playerMap.get(playerId)!;
+        const accuracy = row.total > 0 ? Math.round((row.successful / row.total) * 100) : 0;
 
-      const sfData = sorted.map(p => ({
-        name: `#${p.jerseyNumber} ${p.playerName}`,
-        Successful: p.successful,
-        Failed: p.failed,
-      }));
+        summary.matchStats.push({
+          matchId: m.id,
+          matchLabel: matchMap.get(m.id)?.label || 'Unknown',
+          successful: row.successful,
+          failed: row.failed,
+          forward: row.forward,
+          backward: row.backward,
+          total: row.total,
+          accuracy,
+        });
 
-      const fbData = sorted.map(p => ({
-        name: `#${p.jerseyNumber} ${p.playerName}`,
-        Forward: p.forward,
-        Backward: p.backward,
-      }));
+        summary.totalPasses += row.total;
+        summary.totalSuccessful += row.successful;
+        summary.totalFailed += row.failed;
+        summary.totalForward += row.forward;
+        summary.totalBackward += row.backward;
+      });
+    });
 
-      return { matchInfo, sfData, fbData, matchId: m.id };
-    }).filter(Boolean);
+    // Calculate avg accuracy
+    playerMap.forEach(summary => {
+      summary.avgAccuracy = summary.totalPasses > 0
+        ? Math.round((summary.totalSuccessful / summary.totalPasses) * 100)
+        : 0;
+    });
+
+    return Array.from(playerMap.values()).sort((a, b) => a.jersey - b.jersey);
   }, [data]);
 
-  // Trend data: per player across matches (for multi-match view)
-  const trendData = useMemo(() => {
-    if (!data || !isMultiMatch) return { successFailTrend: [], fwdBwdTrend: [], players: [] };
+  const isMultiMatch = data?.sortedMatches && data.sortedMatches.length > 1;
+  const matchLabels = useMemo(() => {
+    if (!data) return [];
+    return data.sortedMatches.map((m: any) => ({
+      id: m.id,
+      label: data.matchMap.get(m.id)?.label || '',
+      shortLabel: data.matchMap.get(m.id)?.shortLabel || '',
+    }));
+  }, [data]);
 
-    const { grouped, matchMap, sortedMatches } = data;
+  // Per-match grouped bar data for the comparison chart
+  const comparisonChartData = useMemo(() => {
+    if (!data || !isMultiMatch) return [];
 
-    // Collect all players
-    const playerSet = new Map<string, { name: string; jersey: number }>();
-    grouped.forEach(matchPlayers => {
-      matchPlayers.forEach((row, playerId) => {
-        if (!playerSet.has(playerId)) {
-          playerSet.set(playerId, { name: row.playerName, jersey: row.jerseyNumber });
-        }
+    return playerSummaries
+      .filter(p => p.totalPasses > 0)
+      .map(player => {
+        const entry: any = { name: `#${player.jersey} ${player.name}` };
+        player.matchStats.forEach((ms, idx) => {
+          entry[ms.matchLabel] = ms.total;
+        });
+        return entry;
       });
-    });
-
-    const players = Array.from(playerSet.entries())
-      .sort((a, b) => a[1].jersey - b[1].jersey);
-
-    // Build trend: X-axis = matches, lines = players
-    const successFailTrend = sortedMatches.map((m: any) => {
-      const matchPlayers = grouped.get(m.id);
-      const matchInfo = matchMap.get(m.id);
-      const entry: any = { match: matchInfo?.label || 'Unknown' };
-
-      players.forEach(([playerId, info]) => {
-        const playerData = matchPlayers?.get(playerId);
-        entry[`#${info.jersey} ${info.name}`] = playerData ? playerData.successful : 0;
-      });
-
-      return entry;
-    });
-
-    const fwdBwdTrend = sortedMatches.map((m: any) => {
-      const matchPlayers = grouped.get(m.id);
-      const matchInfo = matchMap.get(m.id);
-      const entry: any = { match: matchInfo?.label || 'Unknown' };
-
-      players.forEach(([playerId, info]) => {
-        const playerData = matchPlayers?.get(playerId);
-        entry[`#${info.jersey} ${info.name}`] = playerData ? playerData.forward : 0;
-      });
-
-      return entry;
-    });
-
-    return { successFailTrend, fwdBwdTrend, players };
-  }, [data, isMultiMatch]);
+  }, [playerSummaries, isMultiMatch, data]);
 
   if (isLoading) {
     return (
@@ -235,7 +309,7 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
     );
   }
 
-  if (!data || perMatchData.length === 0) {
+  if (!data || playerSummaries.length === 0) {
     return (
       <Card>
         <CardContent className="py-12">
@@ -245,178 +319,297 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
     );
   }
 
-  // Colors for trend lines (up to 20 players)
-  const PLAYER_COLORS = [
-    'hsl(var(--primary))',
-    'hsl(var(--destructive))',
-    'hsl(142, 76%, 36%)',
-    'hsl(38, 92%, 50%)',
-    'hsl(262, 83%, 58%)',
-    'hsl(199, 89%, 48%)',
-    'hsl(350, 89%, 60%)',
-    'hsl(174, 72%, 40%)',
-    'hsl(45, 93%, 47%)',
-    'hsl(280, 65%, 60%)',
-    'hsl(16, 85%, 57%)',
-    'hsl(200, 75%, 45%)',
-    'hsl(120, 60%, 45%)',
-    'hsl(330, 70%, 55%)',
-    'hsl(60, 80%, 45%)',
-    'hsl(240, 60%, 60%)',
-    'hsl(0, 70%, 50%)',
-    'hsl(160, 65%, 45%)',
-    'hsl(300, 60%, 50%)',
-    'hsl(80, 70%, 40%)',
-  ];
-
   return (
-    <div className="space-y-8">
-      {/* Trend Charts (only for multi-match) */}
-      {isMultiMatch && trendData.players.length > 0 && (
-        <>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Successful Passes Trend by Match
-              </CardTitle>
-              <CardDescription>How each player's successful passes are trending across matches</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={trendData.successFailTrend} margin={{ top: 5, right: 30, left: 10, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="match"
-                    tick={{ fontSize: 11 }}
-                    angle={-30}
-                    textAnchor="end"
-                    height={80}
-                  />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                  {trendData.players.map(([, info], idx) => (
-                    <Line
-                      key={`#${info.jersey} ${info.name}`}
-                      type="monotone"
-                      dataKey={`#${info.jersey} ${info.name}`}
-                      stroke={PLAYER_COLORS[idx % PLAYER_COLORS.length]}
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      connectNulls
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+    <div className="space-y-6">
+      {/* Summary Heatmap Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-primary" />
+            Pass Summary {isMultiMatch ? 'by Match' : ''}
+          </CardTitle>
+          {isMultiMatch && (
+            <CardDescription>
+              Each column shows a match — compare players across games at a glance
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <Tabs defaultValue="accuracy" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="accuracy">Pass Accuracy</TabsTrigger>
+              <TabsTrigger value="volume">Pass Volume</TabsTrigger>
+              <TabsTrigger value="direction">Forward vs Backward</TabsTrigger>
+            </TabsList>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Forward Passes Trend by Match
-              </CardTitle>
-              <CardDescription>How each player's forward passes are trending across matches</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={trendData.fwdBwdTrend} margin={{ top: 5, right: 30, left: 10, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="match"
-                    tick={{ fontSize: 11 }}
-                    angle={-30}
-                    textAnchor="end"
-                    height={80}
+            {/* ACCURACY VIEW */}
+            <TabsContent value="accuracy">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-2 font-semibold text-foreground sticky left-0 bg-card z-10 min-w-[140px]">Player</th>
+                      {isMultiMatch && matchLabels.map(ml => (
+                        <th key={ml.id} className="text-center py-3 px-2 font-medium text-muted-foreground min-w-[100px]">
+                          <div className="text-xs leading-tight">{ml.label}</div>
+                        </th>
+                      ))}
+                      <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[80px]">
+                        {isMultiMatch ? 'Avg' : 'Accuracy'}
+                      </th>
+                      {isMultiMatch && (
+                        <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[60px]">Trend</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {playerSummaries.filter(p => p.totalPasses > 0).map(player => (
+                      <tr key={player.playerId} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                        <td className="py-2.5 px-2 sticky left-0 bg-card z-10">
+                          <div className="font-medium text-foreground">#{player.jersey} {player.name}</div>
+                          <div className="text-xs text-muted-foreground">{player.role}</div>
+                        </td>
+                        {isMultiMatch && matchLabels.map(ml => {
+                          const ms = player.matchStats.find(s => s.matchId === ml.id);
+                          if (!ms) return <td key={ml.id} className="text-center py-2.5 px-2 text-muted-foreground">—</td>;
+                          return (
+                            <td key={ml.id} className="text-center py-2.5 px-2">
+                              <div
+                                className="inline-flex items-center justify-center rounded-md px-2 py-1 font-mono text-xs font-bold min-w-[48px]"
+                                style={{
+                                  backgroundColor: `${getAccuracyColor(ms.accuracy)}20`,
+                                  color: getAccuracyColor(ms.accuracy),
+                                }}
+                              >
+                                {ms.accuracy}%
+                              </div>
+                              <div className="text-[10px] text-muted-foreground mt-0.5">
+                                {ms.successful}/{ms.total}
+                              </div>
+                            </td>
+                          );
+                        })}
+                        <td className="text-center py-2.5 px-2">
+                          <Badge variant={getAccuracyBadgeVariant(player.avgAccuracy)} className="font-mono text-xs">
+                            {player.avgAccuracy}%
+                          </Badge>
+                        </td>
+                        {isMultiMatch && (
+                          <td className="text-center py-2.5 px-2">
+                            <TrendIndicator values={player.matchStats.map(ms => ms.accuracy)} />
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+
+            {/* VOLUME VIEW */}
+            <TabsContent value="volume">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-2 font-semibold text-foreground sticky left-0 bg-card z-10 min-w-[140px]">Player</th>
+                      {isMultiMatch && matchLabels.map(ml => (
+                        <th key={ml.id} className="text-center py-3 px-2 font-medium text-muted-foreground min-w-[100px]">
+                          <div className="text-xs leading-tight">{ml.label}</div>
+                        </th>
+                      ))}
+                      <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[80px]">Total</th>
+                      {isMultiMatch && (
+                        <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[60px]">Trend</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {playerSummaries.filter(p => p.totalPasses > 0).map(player => {
+                      const maxTotal = Math.max(...player.matchStats.map(ms => ms.total), 1);
+                      return (
+                        <tr key={player.playerId} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                          <td className="py-2.5 px-2 sticky left-0 bg-card z-10">
+                            <div className="font-medium text-foreground">#{player.jersey} {player.name}</div>
+                            <div className="text-xs text-muted-foreground">{player.role}</div>
+                          </td>
+                          {isMultiMatch && matchLabels.map(ml => {
+                            const ms = player.matchStats.find(s => s.matchId === ml.id);
+                            if (!ms) return <td key={ml.id} className="text-center py-2.5 px-2 text-muted-foreground">—</td>;
+                            const barWidth = Math.max(10, (ms.total / maxTotal) * 100);
+                            return (
+                              <td key={ml.id} className="py-2.5 px-2">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex-1 h-5 bg-muted/50 rounded-sm overflow-hidden relative">
+                                    <div
+                                      className="h-full rounded-sm transition-all"
+                                      style={{
+                                        width: `${barWidth}%`,
+                                        background: `linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))`,
+                                      }}
+                                    />
+                                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+                                      {ms.total}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                            );
+                          })}
+                          <td className="text-center py-2.5 px-2">
+                            <span className="font-bold text-foreground">{player.totalPasses}</span>
+                          </td>
+                          {isMultiMatch && (
+                            <td className="text-center py-2.5 px-2">
+                              <TrendIndicator values={player.matchStats.map(ms => ms.total)} />
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+
+            {/* DIRECTION VIEW */}
+            <TabsContent value="direction">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-2 font-semibold text-foreground sticky left-0 bg-card z-10 min-w-[140px]">Player</th>
+                      {isMultiMatch && matchLabels.map(ml => (
+                        <th key={ml.id} className="text-center py-3 px-2 font-medium text-muted-foreground min-w-[120px]">
+                          <div className="text-xs leading-tight">{ml.label}</div>
+                        </th>
+                      ))}
+                      <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[100px]">Total</th>
+                      {isMultiMatch && (
+                        <th className="text-center py-3 px-2 font-semibold text-foreground min-w-[60px]">Trend</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {playerSummaries.filter(p => p.totalPasses > 0).map(player => (
+                      <tr key={player.playerId} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                        <td className="py-2.5 px-2 sticky left-0 bg-card z-10">
+                          <div className="font-medium text-foreground">#{player.jersey} {player.name}</div>
+                          <div className="text-xs text-muted-foreground">{player.role}</div>
+                        </td>
+                        {isMultiMatch && matchLabels.map(ml => {
+                          const ms = player.matchStats.find(s => s.matchId === ml.id);
+                          if (!ms) return <td key={ml.id} className="text-center py-2.5 px-2 text-muted-foreground">—</td>;
+                          const fwdPct = ms.total > 0 ? Math.round((ms.forward / (ms.forward + ms.backward || 1)) * 100) : 0;
+                          return (
+                            <td key={ml.id} className="py-2.5 px-2">
+                              <div className="flex h-4 rounded-sm overflow-hidden bg-muted/30">
+                                <div
+                                  className="h-full transition-all"
+                                  style={{
+                                    width: `${fwdPct}%`,
+                                    backgroundColor: 'hsl(142, 76%, 36%)',
+                                  }}
+                                />
+                                <div
+                                  className="h-full transition-all"
+                                  style={{
+                                    width: `${100 - fwdPct}%`,
+                                    backgroundColor: 'hsl(38, 92%, 50%)',
+                                  }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[10px] mt-0.5">
+                                <span style={{ color: 'hsl(142, 76%, 36%)' }}>{ms.forward}↑</span>
+                                <span style={{ color: 'hsl(38, 92%, 50%)' }}>{ms.backward}↓</span>
+                              </div>
+                            </td>
+                          );
+                        })}
+                        <td className="py-2.5 px-2">
+                          <div className="flex h-4 rounded-sm overflow-hidden bg-muted/30">
+                            <div
+                              className="h-full"
+                              style={{
+                                width: `${player.totalForward + player.totalBackward > 0 ? Math.round((player.totalForward / (player.totalForward + player.totalBackward)) * 100) : 0}%`,
+                                backgroundColor: 'hsl(142, 76%, 36%)',
+                              }}
+                            />
+                            <div
+                              className="h-full"
+                              style={{
+                                width: `${player.totalForward + player.totalBackward > 0 ? Math.round((player.totalBackward / (player.totalForward + player.totalBackward)) * 100) : 0}%`,
+                                backgroundColor: 'hsl(38, 92%, 50%)',
+                              }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-[10px] mt-0.5">
+                            <span style={{ color: 'hsl(142, 76%, 36%)' }}>{player.totalForward}↑</span>
+                            <span style={{ color: 'hsl(38, 92%, 50%)' }}>{player.totalBackward}↓</span>
+                          </div>
+                        </td>
+                        {isMultiMatch && (
+                          <td className="text-center py-2.5 px-2">
+                            <TrendIndicator values={player.matchStats.map(ms => ms.forward)} />
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Legend */}
+              <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(142, 76%, 36%)' }} />
+                  <span>Forward</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(38, 92%, 50%)' }} />
+                  <span>Backward</span>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Comparison Bar Chart (multi-match only) */}
+      {isMultiMatch && comparisonChartData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Total Passes by Match — Player Comparison
+            </CardTitle>
+            <CardDescription>Compare each player's pass volume across matches</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={Math.max(350, comparisonChartData.length * 32)}>
+              <BarChart
+                data={comparisonChartData}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" />
+                <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 11 }} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                {matchLabels.map((ml, idx) => (
+                  <Bar
+                    key={ml.id}
+                    dataKey={ml.label}
+                    fill={MATCH_COLORS[idx % MATCH_COLORS.length]}
+                    radius={[0, 2, 2, 0]}
                   />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                  {trendData.players.map(([, info], idx) => (
-                    <Line
-                      key={`#${info.jersey} ${info.name}`}
-                      type="monotone"
-                      dataKey={`#${info.jersey} ${info.name}`}
-                      stroke={PLAYER_COLORS[idx % PLAYER_COLORS.length]}
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      connectNulls
-                    />
-                  ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </>
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Per-Match Breakdown */}
-      {perMatchData.map((matchData: any) => {
-        const chartHeight = Math.max(280, matchData.sfData.length * 32);
-        return (
-          <div key={matchData.matchId} className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground border-b pb-2 border-border">
-              {matchData.matchInfo.label}
-            </h3>
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-primary" />
-                    Successful vs Failed Passes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={chartHeight}>
-                    <BarChart
-                      data={matchData.sfData}
-                      layout="vertical"
-                      margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 11 }} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="Successful" stackId="a" fill="hsl(var(--primary))" />
-                      <Bar dataKey="Failed" stackId="a" fill="hsl(var(--destructive))" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-primary" />
-                    Forward vs Backward Passes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={chartHeight}>
-                    <BarChart
-                      data={matchData.fbData}
-                      layout="vertical"
-                      margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 11 }} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="Forward" stackId="a" fill="hsl(142, 76%, 36%)" />
-                      <Bar dataKey="Backward" stackId="a" fill="hsl(38, 92%, 50%)" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 }
