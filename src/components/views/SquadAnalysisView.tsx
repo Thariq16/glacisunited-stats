@@ -49,6 +49,7 @@ interface SquadAnalysisViewProps {
     focusTeamId?: string;
     matchCount?: number;
     matchId?: string;
+    matchIds?: string[];
     opponentTeamId?: string;
     teamPassEvents?: PassEvent[];
     matchFilter?: string;
@@ -73,6 +74,7 @@ export function SquadAnalysisView({
     focusTeamId,
     matchCount = 1,
     matchId,
+    matchIds = [],
     opponentTeamId,
     teamPassEvents = [],
     matchFilter = 'last1'
@@ -530,8 +532,8 @@ export function SquadAnalysisView({
                             </Card>
                         )}
 
-                        {matchId && focusTeamId && (
-                            <SetPieceAnalyticsTab matchId={matchId} teamId={focusTeamId} teamName={teamName} />
+                        {(matchIds.length > 0 || matchId) && focusTeamId && (
+                            <SetPieceAnalyticsTab matchId={matchIds.length > 0 ? matchIds : (matchId || '')} teamId={focusTeamId} teamName={teamName} />
                         )}
                     </TabsContent>
                     <TabsContent value="opponent" className="space-y-6">
@@ -547,8 +549,8 @@ export function SquadAnalysisView({
                             </Card>
                         )}
 
-                        {matchId && opponentTeamId && (
-                            <SetPieceAnalyticsTab matchId={matchId} teamId={opponentTeamId} teamName={opponentName} />
+                        {(matchIds.length > 0 || matchId) && opponentTeamId && (
+                            <SetPieceAnalyticsTab matchId={matchIds.length > 0 ? matchIds : (matchId || '')} teamId={opponentTeamId} teamName={opponentName} />
                         )}
                     </TabsContent>
                 </Tabs>

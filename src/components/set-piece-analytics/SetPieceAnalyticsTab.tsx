@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle } from "lucide-react";
 
 interface SetPieceAnalyticsTabProps {
-    matchId: string;
+    matchId: string | string[];
     teamId: string;
     teamName: string;
 }
