@@ -129,13 +129,21 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
 
       // Determine which match IDs to filter by
       let matchIds: string[] = [];
+      let matchDurations: { h1_playing_time_seconds: number | null; h1_injury_time_seconds: number | null; h2_playing_time_seconds: number | null; h2_injury_time_seconds: number | null }[] = [];
+
+      const matchSelect = 'id, h1_playing_time_seconds, h1_injury_time_seconds, h2_playing_time_seconds, h2_injury_time_seconds';
 
       if (isSpecificMatch) {
         matchIds = [matchFilter];
+        const { data: matches } = await supabase
+          .from('matches')
+          .select(matchSelect)
+          .eq('id', matchFilter);
+        matchDurations = matches || [];
       } else if (matchFilter === 'last1' || matchFilter === 'last3') {
         const matchesQuery = supabase
           .from('matches')
-          .select('id')
+          .select(matchSelect)
           .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
           .in('status', ['completed', 'in_progress'])
           .order('match_date', { ascending: false });
@@ -148,15 +156,24 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
 
         const { data: matches } = await matchesQuery;
         matchIds = matches?.map(m => m.id) || [];
+        matchDurations = matches || [];
       } else {
         // Get all matches for the team
         const { data: matches } = await supabase
           .from('matches')
-          .select('id')
+          .select(matchSelect)
           .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
           .in('status', ['completed', 'in_progress']);
         matchIds = matches?.map(m => m.id) || [];
+        matchDurations = matches || [];
       }
+
+      // Calculate total match minutes from actual match durations
+      const totalMatchMinutes = matchDurations.reduce((sum, m) => {
+        const h1 = (m.h1_playing_time_seconds || 0) + (m.h1_injury_time_seconds || 0);
+        const h2 = (m.h2_playing_time_seconds || 0) + (m.h2_injury_time_seconds || 0);
+        return sum + Math.round((h1 + h2) / 60);
+      }, 0);
 
       // Fetch substitution events for these matches
       const { data: subEvents } = await supabase
@@ -308,6 +325,7 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
       return {
         ...team,
         players,
+        totalMatchMinutes,
       };
     },
     enabled: !!teamSlug,

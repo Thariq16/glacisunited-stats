@@ -30,7 +30,7 @@ export default function TeamStats() {
     const totalShotsOnTarget = team.players.reduce((sum, p) => sum + p.shotsOnTarget, 0);
     const totalRunInBehind = team.players.reduce((sum, p) => sum + p.runInBehind, 0);
     const totalOverlaps = team.players.reduce((sum, p) => sum + p.overlaps, 0);
-    const totalMinutes = team.players.reduce((sum, p) => sum + p.minutesPlayed, 0);
+    const totalMinutes = team.totalMatchMinutes || team.players.reduce((sum, p) => sum + p.minutesPlayed, 0);
 
     return {
       totalGoals,
