@@ -55,6 +55,7 @@ const App = () => (
                 {/* Public routes - eagerly loaded */}
                 <Route path="/" element={<Landing />} />
                 <Route path="/dashboard" element={<Home />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
                 <Route path="/matches" element={<Matches />} />
