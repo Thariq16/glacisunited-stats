@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar } from "lucide-react";
+import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 function AdminContent() {
@@ -144,6 +144,26 @@ function AdminContent() {
               <CardContent>
                 <Button variant="secondary" className="w-full">
                   New Match
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin-only: Data Entry Stats */}
+          {isAdmin && (
+            <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/data-entry-stats')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Timer className="h-5 w-5" />
+                  Data Entry Stats
+                </CardTitle>
+                <CardDescription>
+                  Track how long it takes to complete match event data entry
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">
+                  View Stats
                 </Button>
               </CardContent>
             </Card>
