@@ -20,6 +20,7 @@ import { AttackingThreatMap, LaneStats } from "@/components/views/AttackingThrea
 import { LostPossessionHeatmap, PossessionLossEvent } from "@/components/views/LostPossessionHeatmap";
 import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
 import { DirectionalPassMap } from "@/components/DirectionalPassMap";
+import { SquadPassesTab } from "@/components/views/SquadPassesTab";
 
 interface SquadAnalysisViewProps {
     players: PlayerStats[];
@@ -50,6 +51,7 @@ interface SquadAnalysisViewProps {
     matchId?: string;
     opponentTeamId?: string;
     teamPassEvents?: PassEvent[];
+    matchFilter?: string;
 }
 
 export function SquadAnalysisView({
@@ -72,7 +74,8 @@ export function SquadAnalysisView({
     matchCount = 1,
     matchId,
     opponentTeamId,
-    teamPassEvents = []
+    teamPassEvents = [],
+    matchFilter = 'last1'
 }: SquadAnalysisViewProps) {
     const [selectedHalf, setSelectedHalf] = useState<'all' | 'first' | 'second'>('all');
 
@@ -290,6 +293,7 @@ export function SquadAnalysisView({
                 <TabsTrigger value="attacking">Attacking</TabsTrigger>
                 <TabsTrigger value="defensive">Defensive</TabsTrigger>
                 <TabsTrigger value="set-pieces">Set Pieces</TabsTrigger>
+                <TabsTrigger value="passes">Passes</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="space-y-6">
@@ -372,30 +376,6 @@ export function SquadAnalysisView({
                                         <Tooltip />
                                         <Bar dataKey="goals" fill="#8884d8">
                                             <LabelList dataKey="goals" position="top" />
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Activity className="h-5 w-5 text-primary" />
-                                    Top Passers
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <BarChart
-                                        data={squadStats.sortedByPasses.slice(0, 5).filter(p => p.successfulPass > 0)}
-                                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                    >
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="playerName" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Bar dataKey="successfulPass" fill="#82ca9d">
-                                            <LabelList dataKey="successfulPass" position="top" />
                                         </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
@@ -572,6 +552,14 @@ export function SquadAnalysisView({
                         )}
                     </TabsContent>
                 </Tabs>
+            </TabsContent>
+
+            <TabsContent value="passes" className="space-y-6">
+                <SquadPassesTab
+                    focusTeamId={focusTeamId}
+                    matchFilter={matchFilter}
+                    teamSlug="glacis-united-fc"
+                />
             </TabsContent>
         </Tabs>
     );
