@@ -52,7 +52,7 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-un
           .select('id, match_date, home_team_id, away_team_id, home_team:teams!matches_home_team_id_fkey(name), away_team:teams!matches_away_team_id_fkey(name)')
           .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
           .in('status', ['completed', 'in_progress'])
-          .order('match_date', { ascending: true });
+          .order('match_date', { ascending: false });
         if (matchFilter === 'last1') matchesQuery.limit(1);
         else if (matchFilter === 'last3') matchesQuery.limit(3);
       }
