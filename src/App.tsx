@@ -33,6 +33,7 @@ const AdminMatchSelect = lazy(() => import("@/features/admin/pages/AdminMatchSel
 const AdminNewMatch = lazy(() => import("@/features/admin/pages/AdminNewMatch"));
 const AdminSquadSelection = lazy(() => import("@/features/admin/pages/AdminSquadSelection"));
 const AdminMatches = lazy(() => import("@/features/admin/pages/AdminMatches"));
+const AdminDataEntryStats = lazy(() => import("@/features/admin/pages/AdminDataEntryStats"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="/admin/new-match" element={<Suspense fallback={<PageLoader />}><AdminNewMatch /></Suspense>} />
               <Route path="/admin/squad-selection/:matchId" element={<Suspense fallback={<PageLoader />}><AdminSquadSelection /></Suspense>} />
               <Route path="/admin/match-events/:matchId" element={<Suspense fallback={<PageLoader />}><AdminMatchEvents /></Suspense>} />
+              <Route path="/admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
               <Route path="/import" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
 
               {/* Catch-all route */}
