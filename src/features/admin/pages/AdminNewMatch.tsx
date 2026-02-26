@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useOrganization } from '@/hooks/useOrganization';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -18,6 +19,7 @@ import { Switch } from '@/components/ui/switch';
 function AdminNewMatchContent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentOrg } = useOrganization();
   
   const [formData, setFormData] = useState({
     homeTeamId: '',
@@ -33,13 +35,18 @@ function AdminNewMatchContent() {
 
   // Fetch teams
   const { data: teams, isLoading: teamsLoading } = useQuery({
-    queryKey: ['teams'],
+    queryKey: ['teams', currentOrg?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('teams')
         .select('id, name, slug')
         .order('name');
+
+      if (currentOrg?.id) {
+        query = query.eq('organization_id', currentOrg.id);
+      }
       
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -50,7 +57,7 @@ function AdminNewMatchContent() {
     mutationFn: async (data: { name: string; slug: string }) => {
       const { data: newTeam, error } = await supabase
         .from('teams')
-        .insert(data)
+        .insert({ ...data, organization_id: currentOrg?.id })
         .select()
         .single();
       

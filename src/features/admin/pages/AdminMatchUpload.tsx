@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/hooks/useOrganization";
 import { z } from "zod";
 
 // Validation schema
@@ -28,6 +29,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 function AdminMatchUploadContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currentOrg } = useOrganization();
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -148,6 +150,9 @@ function AdminMatchUploadContent() {
       uploadFormData.append('awayScore', formData.awayScore || '0');
       uploadFormData.append('venue', formData.venue.trim() || '');
       uploadFormData.append('competition', formData.competition.trim() || 'League');
+      if (currentOrg?.id) {
+        uploadFormData.append('organizationId', currentOrg.id);
+      }
       uploadFormData.append('homeTeam1stCSV', files.homeTeam1stCSV);
       uploadFormData.append('homeTeam2ndCSV', files.homeTeam2ndCSV);
       uploadFormData.append('awayTeam1stCSV', files.awayTeam1stCSV);

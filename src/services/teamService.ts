@@ -6,13 +6,19 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const teamService = {
     /**
-     * Get all teams
+     * Get all teams, optionally filtered by organization
      */
-    getAll: async () => {
-        return supabase
+    getAll: async (organizationId?: string) => {
+        let query = supabase
             .from('teams')
-            .select('id, name, slug')
+            .select('id, name, slug, organization_id')
             .order('name');
+
+        if (organizationId) {
+            query = query.eq('organization_id', organizationId);
+        }
+
+        return query;
     },
 
     /**
@@ -21,7 +27,7 @@ export const teamService = {
     getBySlug: async (slug: string) => {
         return supabase
             .from('teams')
-            .select('id, name, slug')
+            .select('id, name, slug, organization_id')
             .eq('slug', slug)
             .single();
     },
@@ -32,7 +38,7 @@ export const teamService = {
     getById: async (teamId: string) => {
         return supabase
             .from('teams')
-            .select('id, name, slug')
+            .select('id, name, slug, organization_id')
             .eq('id', teamId)
             .single();
     },
@@ -40,7 +46,7 @@ export const teamService = {
     /**
      * Create a new team
      */
-    create: async (team: { name: string; slug: string }) => {
+    create: async (team: { name: string; slug: string; organization_id?: string }) => {
         return supabase
             .from('teams')
             .insert(team)
