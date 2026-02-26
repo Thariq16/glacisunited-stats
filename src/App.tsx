@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { OrganizationProvider } from "@/hooks/useOrganization";
 import { SessionExpiryWarning } from "@/components/SessionExpiryWarning";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageLoader } from "@/components/PageLoader";
@@ -20,6 +21,7 @@ import PlayerProfile from "./pages/PlayerProfile";
 import SquadAnalysis from "./pages/SquadAnalysis";
 import PlayerComparison from "./pages/PlayerComparison";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
 // Lazy loaded pages (admin routes - heavy components)
@@ -41,46 +43,49 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <Toaster />
-          <Sonner />
-          <SessionExpiryWarning />
-          <BrowserRouter>
-            <Routes>
-              {/* Public routes - eagerly loaded */}
-              <Route path="/" element={<Home />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
-              <Route path="/matches" element={<Matches />} />
-              <Route path="/match/:matchId" element={<MatchDetail />} />
-              <Route path="/players" element={<Players />} />
-              <Route path="/opposition-players" element={<OppositionPlayers />} />
-              <Route path="/squad-analysis" element={<SquadAnalysis />} />
-              <Route path="/compare" element={<PlayerComparison />} />
-              <Route path="/team/:teamId" element={<TeamStats />} />
-              <Route path="/team/:teamId/player/:playerName" element={<PlayerProfile />} />
+      <OrganizationProvider>
+        <TooltipProvider>
+          <ErrorBoundary>
+            <Toaster />
+            <Sonner />
+            <SessionExpiryWarning />
+            <BrowserRouter>
+              <Routes>
+                {/* Public routes - eagerly loaded */}
+                <Route path="/" element={<Home />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
+                <Route path="/matches" element={<Matches />} />
+                <Route path="/match/:matchId" element={<MatchDetail />} />
+                <Route path="/players" element={<Players />} />
+                <Route path="/opposition-players" element={<OppositionPlayers />} />
+                <Route path="/squad-analysis" element={<SquadAnalysis />} />
+                <Route path="/compare" element={<PlayerComparison />} />
+                <Route path="/team/:teamId" element={<TeamStats />} />
+                <Route path="/team/:teamId/player/:playerName" element={<PlayerProfile />} />
 
-              {/* Admin routes - lazy loaded with Suspense */}
-              <Route path="/admin" element={<Suspense fallback={<PageLoader />}><Admin /></Suspense>} />
-              <Route path="/admin/players" element={<Suspense fallback={<PageLoader />}><AdminPlayers /></Suspense>} />
-              <Route path="/admin/upload" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
-              <Route path="/admin/match-upload" element={<Suspense fallback={<PageLoader />}><AdminMatchUpload /></Suspense>} />
-              <Route path="/admin/comments" element={<Suspense fallback={<PageLoader />}><AdminComments /></Suspense>} />
-              <Route path="/admin/match-select" element={<Suspense fallback={<PageLoader />}><AdminMatchSelect /></Suspense>} />
-              <Route path="/admin/matches" element={<Suspense fallback={<PageLoader />}><AdminMatches /></Suspense>} />
-              <Route path="/admin/new-match" element={<Suspense fallback={<PageLoader />}><AdminNewMatch /></Suspense>} />
-              <Route path="/admin/squad-selection/:matchId" element={<Suspense fallback={<PageLoader />}><AdminSquadSelection /></Suspense>} />
-              <Route path="/admin/match-events/:matchId" element={<Suspense fallback={<PageLoader />}><AdminMatchEvents /></Suspense>} />
-              <Route path="/admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
-              <Route path="/import" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
+                {/* Admin routes - lazy loaded with Suspense */}
+                <Route path="/admin" element={<Suspense fallback={<PageLoader />}><Admin /></Suspense>} />
+                <Route path="/admin/players" element={<Suspense fallback={<PageLoader />}><AdminPlayers /></Suspense>} />
+                <Route path="/admin/upload" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
+                <Route path="/admin/match-upload" element={<Suspense fallback={<PageLoader />}><AdminMatchUpload /></Suspense>} />
+                <Route path="/admin/comments" element={<Suspense fallback={<PageLoader />}><AdminComments /></Suspense>} />
+                <Route path="/admin/match-select" element={<Suspense fallback={<PageLoader />}><AdminMatchSelect /></Suspense>} />
+                <Route path="/admin/matches" element={<Suspense fallback={<PageLoader />}><AdminMatches /></Suspense>} />
+                <Route path="/admin/new-match" element={<Suspense fallback={<PageLoader />}><AdminNewMatch /></Suspense>} />
+                <Route path="/admin/squad-selection/:matchId" element={<Suspense fallback={<PageLoader />}><AdminSquadSelection /></Suspense>} />
+                <Route path="/admin/match-events/:matchId" element={<Suspense fallback={<PageLoader />}><AdminMatchEvents /></Suspense>} />
+                <Route path="/admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
+                <Route path="/import" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
 
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </ErrorBoundary>
-      </TooltipProvider>
+                {/* Catch-all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ErrorBoundary>
+        </TooltipProvider>
+      </OrganizationProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

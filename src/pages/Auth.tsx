@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,16 +54,19 @@ export default function Auth() {
   const [rememberMe, setRememberMe] = useState(true);
   
   const { signIn, signUp, user, resetPassword, updatePassword } = useAuth();
+  const { hasOrg, loading: orgLoading } = useOrganization();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // If user is logged in and in reset mode, stay on page to update password
-    // Otherwise redirect to home
-    if (user && !isResetMode) {
-      navigate('/');
+    if (user && !isResetMode && !orgLoading) {
+      if (!hasOrg) {
+        navigate('/onboarding');
+      } else {
+        navigate('/');
+      }
     }
-  }, [user, navigate, isResetMode]);
+  }, [user, navigate, isResetMode, hasOrg, orgLoading]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +97,7 @@ export default function Auth() {
           title: 'Welcome back!',
           description: 'You have successfully logged in',
         });
-        navigate('/');
+        // Navigation will be handled by the useEffect above
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
