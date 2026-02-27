@@ -104,7 +104,7 @@ function OverallSquadAnalysis() {
         <MatchFilterSelect
           value={matchFilter}
           onValueChange={setMatchFilter}
-          teamSlug="glacis-united-fc"
+          teamSlug={teamSlug}
         />
       </div>
 
