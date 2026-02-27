@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
+import { usePrimaryTeam } from "@/hooks/usePrimaryTeam";
 
 // ── Overall Squad Analysis (multi-match, Glacis only) ──────────────────────
 function OverallSquadAnalysis() {
