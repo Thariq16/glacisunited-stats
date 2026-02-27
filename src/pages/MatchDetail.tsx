@@ -22,6 +22,7 @@ import { MatchScoreHeader } from "@/components/MatchScoreHeader";
 import { MatchQuickStats } from "@/components/MatchQuickStats";
 import { PlayerStats } from "@/utils/parseCSV";
 import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
+import { usePrimaryTeam } from "@/hooks/usePrimaryTeam";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
