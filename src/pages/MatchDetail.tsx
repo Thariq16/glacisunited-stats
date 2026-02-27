@@ -114,6 +114,7 @@ export default function MatchDetail() {
           matchDate={match.match_date}
           venue={match.venue}
           xgStats={xgStats}
+          primaryTeamSlug={primaryTeamSlug}
           onViewHomePlayers={() => setSelectedTeam('home')}
           onViewAwayPlayers={() => setSelectedTeam('away')}
         />
