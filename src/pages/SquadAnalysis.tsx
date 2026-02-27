@@ -123,7 +123,7 @@ function OverallSquadAnalysis() {
           history={[]}
           setPieceStats={(visualizationData as any)?.setPieceStats || []}
           playerSetPieceStats={visualizationData?.playerSetPieceStats || []}
-          setPieceData={glacisSetPieceData}
+          setPieceData={primarySetPieceData}
           opponentSetPieceData={opponentSetPieceData}
           defensiveEvents={visualizationData?.defensiveEvents || []}
           attackingThreat={visualizationData?.attackingThreat as any}
