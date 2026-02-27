@@ -172,11 +172,11 @@ export default function MatchDetail() {
                       <TabsTrigger value="opponent">{oppositionTeam?.name || 'Opposition'}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="own">
-                      {glacisTeam && (
+                      {ownTeam && (
                         <SetPieceAnalyticsTab
                           matchId={matchId!}
-                          teamId={glacisTeam.id}
-                          teamName={glacisTeam.name}
+                          teamId={ownTeam.id}
+                          teamName={ownTeam.name}
                         />
                       )}
                     </TabsContent>
