@@ -162,13 +162,13 @@ export default function MatchDetail() {
 
             <TabsContent value="set-pieces" className="space-y-6">
               {(() => {
-                const isHomeGlacis = homeTeam?.name?.toLowerCase()?.includes('glacis');
-                const glacisTeam = isHomeGlacis ? homeTeam : awayTeam;
-                const oppositionTeam = isHomeGlacis ? awayTeam : homeTeam;
+                const isPrimaryHome = primaryTeamSlug && homeTeam?.slug === primaryTeamSlug;
+                const ownTeam = isPrimaryHome ? homeTeam : awayTeam;
+                const oppositionTeam = isPrimaryHome ? awayTeam : homeTeam;
                 return (
                   <Tabs defaultValue="own" className="space-y-4">
                     <TabsList>
-                      <TabsTrigger value="own">{glacisTeam?.name || 'Glacis United'}</TabsTrigger>
+                      <TabsTrigger value="own">{ownTeam?.name || 'Own Team'}</TabsTrigger>
                       <TabsTrigger value="opponent">{oppositionTeam?.name || 'Opposition'}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="own">
