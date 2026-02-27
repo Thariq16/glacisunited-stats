@@ -63,7 +63,7 @@ function OverallSquadAnalysis() {
   const allMatchIds = (filteredMatches || []).map((m: any) => m.id);
 
   const { data: players, isLoading: isPlayersLoading } = usePlayerStats(
-    'glacis-united-fc',
+    teamSlug || '',
     (matchFilter === 'last1' && latestMatch?.id) ? latestMatch.id : matchFilter
   );
 
