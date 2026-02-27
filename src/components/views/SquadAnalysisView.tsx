@@ -78,7 +78,8 @@ export function SquadAnalysisView({
     matchIds = [],
     opponentTeamId,
     teamPassEvents = [],
-    matchFilter = 'last1'
+    matchFilter = 'last1',
+    teamSlug,
 }: SquadAnalysisViewProps) {
     const [selectedHalf, setSelectedHalf] = useState<'all' | 'first' | 'second'>('all');
 
