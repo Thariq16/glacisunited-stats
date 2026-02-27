@@ -38,13 +38,13 @@ function getMatchResult(homeScore: number, awayScore: number, homeTeam: { slug: 
         primaryScore = awayScore;
         opponentScore = homeScore;
     } else {
-        // Fallback to home perspective if Glacis isn't playing
-        glacisScore = homeScore;
+        // Fallback to home perspective if primary team isn't playing
+        primaryScore = homeScore;
         opponentScore = awayScore;
     }
 
-    if (glacisScore > opponentScore) return 'win';
-    if (glacisScore < opponentScore) return 'loss';
+    if (primaryScore > opponentScore) return 'win';
+    if (primaryScore < opponentScore) return 'loss';
     return 'draw';
 }
 
