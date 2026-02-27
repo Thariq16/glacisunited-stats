@@ -77,17 +77,17 @@ export default function Onboarding() {
         logoUrl = urlData.publicUrl;
       }
 
-      // Create organization
-      const { data: org, error: orgError } = await supabase
+      // Create organization (use client-generated ID to avoid SELECT-on-insert RLS issue)
+      const orgId = crypto.randomUUID();
+      const { error: orgError } = await supabase
         .from('organizations')
         .insert({
+          id: orgId,
           name: orgName.trim(),
           slug: orgSlug.trim(),
           owner_id: user.id,
           logo_url: logoUrl,
-        })
-        .select()
-        .single();
+        });
 
       if (orgError) {
         if (orgError.message.includes('duplicate')) {
@@ -102,10 +102,12 @@ export default function Onboarding() {
       const { error: memberError } = await supabase
         .from('organization_members')
         .insert({
-          organization_id: org.id,
+          organization_id: orgId,
           user_id: user.id,
           role: 'owner',
         });
+
+      if (memberError) throw memberError;
 
       if (memberError) throw memberError;
 
