@@ -341,7 +341,7 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
   });
 }
 
-export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', matchFilter: MatchFilter = 'all') {
+export function useOppositionTeams(excludeSlug: string = '', matchFilter: MatchFilter = 'all') {
   const { currentOrg } = useOrganization();
   const orgId = currentOrg?.id;
   const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);

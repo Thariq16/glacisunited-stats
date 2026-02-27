@@ -202,7 +202,7 @@ export default function Onboarding() {
                 <Label htmlFor="org-name">Club Name</Label>
                 <Input
                   id="org-name"
-                  placeholder="e.g. Glacis United FC"
+                  placeholder="e.g. My Football Club"
                   value={orgName}
                   onChange={(e) => handleOrgNameChange(e.target.value)}
                   disabled={isLoading}
@@ -215,7 +215,7 @@ export default function Onboarding() {
                   <span className="text-sm text-muted-foreground whitespace-nowrap">app.com/</span>
                   <Input
                     id="org-slug"
-                    placeholder="glacis-united-fc"
+                    placeholder="my-club-fc"
                     value={orgSlug}
                     onChange={(e) => setOrgSlug(generateSlug(e.target.value))}
                     disabled={isLoading}

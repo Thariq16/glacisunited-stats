@@ -5,13 +5,15 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { useOppositionTeams } from "@/hooks/useTeams";
 import { MatchFilter } from "@/hooks/usePlayerStats";
+import { usePrimaryTeam } from "@/hooks/usePrimaryTeam";
 import { Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OppositionPlayers() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
-  const { data: oppositionTeams, isLoading } = useOppositionTeams('glacis-united-fc', matchFilter);
+  const { teamSlug } = usePrimaryTeam();
+  const { data: oppositionTeams, isLoading } = useOppositionTeams(teamSlug || 'none', matchFilter);
   
   return (
     <div className="min-h-screen bg-background flex flex-col">

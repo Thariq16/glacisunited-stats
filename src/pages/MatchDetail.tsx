@@ -22,12 +22,14 @@ import { MatchScoreHeader } from "@/components/MatchScoreHeader";
 import { MatchQuickStats } from "@/components/MatchQuickStats";
 import { PlayerStats } from "@/utils/parseCSV";
 import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
+import { usePrimaryTeam } from "@/hooks/usePrimaryTeam";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const { data: match, isLoading, error } = useMatchDetail(matchId);
   const { isAdmin, isCoach } = useAuth();
+  const { teamSlug: primaryTeamSlug } = usePrimaryTeam();
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null);
 
   // Extract team info for xG query
@@ -112,6 +114,7 @@ export default function MatchDetail() {
           matchDate={match.match_date}
           venue={match.venue}
           xgStats={xgStats}
+          primaryTeamSlug={primaryTeamSlug}
           onViewHomePlayers={() => setSelectedTeam('home')}
           onViewAwayPlayers={() => setSelectedTeam('away')}
         />
@@ -159,21 +162,21 @@ export default function MatchDetail() {
 
             <TabsContent value="set-pieces" className="space-y-6">
               {(() => {
-                const isHomeGlacis = homeTeam?.name?.toLowerCase()?.includes('glacis');
-                const glacisTeam = isHomeGlacis ? homeTeam : awayTeam;
-                const oppositionTeam = isHomeGlacis ? awayTeam : homeTeam;
+                const isPrimaryHome = primaryTeamSlug && homeTeam?.slug === primaryTeamSlug;
+                const ownTeam = isPrimaryHome ? homeTeam : awayTeam;
+                const oppositionTeam = isPrimaryHome ? awayTeam : homeTeam;
                 return (
                   <Tabs defaultValue="own" className="space-y-4">
                     <TabsList>
-                      <TabsTrigger value="own">{glacisTeam?.name || 'Glacis United'}</TabsTrigger>
+                      <TabsTrigger value="own">{ownTeam?.name || 'Own Team'}</TabsTrigger>
                       <TabsTrigger value="opponent">{oppositionTeam?.name || 'Opposition'}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="own">
-                      {glacisTeam && (
+                      {ownTeam && (
                         <SetPieceAnalyticsTab
                           matchId={matchId!}
-                          teamId={glacisTeam.id}
-                          teamName={glacisTeam.name}
+                          teamId={ownTeam.id}
+                          teamName={ownTeam.name}
                         />
                       )}
                     </TabsContent>
