@@ -28,7 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
 function AdminPlayersContent() {
-  const [selectedTeam, setSelectedTeam] = useState('glacis-united-fc');
+  const [selectedTeam, setSelectedTeam] = useState('');
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: '', jersey_number: '', role: '', hidden: false });
   const [showHidden, setShowHidden] = useState(false);

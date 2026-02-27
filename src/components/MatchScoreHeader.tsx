@@ -78,11 +78,12 @@ export function MatchScoreHeader({
     competition,
     matchDate,
     venue,
+    primaryTeamSlug,
     xgStats,
     onViewHomePlayers,
     onViewAwayPlayers,
 }: MatchScoreHeaderProps) {
-    const result = getMatchResult(homeScore, awayScore, homeTeam, awayTeam);
+    const result = getMatchResult(homeScore, awayScore, homeTeam, awayTeam, primaryTeamSlug);
     const resultBadge = getResultBadge(result);
     const hasXGData = xgStats && (xgStats.home.shotCount > 0 || xgStats.away.shotCount > 0);
 
