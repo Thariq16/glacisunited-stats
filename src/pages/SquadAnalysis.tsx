@@ -85,16 +85,16 @@ function OverallSquadAnalysis() {
     ? (latestMatch as any)?.away_team_id
     : (latestMatch as any)?.home_team_id;
 
-  const glacisSetPieceData = isGlacisHome
+  const primarySetPieceData = isPrimaryHome
     ? (visualizationData as any)?.setPieceData
     : (visualizationData as any)?.opponentSetPieceData;
-  const opponentSetPieceData = isGlacisHome
+  const opponentSetPieceData = isPrimaryHome
     ? (visualizationData as any)?.opponentSetPieceData
     : (visualizationData as any)?.setPieceData;
-  const glacisName = isGlacisHome
+  const primaryName = isPrimaryHome
     ? (latestMatch as any)?.home_team?.name
     : (latestMatch as any)?.away_team?.name;
-  const opponentName = isGlacisHome
+  const opponentName = isPrimaryHome
     ? (latestMatch as any)?.away_team?.name
     : (latestMatch as any)?.home_team?.name;
 
