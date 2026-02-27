@@ -20,23 +20,22 @@ interface MatchScoreHeaderProps {
     onViewAwayPlayers: () => void;
 }
 
-const GLACIS_SLUG = 'glacis-united-fc';
-
 type MatchResult = 'win' | 'draw' | 'loss';
 
-function getMatchResult(homeScore: number, awayScore: number, homeTeam: { slug: string } | null, awayTeam: { slug: string } | null): MatchResult {
-    // Determine result from Glacis United's perspective
-    const isGlacisHome = homeTeam?.slug === GLACIS_SLUG;
-    const isGlacisAway = awayTeam?.slug === GLACIS_SLUG;
+function getMatchResult(homeScore: number, awayScore: number, homeTeam: { slug: string } | null, awayTeam: { slug: string } | null, primarySlug?: string): MatchResult {
+    // Determine result from primary team's perspective
+    const slug = primarySlug || '';
+    const isPrimaryHome = homeTeam?.slug === slug;
+    const isPrimaryAway = awayTeam?.slug === slug;
 
-    let glacisScore: number;
+    let primaryScore: number;
     let opponentScore: number;
 
-    if (isGlacisHome) {
-        glacisScore = homeScore;
+    if (isPrimaryHome) {
+        primaryScore = homeScore;
         opponentScore = awayScore;
-    } else if (isGlacisAway) {
-        glacisScore = awayScore;
+    } else if (isPrimaryAway) {
+        primaryScore = awayScore;
         opponentScore = homeScore;
     } else {
         // Fallback to home perspective if Glacis isn't playing
