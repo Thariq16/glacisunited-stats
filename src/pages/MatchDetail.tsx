@@ -29,6 +29,7 @@ export default function MatchDetail() {
   const navigate = useNavigate();
   const { data: match, isLoading, error } = useMatchDetail(matchId);
   const { isAdmin, isCoach } = useAuth();
+  const { teamSlug: primaryTeamSlug } = usePrimaryTeam();
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null);
 
   // Extract team info for xG query
