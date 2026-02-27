@@ -72,7 +72,7 @@ export default function Players() {
             <MatchFilterSelect 
               value={matchFilter} 
               onValueChange={setMatchFilter}
-              teamSlug="glacis-united-fc"
+              teamSlug={teamSlug}
             />
             
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'cards' | 'table')}>
