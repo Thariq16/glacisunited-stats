@@ -20,18 +20,9 @@ import { usePrimaryTeam } from "@/hooks/usePrimaryTeam";
 // ── Overall Squad Analysis (multi-match, Glacis only) ──────────────────────
 function OverallSquadAnalysis() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
+  const { primaryTeam, teamSlug, teamName } = usePrimaryTeam();
 
-  const { data: glacisTeam } = useQuery({
-    queryKey: ['glacis-team-id'],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('teams')
-        .select('id, name')
-        .eq('slug', 'glacis-united-fc')
-        .single();
-      return data;
-    }
-  });
+  const glacisTeam = primaryTeam;
 
   const { data: filteredMatches } = useQuery({
     queryKey: ['filtered-matches-glacis', matchFilter, glacisTeam?.id],

@@ -98,7 +98,7 @@ export default function Players() {
                   <EnhancedPlayerCard 
                     key={`${player.jerseyNumber}-${player.playerName}`}
                     player={player}
-                    teamId="glacis-united-fc"
+                    teamId={teamSlug}
                     passData={passDataMap.get(player.playerName)}
                   />
                 ))}

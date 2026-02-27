@@ -3,8 +3,11 @@ import { Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
+import { useOrganization } from "@/hooks/useOrganization";
 export function Navbar() {
   const { theme, setTheme } = useTheme();
+  const { currentOrg } = useOrganization();
+  const displayName = currentOrg?.name ? `${currentOrg.name} Stats` : 'Football Stats';
   return <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
@@ -12,7 +15,7 @@ export function Navbar() {
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">⚽</span>
             </div>
-            <span className="font-bold text-xl text-foreground">Glacis United Stats  </span>
+            <span className="font-bold text-xl text-foreground">{displayName}</span>
           </NavLink>
 
           {/* Desktop Navigation */}
