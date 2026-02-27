@@ -11,6 +11,7 @@ interface MatchScoreHeaderProps {
     competition?: string;
     matchDate: string;
     venue?: string;
+    primaryTeamSlug?: string;
     xgStats?: {
         home: { totalXG: number; shotCount: number };
         away: { totalXG: number; shotCount: number };
