@@ -129,7 +129,7 @@ function OverallSquadAnalysis() {
           attackingThreat={visualizationData?.attackingThreat as any}
           opponentAttackingThreat={visualizationData?.opponentAttackingThreat as any}
           possessionLossEvents={visualizationData?.possessionLossEvents || []}
-          teamName={glacisName || 'Glacis United'}
+          teamName={primaryName || teamName}
           opponentName={opponentName || 'Opposition'}
           focusTeamId={focusTeamId}
           matchCount={allMatchIds.length || 1}

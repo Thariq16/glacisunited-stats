@@ -560,7 +560,7 @@ export function SquadAnalysisView({
                 <SquadPassesTab
                     focusTeamId={focusTeamId}
                     matchFilter={matchFilter}
-                    teamSlug="glacis-united-fc"
+                    teamSlug={teamSlug}
                 />
             </TabsContent>
         </Tabs>
