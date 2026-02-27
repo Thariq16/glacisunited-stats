@@ -77,8 +77,8 @@ function OverallSquadAnalysis() {
 
   const isLoading = isPlayersLoading || isVisLoading;
 
-  const isGlacisHome = (latestMatch as any)?.home_team?.name?.toLowerCase()?.includes('glacis');
-  const focusTeamId = isGlacisHome
+  const isPrimaryHome = glacisTeam?.id && (latestMatch as any)?.home_team_id === glacisTeam.id;
+  const focusTeamId = isPrimaryHome
     ? (latestMatch as any)?.home_team_id
     : (latestMatch as any)?.away_team_id;
   const opponentTeamId = isGlacisHome
