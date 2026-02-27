@@ -18,9 +18,10 @@ export function ProtectedRoute({ children, requireAdmin = false, requireCoach = 
       if (!user) {
         navigate('/auth');
       } else if (requireAdmin && !isAdmin) {
-        navigate('/dashboard');
+        navigate('/');
       } else if (requireCoach && !isAdmin && !isCoach) {
-        navigate('/dashboard');
+        // Admins can access coach routes too
+        navigate('/');
       }
     }
   }, [user, isAdmin, isCoach, loading, requireAdmin, requireCoach, navigate]);

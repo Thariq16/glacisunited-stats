@@ -5,7 +5,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useOrganization } from '@/hooks/useOrganization';
 import { toast } from 'sonner';
 
 interface SquadPlayer {
@@ -20,7 +19,6 @@ interface SquadPlayer {
 export function useSquadSelectionMutations(matchId: string | undefined) {
     const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const { currentOrg } = useOrganization();
 
     // Create player mutation
     const createPlayerMutation = useMutation({
@@ -49,7 +47,7 @@ export function useSquadSelectionMutations(matchId: string | undefined) {
         mutationFn: async (data: { name: string; slug: string }) => {
             const { data: newTeam, error } = await supabase
                 .from('teams')
-                .insert({ ...data, organization_id: currentOrg?.id })
+                .insert(data)
                 .select()
                 .single();
 

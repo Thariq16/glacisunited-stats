@@ -53,7 +53,6 @@ interface SquadAnalysisViewProps {
     opponentTeamId?: string;
     teamPassEvents?: PassEvent[];
     matchFilter?: string;
-    teamSlug?: string;
 }
 
 export function SquadAnalysisView({
@@ -78,8 +77,7 @@ export function SquadAnalysisView({
     matchIds = [],
     opponentTeamId,
     teamPassEvents = [],
-    matchFilter = 'last1',
-    teamSlug,
+    matchFilter = 'last1'
 }: SquadAnalysisViewProps) {
     const [selectedHalf, setSelectedHalf] = useState<'all' | 'first' | 'second'>('all');
 
@@ -562,7 +560,7 @@ export function SquadAnalysisView({
                 <SquadPassesTab
                     focusTeamId={focusTeamId}
                     matchFilter={matchFilter}
-                    teamSlug={teamSlug}
+                    teamSlug="glacis-united-fc"
                 />
             </TabsContent>
         </Tabs>

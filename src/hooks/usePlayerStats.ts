@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { matchService, teamService } from '@/services';
 import { PlayerStats } from '@/utils/parseCSV';
 import { fetchAndAggregateEventsForTeam, createEmptyPlayerStats } from '@/utils/aggregateMatchEvents';
-import { useOrganization } from './useOrganization';
 
 export type MatchFilter = 'all' | 'last1' | 'last3' | string; // string for specific match IDs
 
@@ -340,11 +339,8 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
 }
 
 export function useMatches(teamSlug?: string) {
-  const { currentOrg } = useOrganization();
-  const orgId = currentOrg?.id;
-
   return useQuery({
-    queryKey: ['matches', teamSlug, orgId],
+    queryKey: ['matches', teamSlug],
     queryFn: async () => {
       if (teamSlug) {
         const { data, error } = await matchService.getByTeamSlug(teamSlug);
@@ -352,7 +348,7 @@ export function useMatches(teamSlug?: string) {
         return data || [];
       }
 
-      const { data, error } = await matchService.getAll(orgId);
+      const { data, error } = await matchService.getAll();
       if (error) throw error;
       return data || [];
     },
@@ -360,13 +356,10 @@ export function useMatches(teamSlug?: string) {
 }
 
 export function useAllMatches() {
-  const { currentOrg } = useOrganization();
-  const orgId = currentOrg?.id;
-
   return useQuery({
-    queryKey: ['all-matches', orgId],
+    queryKey: ['all-matches'],
     queryFn: async () => {
-      const { data, error } = await matchService.getAll(orgId);
+      const { data, error } = await matchService.getAll();
       if (error) throw error;
       return data || [];
     },

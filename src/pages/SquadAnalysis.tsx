@@ -15,14 +15,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
-import { usePrimaryTeam } from "@/hooks/usePrimaryTeam";
 
 // ── Overall Squad Analysis (multi-match, Glacis only) ──────────────────────
 function OverallSquadAnalysis() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
-  const { primaryTeam, teamSlug, teamName } = usePrimaryTeam();
 
-  const glacisTeam = primaryTeam;
+  const { data: glacisTeam } = useQuery({
+    queryKey: ['glacis-team-id'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('teams')
+        .select('id, name')
+        .eq('slug', 'glacis-united-fc')
+        .single();
+      return data;
+    }
+  });
 
   const { data: filteredMatches } = useQuery({
     queryKey: ['filtered-matches-glacis', matchFilter, glacisTeam?.id],
@@ -63,7 +71,7 @@ function OverallSquadAnalysis() {
   const allMatchIds = (filteredMatches || []).map((m: any) => m.id);
 
   const { data: players, isLoading: isPlayersLoading } = usePlayerStats(
-    teamSlug || '',
+    'glacis-united-fc',
     (matchFilter === 'last1' && latestMatch?.id) ? latestMatch.id : matchFilter
   );
 
@@ -77,24 +85,24 @@ function OverallSquadAnalysis() {
 
   const isLoading = isPlayersLoading || isVisLoading;
 
-  const isPrimaryHome = glacisTeam?.id && (latestMatch as any)?.home_team_id === glacisTeam.id;
-  const focusTeamId = isPrimaryHome
+  const isGlacisHome = (latestMatch as any)?.home_team?.name?.toLowerCase()?.includes('glacis');
+  const focusTeamId = isGlacisHome
     ? (latestMatch as any)?.home_team_id
     : (latestMatch as any)?.away_team_id;
-  const opponentTeamId = isPrimaryHome
+  const opponentTeamId = isGlacisHome
     ? (latestMatch as any)?.away_team_id
     : (latestMatch as any)?.home_team_id;
 
-  const primarySetPieceData = isPrimaryHome
+  const glacisSetPieceData = isGlacisHome
     ? (visualizationData as any)?.setPieceData
     : (visualizationData as any)?.opponentSetPieceData;
-  const opponentSetPieceData = isPrimaryHome
+  const opponentSetPieceData = isGlacisHome
     ? (visualizationData as any)?.opponentSetPieceData
     : (visualizationData as any)?.setPieceData;
-  const primaryName = isPrimaryHome
+  const glacisName = isGlacisHome
     ? (latestMatch as any)?.home_team?.name
     : (latestMatch as any)?.away_team?.name;
-  const opponentName = isPrimaryHome
+  const opponentName = isGlacisHome
     ? (latestMatch as any)?.away_team?.name
     : (latestMatch as any)?.home_team?.name;
 
@@ -104,7 +112,7 @@ function OverallSquadAnalysis() {
         <MatchFilterSelect
           value={matchFilter}
           onValueChange={setMatchFilter}
-          teamSlug={teamSlug}
+          teamSlug="glacis-united-fc"
         />
       </div>
 
@@ -123,13 +131,13 @@ function OverallSquadAnalysis() {
           history={[]}
           setPieceStats={(visualizationData as any)?.setPieceStats || []}
           playerSetPieceStats={visualizationData?.playerSetPieceStats || []}
-          setPieceData={primarySetPieceData}
+          setPieceData={glacisSetPieceData}
           opponentSetPieceData={opponentSetPieceData}
           defensiveEvents={visualizationData?.defensiveEvents || []}
           attackingThreat={visualizationData?.attackingThreat as any}
           opponentAttackingThreat={visualizationData?.opponentAttackingThreat as any}
           possessionLossEvents={visualizationData?.possessionLossEvents || []}
-          teamName={primaryName || teamName}
+          teamName={glacisName || 'Glacis United'}
           opponentName={opponentName || 'Opposition'}
           focusTeamId={focusTeamId}
           matchCount={allMatchIds.length || 1}
@@ -141,7 +149,6 @@ function OverallSquadAnalysis() {
               .filter((p: any) => !focusTeamId || p.teamId === focusTeamId)
           }
           matchFilter={matchFilter === 'last1' && latestMatch?.id ? latestMatch.id : matchFilter}
-          teamSlug={teamSlug}
         />
       )}
     </>

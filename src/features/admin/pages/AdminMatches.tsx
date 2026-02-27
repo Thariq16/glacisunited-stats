@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useOrganization } from '@/hooks/useOrganization';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -58,7 +57,6 @@ interface Match {
 function AdminMatchesContent() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { currentOrg } = useOrganization();
   const [editMatch, setEditMatch] = useState<Match | null>(null);
   const [deleteMatch, setDeleteMatch] = useState<Match | null>(null);
   const [editForm, setEditForm] = useState({
@@ -69,35 +67,10 @@ function AdminMatchesContent() {
     match_date: '',
   });
 
-  // Fetch all matches scoped by org
+  // Fetch all matches
   const { data: matches = [], isLoading } = useQuery({
-    queryKey: ['admin-matches', currentOrg?.id],
+    queryKey: ['admin-matches'],
     queryFn: async () => {
-      if (currentOrg?.id) {
-        // Get team IDs for this org
-        const { data: teams } = await supabase
-          .from('teams')
-          .select('id')
-          .eq('organization_id', currentOrg.id);
-
-        const teamIds = teams?.map(t => t.id) || [];
-        if (teamIds.length === 0) return [] as Match[];
-
-        const orFilter = teamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',');
-
-        const { data, error } = await supabase
-          .from('matches')
-          .select(`
-            *,
-            home_team:teams!matches_home_team_id_fkey(id, name),
-            away_team:teams!matches_away_team_id_fkey(id, name)
-          `)
-          .or(orFilter)
-          .order('match_date', { ascending: false });
-        if (error) throw error;
-        return data as Match[];
-      }
-
       const { data, error } = await supabase
         .from('matches')
         .select(`

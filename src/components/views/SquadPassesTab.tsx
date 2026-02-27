@@ -117,7 +117,7 @@ function SortButton({ field, currentSort, currentDir, onSort, label }: {
   );
 }
 
-export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = '' }: SquadPassesTabProps) {
+export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug = 'glacis-united-fc' }: SquadPassesTabProps) {
   const [sortField, setSortField] = useState<SortField>('jersey');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [playerSearch, setPlayerSearch] = useState('');

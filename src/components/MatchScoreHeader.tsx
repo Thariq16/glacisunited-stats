@@ -11,7 +11,6 @@ interface MatchScoreHeaderProps {
     competition?: string;
     matchDate: string;
     venue?: string;
-    primaryTeamSlug?: string;
     xgStats?: {
         home: { totalXG: number; shotCount: number };
         away: { totalXG: number; shotCount: number };
@@ -20,31 +19,32 @@ interface MatchScoreHeaderProps {
     onViewAwayPlayers: () => void;
 }
 
+const GLACIS_SLUG = 'glacis-united-fc';
+
 type MatchResult = 'win' | 'draw' | 'loss';
 
-function getMatchResult(homeScore: number, awayScore: number, homeTeam: { slug: string } | null, awayTeam: { slug: string } | null, primarySlug?: string): MatchResult {
-    // Determine result from primary team's perspective
-    const slug = primarySlug || '';
-    const isPrimaryHome = homeTeam?.slug === slug;
-    const isPrimaryAway = awayTeam?.slug === slug;
+function getMatchResult(homeScore: number, awayScore: number, homeTeam: { slug: string } | null, awayTeam: { slug: string } | null): MatchResult {
+    // Determine result from Glacis United's perspective
+    const isGlacisHome = homeTeam?.slug === GLACIS_SLUG;
+    const isGlacisAway = awayTeam?.slug === GLACIS_SLUG;
 
-    let primaryScore: number;
+    let glacisScore: number;
     let opponentScore: number;
 
-    if (isPrimaryHome) {
-        primaryScore = homeScore;
+    if (isGlacisHome) {
+        glacisScore = homeScore;
         opponentScore = awayScore;
-    } else if (isPrimaryAway) {
-        primaryScore = awayScore;
+    } else if (isGlacisAway) {
+        glacisScore = awayScore;
         opponentScore = homeScore;
     } else {
-        // Fallback to home perspective if primary team isn't playing
-        primaryScore = homeScore;
+        // Fallback to home perspective if Glacis isn't playing
+        glacisScore = homeScore;
         opponentScore = awayScore;
     }
 
-    if (primaryScore > opponentScore) return 'win';
-    if (primaryScore < opponentScore) return 'loss';
+    if (glacisScore > opponentScore) return 'win';
+    if (glacisScore < opponentScore) return 'loss';
     return 'draw';
 }
 
@@ -78,12 +78,11 @@ export function MatchScoreHeader({
     competition,
     matchDate,
     venue,
-    primaryTeamSlug,
     xgStats,
     onViewHomePlayers,
     onViewAwayPlayers,
 }: MatchScoreHeaderProps) {
-    const result = getMatchResult(homeScore, awayScore, homeTeam, awayTeam, primaryTeamSlug);
+    const result = getMatchResult(homeScore, awayScore, homeTeam, awayTeam);
     const resultBadge = getResultBadge(result);
     const hasXGData = xgStats && (xgStats.home.shotCount > 0 || xgStats.away.shotCount > 0);
 

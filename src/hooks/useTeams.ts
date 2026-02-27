@@ -3,25 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { PlayerStats } from '@/utils/parseCSV';
 import { MatchFilter } from './usePlayerStats';
 import { fetchAndAggregateEventsForTeam, createEmptyPlayerStats } from '@/utils/aggregateMatchEvents';
-import { useOrganization } from './useOrganization';
 
 export function useTeams() {
-  const { currentOrg } = useOrganization();
-  const orgId = currentOrg?.id;
-
   return useQuery({
-    queryKey: ['teams', orgId],
+    queryKey: ['teams'],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('teams')
-        .select('id, name, slug, organization_id')
+        .select('id, name, slug')
         .order('name');
 
-      if (orgId) {
-        query = query.eq('organization_id', orgId);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },
@@ -341,26 +332,18 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
   });
 }
 
-export function useOppositionTeams(excludeSlug: string = '', matchFilter: MatchFilter = 'all') {
-  const { currentOrg } = useOrganization();
-  const orgId = currentOrg?.id;
+export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', matchFilter: MatchFilter = 'all') {
   const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
 
   return useQuery({
-    queryKey: ['opposition-teams', excludeSlug, matchFilter, orgId],
+    queryKey: ['opposition-teams', excludeSlug, matchFilter],
     queryFn: async () => {
-      // Get all teams except the excluded one, scoped by org
-      let teamsQuery = supabase
+      // Get all teams except the excluded one
+      const { data: teams, error: teamsError } = await supabase
         .from('teams')
         .select('id, name, slug')
         .neq('slug', excludeSlug)
         .order('name');
-
-      if (orgId) {
-        teamsQuery = teamsQuery.eq('organization_id', orgId);
-      }
-
-      const { data: teams, error: teamsError } = await teamsQuery;
 
       if (teamsError) throw teamsError;
       if (!teams || teams.length === 0) return [];

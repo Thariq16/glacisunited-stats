@@ -3,24 +3,21 @@ import { Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
-import { useOrganization } from "@/hooks/useOrganization";
 export function Navbar() {
   const { theme, setTheme } = useTheme();
-  const { currentOrg } = useOrganization();
-  const displayName = currentOrg?.name ? `${currentOrg.name} Stats` : 'Football Stats';
   return <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <NavLink to="/dashboard" className="flex items-center gap-2">
+          <NavLink to="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">⚽</span>
             </div>
-            <span className="font-bold text-xl text-foreground">{displayName}</span>
+            <span className="font-bold text-xl text-foreground">Glacis United Stats  </span>
           </NavLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <NavLink to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
+            <NavLink to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
               Home
             </NavLink>
             <NavLink to="/matches" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
@@ -53,7 +50,7 @@ export function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col gap-4 mt-8">
-                  <NavLink to="/dashboard" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
+                  <NavLink to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
                     Home
                   </NavLink>
                   <NavLink to="/matches" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">

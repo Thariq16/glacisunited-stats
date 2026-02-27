@@ -75,7 +75,7 @@ export default function TeamStats() {
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Team not found</h1>
-            <Button onClick={() => navigate('/dashboard')}>
+            <Button onClick={() => navigate('/')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>
@@ -92,7 +92,7 @@ export default function TeamStats() {
       <main className="container mx-auto px-4 py-8 flex-1">
         <Button 
           variant="ghost" 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/')}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
