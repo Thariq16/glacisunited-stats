@@ -5,6 +5,7 @@ import { EnhancedPlayerCard } from "@/components/EnhancedPlayerCard";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { usePlayerStats, MatchFilter } from "@/hooks/usePlayerStats";
 import { usePlayerPassEvents } from "@/hooks/usePlayerPassEvents";
+import { usePrimaryTeam } from "@/hooks/usePrimaryTeam";
 import { Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,10 +21,11 @@ import {
 export default function Players() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const { teamSlug, teamName } = usePrimaryTeam();
   
-  const { data: players, isLoading } = usePlayerStats('glacis-united-fc', matchFilter);
+  const { data: players, isLoading } = usePlayerStats(teamSlug || '', matchFilter);
   const { data: passEvents } = usePlayerPassEvents(
-    'glacis-united-fc', 
+    teamSlug || '', 
     matchFilter === 'all' ? 'all' : matchFilter === 'last3' ? 'last3' : 'last1'
   );
 
