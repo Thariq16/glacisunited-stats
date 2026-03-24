@@ -45,7 +45,7 @@ export function useCreateSeason() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (season: { name: string; start_date: string; end_date: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('seasons')
         .insert(season)
         .select()
