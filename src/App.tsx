@@ -34,6 +34,7 @@ const AdminNewMatch = lazy(() => import("@/features/admin/pages/AdminNewMatch"))
 const AdminSquadSelection = lazy(() => import("@/features/admin/pages/AdminSquadSelection"));
 const AdminMatches = lazy(() => import("@/features/admin/pages/AdminMatches"));
 const AdminDataEntryStats = lazy(() => import("@/features/admin/pages/AdminDataEntryStats"));
+const AdminSeasons = lazy(() => import("@/features/admin/pages/AdminSeasons"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 
 const queryClient = new QueryClient();
