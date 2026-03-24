@@ -28,7 +28,7 @@ export function useActiveSeason() {
   return useQuery({
     queryKey: ['active-season'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('seasons')
         .select('*')
         .eq('status', 'active')
