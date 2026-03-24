@@ -14,7 +14,7 @@ export function useSeasons() {
   return useQuery({
     queryKey: ['seasons'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('seasons')
         .select('*')
         .order('start_date', { ascending: false });
@@ -28,7 +28,7 @@ export function useActiveSeason() {
   return useQuery({
     queryKey: ['active-season'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('seasons')
         .select('*')
         .eq('status', 'active')
@@ -45,7 +45,7 @@ export function useCreateSeason() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (season: { name: string; start_date: string; end_date: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('seasons')
         .insert(season)
         .select()
@@ -61,7 +61,7 @@ export function useUpdateSeasonStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('seasons')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id);
@@ -78,7 +78,7 @@ export function useDeleteSeason() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('seasons')
         .delete()
         .eq('id', id);
