@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer } from "lucide-react";
+import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 function AdminContent() {
