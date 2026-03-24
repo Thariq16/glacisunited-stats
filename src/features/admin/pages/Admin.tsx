@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer } from "lucide-react";
+import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 function AdminContent() {
@@ -164,6 +164,26 @@ function AdminContent() {
               <CardContent>
                 <Button variant="secondary" className="w-full">
                   View Stats
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin-only: Manage Seasons */}
+          {isAdmin && (
+            <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/seasons')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Manage Seasons
+                </CardTitle>
+                <CardDescription>
+                  Create seasons, assign date ranges, and mark seasons as complete
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">
+                  View Seasons
                 </Button>
               </CardContent>
             </Card>
