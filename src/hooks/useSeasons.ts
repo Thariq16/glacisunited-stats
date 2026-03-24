@@ -78,7 +78,7 @@ export function useDeleteSeason() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('seasons')
         .delete()
         .eq('id', id);
