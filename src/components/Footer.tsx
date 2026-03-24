@@ -15,6 +15,7 @@ export function Footer() {
   const navLinks = [
     { to: '/', label: 'Home', icon: Home },
     { to: '/matches', label: 'Matches', icon: Calendar },
+    { to: '/seasons', label: 'Seasons', icon: Trophy },
     { to: '/opposition-players', label: 'Opposition Players', icon: Users },
   ];
 
