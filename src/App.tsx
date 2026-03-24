@@ -18,6 +18,7 @@ import OppositionPlayers from "./pages/OppositionPlayers";
 import TeamStats from "./pages/TeamStats";
 import PlayerProfile from "./pages/PlayerProfile";
 import SquadAnalysis from "./pages/SquadAnalysis";
+import Seasons from "./pages/Seasons";
 import PlayerComparison from "./pages/PlayerComparison";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
