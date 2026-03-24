@@ -168,6 +168,26 @@ function AdminContent() {
               </CardContent>
             </Card>
           )}
+
+          {/* Admin-only: Manage Seasons */}
+          {isAdmin && (
+            <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/admin/seasons')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5" />
+                  Manage Seasons
+                </CardTitle>
+                <CardDescription>
+                  Create seasons, assign date ranges, and mark seasons as complete
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">
+                  View Seasons
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       <Footer />

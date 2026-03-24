@@ -74,6 +74,7 @@ const App = () => (
               <Route path="/admin/squad-selection/:matchId" element={<Suspense fallback={<PageLoader />}><AdminSquadSelection /></Suspense>} />
               <Route path="/admin/match-events/:matchId" element={<Suspense fallback={<PageLoader />}><AdminMatchEvents /></Suspense>} />
               <Route path="/admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
+              <Route path="/admin/seasons" element={<Suspense fallback={<PageLoader />}><AdminSeasons /></Suspense>} />
               <Route path="/import" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
 
               {/* Catch-all route */}
