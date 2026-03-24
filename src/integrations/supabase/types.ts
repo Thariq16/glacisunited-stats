@@ -265,6 +265,7 @@ export type Database = {
           home_team_id: string
           id: string
           match_date: string
+          season_id: string | null
           status: string
           venue: string | null
         }
@@ -282,6 +283,7 @@ export type Database = {
           home_team_id: string
           id?: string
           match_date: string
+          season_id?: string | null
           status?: string
           venue?: string | null
         }
@@ -299,6 +301,7 @@ export type Database = {
           home_team_id?: string
           id?: string
           match_date?: string
+          season_id?: string | null
           status?: string
           venue?: string | null
         }
@@ -315,6 +318,13 @@ export type Database = {
             columns: ["home_team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
         ]
@@ -653,6 +663,36 @@ export type Database = {
           endpoint?: string
           id?: string
           p256dh?: string
+        }
+        Relationships: []
+      }
+      seasons: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
