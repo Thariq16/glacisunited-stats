@@ -14,7 +14,7 @@ export function useSeasons() {
   return useQuery({
     queryKey: ['seasons'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('seasons')
         .select('*')
         .order('start_date', { ascending: false });
