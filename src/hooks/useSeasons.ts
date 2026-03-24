@@ -61,7 +61,7 @@ export function useUpdateSeasonStatus() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('seasons')
         .update({ status, updated_at: new Date().toISOString() })
         .eq('id', id);
