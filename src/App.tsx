@@ -18,6 +18,7 @@ import OppositionPlayers from "./pages/OppositionPlayers";
 import TeamStats from "./pages/TeamStats";
 import PlayerProfile from "./pages/PlayerProfile";
 import SquadAnalysis from "./pages/SquadAnalysis";
+import Seasons from "./pages/Seasons";
 import PlayerComparison from "./pages/PlayerComparison";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/players" element={<Players />} />
               <Route path="/opposition-players" element={<OppositionPlayers />} />
               <Route path="/squad-analysis" element={<SquadAnalysis />} />
+              <Route path="/seasons" element={<Seasons />} />
               <Route path="/compare" element={<PlayerComparison />} />
               <Route path="/team/:teamId" element={<TeamStats />} />
               <Route path="/team/:teamId/player/:playerName" element={<PlayerProfile />} />

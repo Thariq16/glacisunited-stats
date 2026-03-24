@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Home, Calendar, Shield, UserCog, Upload, FileUp, LogOut, LogIn } from "lucide-react";
+import { Users, Home, Calendar, Shield, UserCog, Upload, FileUp, LogOut, LogIn, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +15,7 @@ export function Footer() {
   const navLinks = [
     { to: '/', label: 'Home', icon: Home },
     { to: '/matches', label: 'Matches', icon: Calendar },
+    { to: '/seasons', label: 'Seasons', icon: Trophy },
     { to: '/opposition-players', label: 'Opposition Players', icon: Users },
   ];
 
