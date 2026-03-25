@@ -179,7 +179,7 @@ export default function PlayerProfile() {
       <main className="container mx-auto px-4 py-8 flex-1">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/team/${teamId}`)}
+          onClick={() => navigate(-1)}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
