@@ -174,6 +174,8 @@ function useSeasonAnalytics(seasonId: string | undefined) {
         formData,
         topScorers,
         topShooters,
+        topPassers,
+        topDefenders,
         allPlayers,
       };
     },
