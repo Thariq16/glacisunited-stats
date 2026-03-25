@@ -77,7 +77,7 @@ export default function MatchDetail() {
         <div className="container mx-auto px-4 py-12">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Match not found</h1>
-            <Button onClick={() => navigate('/matches')}>
+            <Button onClick={() => navigate(-1)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Matches
             </Button>
@@ -95,7 +95,7 @@ export default function MatchDetail() {
       <main className="container mx-auto px-4 py-8">
         <Button
           variant="ghost"
-          onClick={() => navigate('/matches')}
+          onClick={() => navigate(-1)}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
