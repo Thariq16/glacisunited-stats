@@ -155,6 +155,8 @@ function useSeasonAnalytics(seasonId: string | undefined) {
 
       const topScorers = [...allPlayers].filter((p) => p.goals > 0).sort((a, b) => b.goals - a.goals);
       const topShooters = [...allPlayers].filter((p) => p.shots > 0).sort((a, b) => b.shots - a.shots).slice(0, 5);
+      const topPassers = [...allPlayers].filter((p) => p.passAttempts > 0).sort((a, b) => b.passes - a.passes).slice(0, 5);
+      const topDefenders = [...allPlayers].filter((p) => (p.tackles + p.clearances) > 0).sort((a, b) => (b.tackles + b.clearances) - (a.tackles + a.clearances)).slice(0, 5);
 
       return {
         played: typedMatches.length,
@@ -172,6 +174,8 @@ function useSeasonAnalytics(seasonId: string | undefined) {
         formData,
         topScorers,
         topShooters,
+        topPassers,
+        topDefenders,
         allPlayers,
       };
     },
@@ -416,6 +420,83 @@ function SeasonAnalytics({ season }: { season: Season }) {
                       <TableCell className="text-xs text-center text-muted-foreground">
                         {p.shots > 0 ? Math.round((p.sot / p.shots) * 100) : 0}%
                       </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Passers & Top Defenders */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              Top Passers
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {stats.topPassers.length === 0 ? (
+              <p className="text-sm text-muted-foreground p-4">No pass data yet.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">#</TableHead>
+                    <TableHead className="text-xs">Player</TableHead>
+                    <TableHead className="text-xs text-center">Completed</TableHead>
+                    <TableHead className="text-xs text-center">Attempted</TableHead>
+                    <TableHead className="text-xs text-center">Accuracy</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.topPassers.map((p, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-xs font-mono text-muted-foreground">{p.jersey}</TableCell>
+                      <TableCell className="text-xs font-medium">{p.name}</TableCell>
+                      <TableCell className="text-xs text-center font-bold text-primary">{p.passes}</TableCell>
+                      <TableCell className="text-xs text-center text-muted-foreground">{p.passAttempts}</TableCell>
+                      <TableCell className="text-xs text-center text-muted-foreground">{p.passAccuracy}%</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />
+              Top Defenders
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {stats.topDefenders.length === 0 ? (
+              <p className="text-sm text-muted-foreground p-4">No defensive data yet.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">#</TableHead>
+                    <TableHead className="text-xs">Player</TableHead>
+                    <TableHead className="text-xs text-center">Tackles</TableHead>
+                    <TableHead className="text-xs text-center">Clearances</TableHead>
+                    <TableHead className="text-xs text-center">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.topDefenders.map((p, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="text-xs font-mono text-muted-foreground">{p.jersey}</TableCell>
+                      <TableCell className="text-xs font-medium">{p.name}</TableCell>
+                      <TableCell className="text-xs text-center text-muted-foreground">{p.tackles}</TableCell>
+                      <TableCell className="text-xs text-center text-muted-foreground">{p.clearances}</TableCell>
+                      <TableCell className="text-xs text-center font-bold text-primary">{p.tackles + p.clearances}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
