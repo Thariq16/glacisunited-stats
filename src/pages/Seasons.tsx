@@ -155,6 +155,8 @@ function useSeasonAnalytics(seasonId: string | undefined) {
 
       const topScorers = [...allPlayers].filter((p) => p.goals > 0).sort((a, b) => b.goals - a.goals);
       const topShooters = [...allPlayers].filter((p) => p.shots > 0).sort((a, b) => b.shots - a.shots).slice(0, 5);
+      const topPassers = [...allPlayers].filter((p) => p.passAttempts > 0).sort((a, b) => b.passes - a.passes).slice(0, 5);
+      const topDefenders = [...allPlayers].filter((p) => (p.tackles + p.clearances) > 0).sort((a, b) => (b.tackles + b.clearances) - (a.tackles + a.clearances)).slice(0, 5);
 
       return {
         played: typedMatches.length,
