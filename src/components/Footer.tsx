@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Home, Calendar, Shield, UserCog, Upload, FileUp, LogOut, LogIn, Trophy } from "lucide-react";
+import { Users, Home, Calendar, LogOut, LogIn, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
