@@ -54,14 +54,25 @@
     "selectSeason": "Select a season to view detailed analytics"
   },
   "players": {
-    "title": "Players",
-    "subtitle": "View player profiles and statistics",
+    "title": "Glacis United FC Players",
+    "subtitle": "View player statistics with pass visualizations",
+    "subtitleLast1": "for the last match",
+    "subtitleLast3": "for the last 3 matches",
+    "subtitleAll": "for all matches",
     "search": "Search players...",
     "allPositions": "All Positions",
     "sortBy": "Sort by",
     "name": "Name",
     "goals": "Goals",
-    "rating": "Rating"
+    "rating": "Rating",
+    "cards": "Cards",
+    "table": "Table",
+    "player": "Player",
+    "passPercent": "Pass %",
+    "forward": "Forward",
+    "backward": "Backward",
+    "minutes": "Minutes",
+    "noData": "No player data available for the selected filter."
   },
   "match": {
     "back": "Back",
@@ -87,7 +98,9 @@
     "view": "View",
     "win": "W",
     "draw": "D",
-    "loss": "L"
+    "loss": "L",
+    "vs": "vs",
+    "score": "Score"
   },
   "footer": {
     "navigation": "Navigation",
@@ -111,14 +124,54 @@
   },
   "squad": {
     "title": "Squad Analysis",
+    "subtitle": "Comprehensive team intelligence and composition analysis",
     "overview": "Overview",
     "attacking": "Attacking",
     "defensive": "Defensive",
     "setPieces": "Set Pieces",
-    "passes": "Passes"
+    "passes": "Passes",
+    "overallAnalysis": "Overall Squad Analysis",
+    "perMatchAnalysis": "Per Match Analysis",
+    "selectMatch": "Select a match",
+    "noMatches": "No matches available"
   },
   "comparison": {
-    "title": "Player Comparison",
-    "selectPlayers": "Select two players to compare"
+    "title": "Match Comparison",
+    "subtitle": "Compare player performance across two different matches",
+    "selectMatches": "Select Matches to Compare",
+    "filterByTeam": "Filter by Team",
+    "allTeams": "All Teams",
+    "match1": "Match 1",
+    "match2": "Match 2",
+    "selectFirst": "Select first match",
+    "selectSecond": "Select second match",
+    "selectTwo": "Select two matches above to compare player statistics",
+    "noPlayers": "No players found in both selected matches. Try selecting different matches or a specific team.",
+    "general": "General",
+    "attacking": "Attacking",
+    "defensive": "Defensive",
+    "setPieces": "Set Pieces",
+    "minutesPlayed": "Minutes Played",
+    "goals": "Goals",
+    "passes": "Passes",
+    "passAccuracy": "Pass Accuracy",
+    "shots": "Shots",
+    "shotsOnTarget": "Shots on Target",
+    "fouls": "Fouls",
+    "runInBehind": "Run in Behind",
+    "overlaps": "Overlaps",
+    "penAreaEntry": "Pen. Area Entry",
+    "penAreaPass": "Pen. Area Pass",
+    "crosses": "Crosses",
+    "cutBacks": "Cut Backs",
+    "tackles": "Tackles",
+    "saves": "Saves",
+    "aerialWon": "Aerial Won",
+    "aerialLost": "Aerial Lost",
+    "corners": "Corners",
+    "cornerSuccess": "Corner Success",
+    "freeKicks": "Free Kicks",
+    "throwIns": "Throw-ins",
+    "throwInSuccess": "Throw-in Success"
   }
 }

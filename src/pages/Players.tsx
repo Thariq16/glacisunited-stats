@@ -8,6 +8,7 @@ import { usePlayerPassEvents } from "@/hooks/usePlayerPassEvents";
 import { Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/table";
 
 export default function Players() {
+  const { t } = useTranslation();
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   
@@ -27,7 +29,6 @@ export default function Players() {
     matchFilter === 'all' ? 'all' : matchFilter === 'last3' ? 'last3' : 'last1'
   );
 
-  // Create a map of pass data by player name for quick lookup
   const passDataMap = useMemo(() => {
     const map = new Map<string, typeof passEvents extends (infer T)[] ? T : never>();
     passEvents?.forEach(pd => {
@@ -36,7 +37,6 @@ export default function Players() {
     return map;
   }, [passEvents]);
 
-  // Filter to only show players who played (have minutes or stats) and sort by jersey
   const activePlayers = useMemo(() => {
     if (!players) return [];
     return [...players]
@@ -44,10 +44,13 @@ export default function Players() {
       .sort((a, b) => parseInt(a.jerseyNumber) - parseInt(b.jerseyNumber));
   }, [players]);
 
-  // For table view, sort by passes (descending) by default
   const tableData = useMemo(() => {
     return [...activePlayers].sort((a, b) => b.passCount - a.passCount);
   }, [activePlayers]);
+
+  const filterSuffix = matchFilter === 'last1' ? ` ${t('players.subtitleLast1')}` 
+    : matchFilter === 'last3' ? ` ${t('players.subtitleLast3')}` 
+    : matchFilter === 'all' ? ` ${t('players.subtitleAll')}` : '';
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -57,13 +60,10 @@ export default function Players() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Glacis United FC Players</h1>
+            <h1 className="text-4xl font-bold text-foreground">{t('players.title')}</h1>
           </div>
           <p className="text-muted-foreground mb-6">
-            View player statistics with pass visualizations
-            {matchFilter === 'last1' && ' for the last match'}
-            {matchFilter === 'last3' && ' for the last 3 matches'}
-            {matchFilter === 'all' && ' for all matches'}
+            {t('players.subtitle')}{filterSuffix}
           </p>
           
           <div className="flex flex-wrap items-center gap-4">
@@ -75,8 +75,8 @@ export default function Players() {
             
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'cards' | 'table')}>
               <TabsList>
-                <TabsTrigger value="cards">Cards</TabsTrigger>
-                <TabsTrigger value="table">Table</TabsTrigger>
+                <TabsTrigger value="cards">{t('players.cards')}</TabsTrigger>
+                <TabsTrigger value="table">{t('players.table')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -107,13 +107,13 @@ export default function Players() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">#</TableHead>
-                      <TableHead>Player</TableHead>
-                      <TableHead className="text-right">Passes</TableHead>
-                      <TableHead className="text-right">Pass %</TableHead>
-                      <TableHead className="text-right">Forward</TableHead>
-                      <TableHead className="text-right">Backward</TableHead>
-                      <TableHead className="text-right">Goals</TableHead>
-                      <TableHead className="text-right">Minutes</TableHead>
+                      <TableHead>{t('players.player')}</TableHead>
+                      <TableHead className="text-right">{t('seasons.passes')}</TableHead>
+                      <TableHead className="text-right">{t('players.passPercent')}</TableHead>
+                      <TableHead className="text-right">{t('players.forward')}</TableHead>
+                      <TableHead className="text-right">{t('players.backward')}</TableHead>
+                      <TableHead className="text-right">{t('players.goals')}</TableHead>
+                      <TableHead className="text-right">{t('players.minutes')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -148,7 +148,7 @@ export default function Players() {
           </>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No player data available for the selected filter.</p>
+            <p className="text-muted-foreground">{t('players.noData')}</p>
           </div>
         )}
       </main>
