@@ -10,8 +10,10 @@ import { useComparisonStats } from "@/hooks/useComparisonStats";
 import { GitCompare, Calendar, ArrowUp, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
+import { useTranslation } from "react-i18next";
 
 export default function PlayerComparison() {
+  const { t } = useTranslation();
   const [match1Id, setMatch1Id] = useState<string>('');
   const [match2Id, setMatch2Id] = useState<string>('');
   const [selectedTeam, setSelectedTeam] = useState<string>('');
