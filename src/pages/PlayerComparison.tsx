@@ -89,13 +89,13 @@ export default function PlayerComparison() {
             <div className="grid md:grid-cols-3 gap-4">
               {/* Team Filter */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Filter by Team</label>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">{t('comparison.filterByTeam')}</label>
                 <Select value={selectedTeam} onValueChange={setSelectedTeam}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Teams" />
+                    <SelectValue placeholder={t('comparison.allTeams')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Teams</SelectItem>
+                    <SelectItem value="all">{t('comparison.allTeams')}</SelectItem>
                     {teams.map(team => (
                       <SelectItem key={team.slug} value={team.slug}>{team.name}</SelectItem>
                     ))}
