@@ -253,11 +253,11 @@ export default function PlayerComparison() {
                     
                     <TabsContent value="defensive">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        <StatBox label="Tackles" val1={player.match1Stats.tackles} val2={player.match2Stats.tackles} />
-                        <StatBox label="Saves" val1={player.match1Stats.saves} val2={player.match2Stats.saves} />
-                        <StatBox label="Aerial Won" val1={player.match1Stats.aerialDuelsWon} val2={player.match2Stats.aerialDuelsWon} />
-                        <StatBox label="Aerial Lost" val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
+                        <StatBox label={t('comparison.tackles')} val1={player.match1Stats.tackles} val2={player.match2Stats.tackles} />
+                        <StatBox label={t('comparison.saves')} val1={player.match1Stats.saves} val2={player.match2Stats.saves} />
+                        <StatBox label={t('comparison.aerialWon')} val1={player.match1Stats.aerialDuelsWon} val2={player.match2Stats.aerialDuelsWon} />
+                        <StatBox label={t('comparison.aerialLost')} val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} />
+                        <StatBox label={t('comparison.fouls')} val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
                       </div>
                     </TabsContent>
                     
