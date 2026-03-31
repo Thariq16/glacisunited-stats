@@ -235,11 +235,11 @@ function SeasonAnalytics({ season }: { season: Season }) {
           <CardContent className="flex gap-8">
             <div>
               <p className="text-2xl font-bold text-green-400">{stats.avgGoalsFor}</p>
-              <p className="text-xs text-muted-foreground">Scored</p>
+              <p className="text-xs text-muted-foreground">{t("seasons.scored")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-red-400">{stats.avgGoalsAgainst}</p>
-              <p className="text-xs text-muted-foreground">Conceded</p>
+              <p className="text-xs text-muted-foreground">{t("seasons.conceded")}</p>
             </div>
             <div>
               <p className={`text-2xl font-bold ${stats.goalDifference >= 0 ? "text-green-400" : "text-red-400"}`}>
