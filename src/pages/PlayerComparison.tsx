@@ -279,7 +279,7 @@ export default function PlayerComparison() {
           <Card>
             <CardContent className="py-12">
               <p className="text-center text-muted-foreground">
-                No players found in both selected matches. Try selecting different matches or a specific team.
+                {t('comparison.noPlayers')}
               </p>
             </CardContent>
           </Card>
