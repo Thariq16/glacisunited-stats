@@ -265,7 +265,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
                   className={`w-9 h-9 rounded-md border text-xs font-bold flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${resultColor(f.result)}`}
                   title={`${f.date}: ${f.opponent} (${f.gf}-${f.ga})`}
                 >
-                  {f.result}
+                  {f.result === "W" ? t("common.win") : f.result === "D" ? t("common.draw") : t("common.loss")}
                 </button>
               ))}
             </div>
