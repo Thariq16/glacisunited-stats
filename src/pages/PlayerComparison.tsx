@@ -263,11 +263,11 @@ export default function PlayerComparison() {
                     
                     <TabsContent value="setpieces">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        <StatBox label="Corners" val1={player.match1Stats.corners} val2={player.match2Stats.corners} />
-                        <StatBox label="Corner Success" val1={player.match1Stats.cornerSuccess} val2={player.match2Stats.cornerSuccess} />
-                        <StatBox label="Free Kicks" val1={player.match1Stats.freeKicks} val2={player.match2Stats.freeKicks} />
-                        <StatBox label="Throw-ins" val1={player.match1Stats.throwIns} val2={player.match2Stats.throwIns} />
-                        <StatBox label="Throw-in Success" val1={player.match1Stats.tiSuccess} val2={player.match2Stats.tiSuccess} />
+                        <StatBox label={t('comparison.corners')} val1={player.match1Stats.corners} val2={player.match2Stats.corners} />
+                        <StatBox label={t('comparison.cornerSuccess')} val1={player.match1Stats.cornerSuccess} val2={player.match2Stats.cornerSuccess} />
+                        <StatBox label={t('comparison.freeKicks')} val1={player.match1Stats.freeKicks} val2={player.match2Stats.freeKicks} />
+                        <StatBox label={t('comparison.throwIns')} val1={player.match1Stats.throwIns} val2={player.match2Stats.throwIns} />
+                        <StatBox label={t('comparison.throwInSuccess')} val1={player.match1Stats.tiSuccess} val2={player.match2Stats.tiSuccess} />
                       </div>
                     </TabsContent>
                   </Tabs>
