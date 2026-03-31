@@ -37,7 +37,7 @@ export default function MatchDetail() {
   // Fetch xG stats for the match
   const { data: xgStats } = useMatchXGStats(matchId, homeTeam?.id, awayTeam?.id);
 
-  const showTabs = isAdmin || isCoach;
+  const canViewNotes = isAdmin || isCoach;
 
   // Helper to calculate contribution score and sort players
   const getSortedPlayers = (players: PlayerStats[]) => {
