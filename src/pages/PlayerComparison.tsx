@@ -75,9 +75,9 @@ export default function PlayerComparison() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <GitCompare className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Match Comparison</h1>
+            <h1 className="text-4xl font-bold text-foreground">{t('comparison.title')}</h1>
           </div>
-          <p className="text-muted-foreground">Compare player performance across two different matches</p>
+          <p className="text-muted-foreground">{t('comparison.subtitle')}</p>
         </div>
 
         {/* Selection Controls */}
