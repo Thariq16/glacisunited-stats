@@ -206,12 +206,12 @@ function SeasonAnalytics({ season }: { season: Season }) {
       {/* Overview Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "Played", value: stats.played, icon: Calendar },
-          { label: "Record", value: `${stats.wins}W ${stats.draws}D ${stats.losses}L`, icon: Trophy },
-          { label: "Points", value: stats.points, icon: Shield },
-          { label: "Goals", value: `${stats.goalsFor} - ${stats.goalsAgainst}`, icon: Target },
-          { label: "Win Rate", value: `${stats.winRate}%`, icon: TrendingUp },
-          { label: "Clean Sheets", value: stats.cleanSheets, icon: Shield },
+          { label: t("seasons.played"), value: stats.played, icon: Calendar },
+          { label: t("seasons.record"), value: `${stats.wins}${t("common.win")} ${stats.draws}${t("common.draw")} ${stats.losses}${t("common.loss")}`, icon: Trophy },
+          { label: t("seasons.points"), value: stats.points, icon: Shield },
+          { label: t("seasons.goals"), value: `${stats.goalsFor} - ${stats.goalsAgainst}`, icon: Target },
+          { label: t("seasons.winRate"), value: `${stats.winRate}%`, icon: TrendingUp },
+          { label: t("seasons.cleanSheets"), value: stats.cleanSheets, icon: Shield },
         ].map((s) => (
           <Card key={s.label} className="border-border/50">
             <CardContent className="p-3 text-center">
