@@ -23,7 +23,19 @@ import PlayerComparison from "./pages/PlayerComparison";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
-// Lazy loaded pages
+// Lazy loaded pages (admin routes - heavy components)
+const Admin = lazy(() => import("@/features/admin/pages/Admin"));
+const AdminPlayers = lazy(() => import("@/features/admin/pages/AdminPlayers"));
+const AdminUpload = lazy(() => import("@/features/admin/pages/AdminUpload"));
+const AdminMatchUpload = lazy(() => import("@/features/admin/pages/AdminMatchUpload"));
+const AdminComments = lazy(() => import("@/features/admin/pages/AdminComments"));
+const AdminMatchEvents = lazy(() => import("@/features/admin/pages/AdminMatchEvents"));
+const AdminMatchSelect = lazy(() => import("@/features/admin/pages/AdminMatchSelect"));
+const AdminNewMatch = lazy(() => import("@/features/admin/pages/AdminNewMatch"));
+const AdminSquadSelection = lazy(() => import("@/features/admin/pages/AdminSquadSelection"));
+const AdminMatches = lazy(() => import("@/features/admin/pages/AdminMatches"));
+const AdminDataEntryStats = lazy(() => import("@/features/admin/pages/AdminDataEntryStats"));
+const AdminSeasons = lazy(() => import("@/features/admin/pages/AdminSeasons"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 
 const queryClient = new QueryClient();
@@ -52,6 +64,20 @@ const App = () => (
               <Route path="/team/:teamId" element={<TeamStats />} />
               <Route path="/team/:teamId/player/:playerName" element={<PlayerProfile />} />
 
+              {/* Admin routes - lazy loaded with Suspense */}
+              <Route path="/admin" element={<Suspense fallback={<PageLoader />}><Admin /></Suspense>} />
+              <Route path="/admin/players" element={<Suspense fallback={<PageLoader />}><AdminPlayers /></Suspense>} />
+              <Route path="/admin/upload" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
+              <Route path="/admin/match-upload" element={<Suspense fallback={<PageLoader />}><AdminMatchUpload /></Suspense>} />
+              <Route path="/admin/comments" element={<Suspense fallback={<PageLoader />}><AdminComments /></Suspense>} />
+              <Route path="/admin/match-select" element={<Suspense fallback={<PageLoader />}><AdminMatchSelect /></Suspense>} />
+              <Route path="/admin/matches" element={<Suspense fallback={<PageLoader />}><AdminMatches /></Suspense>} />
+              <Route path="/admin/new-match" element={<Suspense fallback={<PageLoader />}><AdminNewMatch /></Suspense>} />
+              <Route path="/admin/squad-selection/:matchId" element={<Suspense fallback={<PageLoader />}><AdminSquadSelection /></Suspense>} />
+              <Route path="/admin/match-events/:matchId" element={<Suspense fallback={<PageLoader />}><AdminMatchEvents /></Suspense>} />
+              <Route path="/admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
+              <Route path="/admin/seasons" element={<Suspense fallback={<PageLoader />}><AdminSeasons /></Suspense>} />
+              <Route path="/import" element={<Suspense fallback={<PageLoader />}><AdminUpload /></Suspense>} />
 
               {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
