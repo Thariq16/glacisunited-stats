@@ -193,7 +193,7 @@ export default function PlayerComparison() {
           <Card>
             <CardContent className="py-12">
               <p className="text-center text-muted-foreground">
-                Select two matches above to compare player statistics
+                {t('comparison.selectTwo')}
               </p>
             </CardContent>
           </Card>
