@@ -356,7 +356,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Crosshair className="h-4 w-4 text-primary" />
-              Top Scorers
+              {t("seasons.topScorers")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
