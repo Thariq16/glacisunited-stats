@@ -23,19 +23,7 @@ import PlayerComparison from "./pages/PlayerComparison";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
-// Lazy loaded pages (admin routes - heavy components)
-const Admin = lazy(() => import("@/features/admin/pages/Admin"));
-const AdminPlayers = lazy(() => import("@/features/admin/pages/AdminPlayers"));
-const AdminUpload = lazy(() => import("@/features/admin/pages/AdminUpload"));
-const AdminMatchUpload = lazy(() => import("@/features/admin/pages/AdminMatchUpload"));
-const AdminComments = lazy(() => import("@/features/admin/pages/AdminComments"));
-const AdminMatchEvents = lazy(() => import("@/features/admin/pages/AdminMatchEvents"));
-const AdminMatchSelect = lazy(() => import("@/features/admin/pages/AdminMatchSelect"));
-const AdminNewMatch = lazy(() => import("@/features/admin/pages/AdminNewMatch"));
-const AdminSquadSelection = lazy(() => import("@/features/admin/pages/AdminSquadSelection"));
-const AdminMatches = lazy(() => import("@/features/admin/pages/AdminMatches"));
-const AdminDataEntryStats = lazy(() => import("@/features/admin/pages/AdminDataEntryStats"));
-const AdminSeasons = lazy(() => import("@/features/admin/pages/AdminSeasons"));
+// Lazy loaded pages
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 
 const queryClient = new QueryClient();
