@@ -367,10 +367,10 @@ function SeasonAnalytics({ season }: { season: Season }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">#</TableHead>
-                    <TableHead className="text-xs">Player</TableHead>
-                    <TableHead className="text-xs text-center">Goals</TableHead>
-                    <TableHead className="text-xs text-center">Matches</TableHead>
-                    <TableHead className="text-xs text-center">Ratio</TableHead>
+                    <TableHead className="text-xs">{t("seasons.player")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.goalsLabel")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.matchesPlayed")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.perMatch")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
