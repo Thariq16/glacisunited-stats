@@ -186,6 +186,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
 function SeasonAnalytics({ season }: { season: Season }) {
   const { data: stats, isLoading } = useSeasonAnalytics(season.id);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (isLoading)
     return (
