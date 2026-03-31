@@ -83,7 +83,7 @@ export default function PlayerComparison() {
         {/* Selection Controls */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Select Matches to Compare</CardTitle>
+            <CardTitle>{t('comparison.selectMatches')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
