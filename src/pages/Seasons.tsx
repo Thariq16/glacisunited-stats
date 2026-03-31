@@ -485,10 +485,10 @@ function SeasonAnalytics({ season }: { season: Season }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">#</TableHead>
-                    <TableHead className="text-xs">Player</TableHead>
-                    <TableHead className="text-xs text-center">Tackles</TableHead>
-                    <TableHead className="text-xs text-center">Clearances</TableHead>
-                    <TableHead className="text-xs text-center">Total</TableHead>
+                    <TableHead className="text-xs">{t("seasons.player")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.tackles")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.clearances")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.total")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
