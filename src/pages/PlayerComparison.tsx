@@ -178,7 +178,7 @@ export default function PlayerComparison() {
             </Card>
             <Card className="border-accent/50">
               <CardContent className="pt-4">
-                <Badge variant="secondary" className="mb-2">Match 2</Badge>
+                <Badge variant="secondary" className="mb-2">{t('comparison.match2')}</Badge>
                 <h3 className="font-semibold">{match2.home_team?.name} vs {match2.away_team?.name}</h3>
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(match2.match_date), 'MMMM d, yyyy')} • Score: {match2.home_score}-{match2.away_score}
