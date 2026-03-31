@@ -228,13 +228,13 @@ export default function PlayerComparison() {
                     
                     <TabsContent value="general">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                        <StatBox label="Minutes Played" val1={player.match1Stats.minutesPlayed} val2={player.match2Stats.minutesPlayed} />
-                        <StatBox label="Goals" val1={player.match1Stats.goals} val2={player.match2Stats.goals} />
-                        <StatBox label="Passes" val1={player.match1Stats.passCount} val2={player.match2Stats.passCount} />
-                        <StatBox label="Pass Accuracy" val1={player.match1Stats.passAccuracy} val2={player.match2Stats.passAccuracy} suffix="%" />
-                        <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
-                        <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
+                        <StatBox label={t('comparison.minutesPlayed')} val1={player.match1Stats.minutesPlayed} val2={player.match2Stats.minutesPlayed} />
+                        <StatBox label={t('comparison.goals')} val1={player.match1Stats.goals} val2={player.match2Stats.goals} />
+                        <StatBox label={t('comparison.passes')} val1={player.match1Stats.passCount} val2={player.match2Stats.passCount} />
+                        <StatBox label={t('comparison.passAccuracy')} val1={player.match1Stats.passAccuracy} val2={player.match2Stats.passAccuracy} suffix="%" />
+                        <StatBox label={t('comparison.shots')} val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
+                        <StatBox label={t('comparison.shotsOnTarget')} val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
+                        <StatBox label={t('comparison.fouls')} val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
                       </div>
                     </TabsContent>
                     
