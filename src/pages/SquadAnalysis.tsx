@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { usePlayerStats, MatchFilter, useAllMatches } from "@/hooks/usePlayerStats";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { Users, BarChart3, CalendarDays } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SquadAnalysisView } from "@/components/views/SquadAnalysisView";
 import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
