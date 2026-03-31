@@ -1,0 +1,124 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "matches": "Partidos",
+    "players": "Jugadores",
+    "squadAnalysis": "Análisis de Plantilla",
+    "compare": "Comparar",
+    "seasons": "Temporadas",
+    "oppositionPlayers": "Jugadores Rivales"
+  },
+  "home": {
+    "title": "Panel de Estadísticas",
+    "subtitle": "Análisis integral del rendimiento de jugadores y equipo",
+    "recentMatches": "Partidos Recientes",
+    "viewAllMatches": "Ver Todos los Partidos"
+  },
+  "matches": {
+    "title": "Partidos",
+    "subtitle": "Ver todos los resultados y estadísticas de partidos",
+    "analystNotes": "Notas del Analista"
+  },
+  "seasons": {
+    "title": "Temporadas",
+    "subtitle": "Desglose de rendimiento por temporada",
+    "overview": "Resumen",
+    "played": "Jugados",
+    "record": "Récord",
+    "points": "Puntos",
+    "goals": "Goles",
+    "winRate": "% Victorias",
+    "cleanSheets": "Porterías Imbatidas",
+    "goalsPerMatch": "Goles por Partido",
+    "cumulativeGoals": "Tendencia Acumulada de Goles",
+    "scored": "A Favor",
+    "conceded": "En Contra",
+    "form": "Forma",
+    "topScorers": "Máximos Goleadores",
+    "topShooters": "Mejores Tiradores",
+    "topPassers": "Mejores Pasadores",
+    "topDefenders": "Mejores Defensores",
+    "player": "Jugador",
+    "matchesPlayed": "Partidos",
+    "goalsLabel": "Goles",
+    "perMatch": "Por Partido",
+    "shots": "Tiros",
+    "onTarget": "A Puerta",
+    "accuracy": "Precisión",
+    "passes": "Pases",
+    "attempted": "Intentados",
+    "tackles": "Entradas",
+    "clearances": "Despejes",
+    "total": "Total",
+    "noData": "No hay datos de temporada disponibles",
+    "selectSeason": "Selecciona una temporada para ver análisis detallados"
+  },
+  "players": {
+    "title": "Jugadores",
+    "subtitle": "Ver perfiles y estadísticas de jugadores",
+    "search": "Buscar jugadores...",
+    "allPositions": "Todas las Posiciones",
+    "sortBy": "Ordenar por",
+    "name": "Nombre",
+    "goals": "Goles",
+    "rating": "Valoración"
+  },
+  "match": {
+    "back": "Volver",
+    "statistics": "Estadísticas",
+    "visualizations": "Visualizaciones",
+    "setPieces": "Jugadas a Balón Parado",
+    "comments": "Comentarios",
+    "halfTime": "Medio Tiempo",
+    "fullTime": "Tiempo Completo",
+    "firstHalf": "1er Tiempo",
+    "secondHalf": "2do Tiempo",
+    "both": "Ambos Tiempos"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "noData": "No hay datos disponibles",
+    "back": "Volver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "win": "V",
+    "draw": "E",
+    "loss": "D"
+  },
+  "footer": {
+    "navigation": "Navegación",
+    "admin": "Administración",
+    "account": "Cuenta",
+    "logOut": "Cerrar Sesión",
+    "logIn": "Iniciar Sesión",
+    "analysisBy": "Análisis por"
+  },
+  "auth": {
+    "logIn": "Iniciar Sesión",
+    "signUp": "Registrarse",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "username": "Nombre de Usuario",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "rememberMe": "Recordarme",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?"
+  },
+  "squad": {
+    "title": "Análisis de Plantilla",
+    "overview": "Resumen",
+    "attacking": "Ataque",
+    "defensive": "Defensa",
+    "setPieces": "Balón Parado",
+    "passes": "Pases"
+  },
+  "comparison": {
+    "title": "Comparación de Jugadores",
+    "selectPlayers": "Selecciona dos jugadores para comparar"
+  }
+}

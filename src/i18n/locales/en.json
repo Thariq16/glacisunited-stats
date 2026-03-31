@@ -1,0 +1,124 @@
+{
+  "nav": {
+    "home": "Home",
+    "matches": "Matches",
+    "players": "Players",
+    "squadAnalysis": "Squad Analysis",
+    "compare": "Compare",
+    "seasons": "Seasons",
+    "oppositionPlayers": "Opposition Players"
+  },
+  "home": {
+    "title": "Statistics Dashboard",
+    "subtitle": "Comprehensive player and team performance analytics",
+    "recentMatches": "Recent Matches",
+    "viewAllMatches": "View All Matches"
+  },
+  "matches": {
+    "title": "Matches",
+    "subtitle": "View all match results and statistics",
+    "analystNotes": "Analyst Notes"
+  },
+  "seasons": {
+    "title": "Seasons",
+    "subtitle": "Season-by-season performance breakdown",
+    "overview": "Overview",
+    "played": "Played",
+    "record": "Record",
+    "points": "Points",
+    "goals": "Goals",
+    "winRate": "Win Rate",
+    "cleanSheets": "Clean Sheets",
+    "goalsPerMatch": "Goals Per Match",
+    "cumulativeGoals": "Cumulative Goal Trends",
+    "scored": "Scored",
+    "conceded": "Conceded",
+    "form": "Form",
+    "topScorers": "Top Scorers",
+    "topShooters": "Top Shooters",
+    "topPassers": "Top Passers",
+    "topDefenders": "Top Defenders",
+    "player": "Player",
+    "matchesPlayed": "Matches",
+    "goalsLabel": "Goals",
+    "perMatch": "Per Match",
+    "shots": "Shots",
+    "onTarget": "On Target",
+    "accuracy": "Accuracy",
+    "passes": "Passes",
+    "attempted": "Attempted",
+    "tackles": "Tackles",
+    "clearances": "Clearances",
+    "total": "Total",
+    "noData": "No season data available",
+    "selectSeason": "Select a season to view detailed analytics"
+  },
+  "players": {
+    "title": "Players",
+    "subtitle": "View player profiles and statistics",
+    "search": "Search players...",
+    "allPositions": "All Positions",
+    "sortBy": "Sort by",
+    "name": "Name",
+    "goals": "Goals",
+    "rating": "Rating"
+  },
+  "match": {
+    "back": "Back",
+    "statistics": "Statistics",
+    "visualizations": "Visualizations",
+    "setPieces": "Set Pieces",
+    "comments": "Comments",
+    "halfTime": "Half Time",
+    "fullTime": "Full Time",
+    "firstHalf": "1st Half",
+    "secondHalf": "2nd Half",
+    "both": "Both Halves"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "noData": "No data available",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "win": "W",
+    "draw": "D",
+    "loss": "L"
+  },
+  "footer": {
+    "navigation": "Navigation",
+    "admin": "Admin",
+    "account": "Account",
+    "logOut": "Log Out",
+    "logIn": "Log In",
+    "analysisBy": "Analysis by"
+  },
+  "auth": {
+    "logIn": "Log In",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "username": "Username",
+    "forgotPassword": "Forgot password?",
+    "rememberMe": "Remember me",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "squad": {
+    "title": "Squad Analysis",
+    "overview": "Overview",
+    "attacking": "Attacking",
+    "defensive": "Defensive",
+    "setPieces": "Set Pieces",
+    "passes": "Passes"
+  },
+  "comparison": {
+    "title": "Player Comparison",
+    "selectPlayers": "Select two players to compare"
+  }
+}
