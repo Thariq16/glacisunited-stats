@@ -37,7 +37,7 @@ export default function MatchDetail() {
   // Fetch xG stats for the match
   const { data: xgStats } = useMatchXGStats(matchId, homeTeam?.id, awayTeam?.id);
 
-  const showTabs = isAdmin || isCoach;
+  const canViewNotes = isAdmin || isCoach;
 
   // Helper to calculate contribution score and sort players
   const getSortedPlayers = (players: PlayerStats[]) => {
@@ -125,88 +125,30 @@ export default function MatchDetail() {
           xgStats={xgStats}
         />
 
-        {/* Tabs for coaches and admins, otherwise just show stats */}
-        {showTabs ? (
-          <Tabs defaultValue="stats" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
-              <TabsTrigger value="stats" className="gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span className="hidden sm:inline">Overall</span> Statistics
-              </TabsTrigger>
-              <TabsTrigger value="set-pieces" className="gap-2">
-                <Flag className="h-4 w-4" />
-                <span className="hidden sm:inline">Set</span> Pieces
-              </TabsTrigger>
+        {/* Tabs for match detail views */}
+        <Tabs defaultValue="stats" className="space-y-6">
+          <TabsList className={`grid w-full ${canViewNotes ? 'grid-cols-4' : 'grid-cols-3'} lg:w-auto lg:inline-flex`}>
+            <TabsTrigger value="stats" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Overall</span> Statistics
+            </TabsTrigger>
+            <TabsTrigger value="set-pieces" className="gap-2">
+              <Flag className="h-4 w-4" />
+              <span className="hidden sm:inline">Set</span> Pieces
+            </TabsTrigger>
+            {canViewNotes && (
               <TabsTrigger value="notes" className="gap-2">
                 <MessageSquare className="h-4 w-4" />
                 Notes
               </TabsTrigger>
-              <TabsTrigger value="visualizations" className="gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Visualizations
-              </TabsTrigger>
-            </TabsList>
+            )}
+            <TabsTrigger value="visualizations" className="gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Visualizations
+            </TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="stats" className="space-y-6">
-              <MatchStatsCards
-                homeTeam={homeTeam?.name || 'Home Team'}
-                awayTeam={awayTeam?.name || 'Away Team'}
-                homePlayers={match.homePlayers}
-                awayPlayers={match.awayPlayers}
-                xgStats={xgStats}
-              />
-            </TabsContent>
-
-            <TabsContent value="set-pieces" className="space-y-6">
-              {(() => {
-                const isHomeGlacis = homeTeam?.name?.toLowerCase()?.includes('glacis');
-                const glacisTeam = isHomeGlacis ? homeTeam : awayTeam;
-                const oppositionTeam = isHomeGlacis ? awayTeam : homeTeam;
-                return (
-                  <Tabs defaultValue="own" className="space-y-4">
-                    <TabsList>
-                      <TabsTrigger value="own">{glacisTeam?.name || 'Glacis United'}</TabsTrigger>
-                      <TabsTrigger value="opponent">{oppositionTeam?.name || 'Opposition'}</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="own">
-                      {glacisTeam && (
-                        <SetPieceAnalyticsTab
-                          matchId={matchId!}
-                          teamId={glacisTeam.id}
-                          teamName={glacisTeam.name}
-                        />
-                      )}
-                    </TabsContent>
-                    <TabsContent value="opponent">
-                      {oppositionTeam && (
-                        <SetPieceAnalyticsTab
-                          matchId={matchId!}
-                          teamId={oppositionTeam.id}
-                          teamName={oppositionTeam.name}
-                        />
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                );
-              })()}
-            </TabsContent>
-
-            <TabsContent value="notes">
-              <MatchComments matchId={matchId!} />
-            </TabsContent>
-
-            <TabsContent value="visualizations">
-              <MatchVisualizationsTab
-                matchId={matchId!}
-                homeTeamId={homeTeam?.id}
-                awayTeamId={awayTeam?.id}
-                homeTeamName={homeTeam?.name || 'Home Team'}
-                awayTeamName={awayTeam?.name || 'Away Team'}
-              />
-            </TabsContent>
-          </Tabs>
-        ) : (
-          <div className="space-y-6">
+          <TabsContent value="stats" className="space-y-6">
             <MatchStatsCards
               homeTeam={homeTeam?.name || 'Home Team'}
               awayTeam={awayTeam?.name || 'Away Team'}
@@ -214,8 +156,58 @@ export default function MatchDetail() {
               awayPlayers={match.awayPlayers}
               xgStats={xgStats}
             />
-          </div>
-        )}
+          </TabsContent>
+
+          <TabsContent value="set-pieces" className="space-y-6">
+            {(() => {
+              const isHomeGlacis = homeTeam?.name?.toLowerCase()?.includes('glacis');
+              const glacisTeam = isHomeGlacis ? homeTeam : awayTeam;
+              const oppositionTeam = isHomeGlacis ? awayTeam : homeTeam;
+              return (
+                <Tabs defaultValue="own" className="space-y-4">
+                  <TabsList>
+                    <TabsTrigger value="own">{glacisTeam?.name || 'Glacis United'}</TabsTrigger>
+                    <TabsTrigger value="opponent">{oppositionTeam?.name || 'Opposition'}</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="own">
+                    {glacisTeam && (
+                      <SetPieceAnalyticsTab
+                        matchId={matchId!}
+                        teamId={glacisTeam.id}
+                        teamName={glacisTeam.name}
+                      />
+                    )}
+                  </TabsContent>
+                  <TabsContent value="opponent">
+                    {oppositionTeam && (
+                      <SetPieceAnalyticsTab
+                        matchId={matchId!}
+                        teamId={oppositionTeam.id}
+                        teamName={oppositionTeam.name}
+                      />
+                    )}
+                  </TabsContent>
+                </Tabs>
+              );
+            })()}
+          </TabsContent>
+
+          {canViewNotes && (
+            <TabsContent value="notes">
+              <MatchComments matchId={matchId!} />
+            </TabsContent>
+          )}
+
+          <TabsContent value="visualizations">
+            <MatchVisualizationsTab
+              matchId={matchId!}
+              homeTeamId={homeTeam?.id}
+              awayTeamId={awayTeam?.id}
+              homeTeamName={homeTeam?.name || 'Home Team'}
+              awayTeamName={awayTeam?.name || 'Away Team'}
+            />
+          </TabsContent>
+        </Tabs>
 
         {/* Player Performance Modal */}
         <Dialog open={!!selectedTeam} onOpenChange={() => setSelectedTeam(null)}>
