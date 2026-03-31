@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Calendar, ChevronRight, Target, TrendingUp, Shield, Users, Crosshair, BarChart3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -185,6 +186,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
 function SeasonAnalytics({ season }: { season: Season }) {
   const { data: stats, isLoading } = useSeasonAnalytics(season.id);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   if (isLoading)
     return (
@@ -204,12 +206,12 @@ function SeasonAnalytics({ season }: { season: Season }) {
       {/* Overview Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "Played", value: stats.played, icon: Calendar },
-          { label: "Record", value: `${stats.wins}W ${stats.draws}D ${stats.losses}L`, icon: Trophy },
-          { label: "Points", value: stats.points, icon: Shield },
-          { label: "Goals", value: `${stats.goalsFor} - ${stats.goalsAgainst}`, icon: Target },
-          { label: "Win Rate", value: `${stats.winRate}%`, icon: TrendingUp },
-          { label: "Clean Sheets", value: stats.cleanSheets, icon: Shield },
+          { label: t("seasons.played"), value: stats.played, icon: Calendar },
+          { label: t("seasons.record"), value: `${stats.wins}${t("common.win")} ${stats.draws}${t("common.draw")} ${stats.losses}${t("common.loss")}`, icon: Trophy },
+          { label: t("seasons.points"), value: stats.points, icon: Shield },
+          { label: t("seasons.goals"), value: `${stats.goalsFor} - ${stats.goalsAgainst}`, icon: Target },
+          { label: t("seasons.winRate"), value: `${stats.winRate}%`, icon: TrendingUp },
+          { label: t("seasons.cleanSheets"), value: stats.cleanSheets, icon: Shield },
         ].map((s) => (
           <Card key={s.label} className="border-border/50">
             <CardContent className="p-3 text-center">
@@ -227,17 +229,17 @@ function SeasonAnalytics({ season }: { season: Season }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" />
-              Avg Goals Per Match
+              Avg {t("seasons.goalsPerMatch")}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex gap-8">
             <div>
               <p className="text-2xl font-bold text-green-400">{stats.avgGoalsFor}</p>
-              <p className="text-xs text-muted-foreground">Scored</p>
+              <p className="text-xs text-muted-foreground">{t("seasons.scored")}</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-red-400">{stats.avgGoalsAgainst}</p>
-              <p className="text-xs text-muted-foreground">Conceded</p>
+              <p className="text-xs text-muted-foreground">{t("seasons.conceded")}</p>
             </div>
             <div>
               <p className={`text-2xl font-bold ${stats.goalDifference >= 0 ? "text-green-400" : "text-red-400"}`}>
@@ -252,7 +254,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
         {/* Form Strip */}
         <Card className="border-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Recent Form</CardTitle>
+            <CardTitle className="text-sm">{t("seasons.form")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-1.5 flex-wrap">
@@ -263,7 +265,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
                   className={`w-9 h-9 rounded-md border text-xs font-bold flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${resultColor(f.result)}`}
                   title={`${f.date}: ${f.opponent} (${f.gf}-${f.ga})`}
                 >
-                  {f.result}
+                  {f.result === "W" ? t("common.win") : f.result === "D" ? t("common.draw") : t("common.loss")}
                 </button>
               ))}
             </div>
@@ -276,7 +278,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Target className="h-4 w-4 text-primary" />
-            Goals Per Match
+            {t("seasons.goalsPerMatch")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -312,7 +314,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-primary" />
-            Cumulative Goals Trend
+            {t("seasons.cumulativeGoals")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -354,7 +356,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Crosshair className="h-4 w-4 text-primary" />
-              Top Scorers
+              {t("seasons.topScorers")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -365,10 +367,10 @@ function SeasonAnalytics({ season }: { season: Season }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">#</TableHead>
-                    <TableHead className="text-xs">Player</TableHead>
-                    <TableHead className="text-xs text-center">Goals</TableHead>
-                    <TableHead className="text-xs text-center">Matches</TableHead>
-                    <TableHead className="text-xs text-center">Ratio</TableHead>
+                    <TableHead className="text-xs">{t("seasons.player")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.goalsLabel")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.matchesPlayed")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.perMatch")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -393,7 +395,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
-              Top Shooters
+              {t("seasons.topShooters")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -404,10 +406,10 @@ function SeasonAnalytics({ season }: { season: Season }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">#</TableHead>
-                    <TableHead className="text-xs">Player</TableHead>
-                    <TableHead className="text-xs text-center">Shots</TableHead>
-                    <TableHead className="text-xs text-center">On Target</TableHead>
-                    <TableHead className="text-xs text-center">Accuracy</TableHead>
+                    <TableHead className="text-xs">{t("seasons.player")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.shots")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.onTarget")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.accuracy")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -435,7 +437,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              Top Passers
+              {t("seasons.topPassers")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -446,10 +448,10 @@ function SeasonAnalytics({ season }: { season: Season }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">#</TableHead>
-                    <TableHead className="text-xs">Player</TableHead>
-                    <TableHead className="text-xs text-center">Completed</TableHead>
-                    <TableHead className="text-xs text-center">Attempted</TableHead>
-                    <TableHead className="text-xs text-center">Accuracy</TableHead>
+                    <TableHead className="text-xs">{t("seasons.player")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.passes")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.attempted")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.accuracy")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -472,7 +474,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
               <Shield className="h-4 w-4 text-primary" />
-              Top Defenders
+              {t("seasons.topDefenders")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -483,10 +485,10 @@ function SeasonAnalytics({ season }: { season: Season }) {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-xs">#</TableHead>
-                    <TableHead className="text-xs">Player</TableHead>
-                    <TableHead className="text-xs text-center">Tackles</TableHead>
-                    <TableHead className="text-xs text-center">Clearances</TableHead>
-                    <TableHead className="text-xs text-center">Total</TableHead>
+                    <TableHead className="text-xs">{t("seasons.player")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.tackles")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.clearances")}</TableHead>
+                    <TableHead className="text-xs text-center">{t("seasons.total")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -542,6 +544,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
 export default function Seasons() {
   const { data: seasons, isLoading } = useSeasons();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const activeSeasonId = useMemo(() => {
     if (!seasons || seasons.length === 0) return null;
@@ -558,9 +561,9 @@ export default function Seasons() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Seasons</h1>
+            <h1 className="text-4xl font-bold text-foreground">{t("seasons.title")}</h1>
           </div>
-          <p className="text-muted-foreground">Browse match results, stats, and analytics by season</p>
+          <p className="text-muted-foreground">{t("seasons.subtitle")}</p>
         </div>
 
         {isLoading ? (

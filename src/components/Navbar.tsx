@@ -3,44 +3,65 @@ import { Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+
 export function Navbar() {
   const { theme, setTheme } = useTheme();
-  return <nav className="border-b bg-card">
+  const { t } = useTranslation();
+
+  const links = [
+    { to: "/", label: t("nav.home") },
+    { to: "/matches", label: t("nav.matches") },
+    { to: "/players", label: t("nav.players") },
+    { to: "/squad-analysis", label: t("nav.squadAnalysis") },
+    { to: "/compare", label: t("nav.compare") },
+  ];
+
+  return (
+    <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <NavLink to="/" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-sm">⚽</span>
             </div>
-            <span className="font-bold text-xl text-foreground">Glacis United Stats  </span>
+            <span className="font-bold text-xl text-foreground">Glacis United Stats</span>
           </NavLink>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <NavLink to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-              Home
-            </NavLink>
-            <NavLink to="/matches" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-              Matches
-            </NavLink>
-            <NavLink to="/players" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-              Players
-            </NavLink>
-            <NavLink to="/squad-analysis" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-              Squad Analysis
-            </NavLink>
-            <NavLink to="/compare" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-              Compare
-            </NavLink>
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle dark mode">
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            {links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                activeClassName="text-foreground"
+              >
+                {link.label}
+              </NavLink>
+            ))}
+            <LanguageSwitcher />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              title="Toggle dark mode"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
           </div>
 
           {/* Mobile Navigation */}
           <div className="flex items-center gap-2 md:hidden">
-            <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle dark mode">
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <LanguageSwitcher />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              title="Toggle dark mode"
+            >
+              {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </Button>
             <Sheet>
               <SheetTrigger asChild>
@@ -50,26 +71,22 @@ export function Navbar() {
               </SheetTrigger>
               <SheetContent>
                 <div className="flex flex-col gap-4 mt-8">
-                  <NavLink to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-                    Home
-                  </NavLink>
-                  <NavLink to="/matches" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-                    Matches
-                  </NavLink>
-                  <NavLink to="/players" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-                    Players
-                  </NavLink>
-                  <NavLink to="/squad-analysis" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-                    Squad Analysis
-                  </NavLink>
-                  <NavLink to="/compare" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors" activeClassName="text-foreground">
-                    Compare
-                  </NavLink>
+                  {links.map((link) => (
+                    <NavLink
+                      key={link.to}
+                      to={link.to}
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      activeClassName="text-foreground"
+                    >
+                      {link.label}
+                    </NavLink>
+                  ))}
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
       </div>
-    </nav>;
+    </nav>
+  );
 }

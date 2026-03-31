@@ -5,10 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { useMatches } from "@/hooks/usePlayerStats";
 import { MatchCard } from "@/components/MatchCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
   const navigate = useNavigate();
   const { data: matches, isLoading } = useMatches();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -17,19 +19,18 @@ export default function Home() {
       <main className="container mx-auto px-4 py-12 flex-1">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Statistics Dashboard
+            {t("home.title")}
           </h1>
           <p className="text-lg text-muted-foreground">
-            Comprehensive player and team performance analytics
+            {t("home.subtitle")}
           </p>
         </div>
 
-        {/* Recent Matches */}
         <div className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Recent Matches</h2>
+            <h2 className="text-2xl font-bold text-foreground">{t("home.recentMatches")}</h2>
             <Button variant="outline" onClick={() => navigate('/matches')}>
-              View All Matches
+              {t("home.viewAllMatches")}
             </Button>
           </div>
           {isLoading ? (

@@ -1,0 +1,124 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "matches": "المباريات",
+    "players": "اللاعبون",
+    "squadAnalysis": "تحليل الفريق",
+    "compare": "مقارنة",
+    "seasons": "المواسم",
+    "oppositionPlayers": "لاعبو الخصم"
+  },
+  "home": {
+    "title": "لوحة الإحصائيات",
+    "subtitle": "تحليلات شاملة لأداء اللاعبين والفريق",
+    "recentMatches": "المباريات الأخيرة",
+    "viewAllMatches": "عرض جميع المباريات"
+  },
+  "matches": {
+    "title": "المباريات",
+    "subtitle": "عرض جميع نتائج المباريات والإحصائيات",
+    "analystNotes": "ملاحظات المحلل"
+  },
+  "seasons": {
+    "title": "المواسم",
+    "subtitle": "تحليل الأداء موسم بموسم",
+    "overview": "نظرة عامة",
+    "played": "لعب",
+    "record": "السجل",
+    "points": "النقاط",
+    "goals": "الأهداف",
+    "winRate": "نسبة الفوز",
+    "cleanSheets": "شباك نظيفة",
+    "goalsPerMatch": "أهداف كل مباراة",
+    "cumulativeGoals": "اتجاه الأهداف التراكمي",
+    "scored": "سُجلت",
+    "conceded": "استُقبلت",
+    "form": "النتائج",
+    "topScorers": "أفضل الهدافين",
+    "topShooters": "أفضل المسددين",
+    "topPassers": "أفضل الممررين",
+    "topDefenders": "أفضل المدافعين",
+    "player": "اللاعب",
+    "matchesPlayed": "المباريات",
+    "goalsLabel": "الأهداف",
+    "perMatch": "لكل مباراة",
+    "shots": "التسديدات",
+    "onTarget": "على المرمى",
+    "accuracy": "الدقة",
+    "passes": "التمريرات",
+    "attempted": "المحاولات",
+    "tackles": "التدخلات",
+    "clearances": "الإبعادات",
+    "total": "المجموع",
+    "noData": "لا تتوفر بيانات الموسم",
+    "selectSeason": "اختر موسمًا لعرض التحليلات التفصيلية"
+  },
+  "players": {
+    "title": "اللاعبون",
+    "subtitle": "عرض ملفات اللاعبين والإحصائيات",
+    "search": "البحث عن لاعبين...",
+    "allPositions": "جميع المراكز",
+    "sortBy": "ترتيب حسب",
+    "name": "الاسم",
+    "goals": "الأهداف",
+    "rating": "التقييم"
+  },
+  "match": {
+    "back": "رجوع",
+    "statistics": "الإحصائيات",
+    "visualizations": "التصورات",
+    "setPieces": "الكرات الثابتة",
+    "comments": "التعليقات",
+    "halfTime": "نهاية الشوط الأول",
+    "fullTime": "نهاية المباراة",
+    "firstHalf": "الشوط الأول",
+    "secondHalf": "الشوط الثاني",
+    "both": "كلا الشوطين"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ",
+    "noData": "لا توجد بيانات متاحة",
+    "back": "رجوع",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "win": "ف",
+    "draw": "ت",
+    "loss": "خ"
+  },
+  "footer": {
+    "navigation": "التنقل",
+    "admin": "الإدارة",
+    "account": "الحساب",
+    "logOut": "تسجيل الخروج",
+    "logIn": "تسجيل الدخول",
+    "analysisBy": "التحليل بواسطة"
+  },
+  "auth": {
+    "logIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "username": "اسم المستخدم",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "rememberMe": "تذكرني",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟"
+  },
+  "squad": {
+    "title": "تحليل الفريق",
+    "overview": "نظرة عامة",
+    "attacking": "الهجوم",
+    "defensive": "الدفاع",
+    "setPieces": "الكرات الثابتة",
+    "passes": "التمريرات"
+  },
+  "comparison": {
+    "title": "مقارنة اللاعبين",
+    "selectPlayers": "اختر لاعبين للمقارنة"
+  }
+}
