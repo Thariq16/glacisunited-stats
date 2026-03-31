@@ -240,14 +240,14 @@ export default function PlayerComparison() {
                     
                     <TabsContent value="attacking">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                        <StatBox label="Run in Behind" val1={player.match1Stats.runInBehind} val2={player.match2Stats.runInBehind} />
-                        <StatBox label="Overlaps" val1={player.match1Stats.overlaps} val2={player.match2Stats.overlaps} />
-                        <StatBox label="Pen. Area Entry" val1={player.match1Stats.penaltyAreaEntry} val2={player.match2Stats.penaltyAreaEntry} />
-                        <StatBox label="Pen. Area Pass" val1={player.match1Stats.penaltyAreaPass} val2={player.match2Stats.penaltyAreaPass} />
-                        <StatBox label="Crosses" val1={player.match1Stats.crosses} val2={player.match2Stats.crosses} />
-                        <StatBox label="Cut Backs" val1={player.match1Stats.cutBacks} val2={player.match2Stats.cutBacks} />
-                        <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
-                        <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
+                        <StatBox label={t('comparison.runInBehind')} val1={player.match1Stats.runInBehind} val2={player.match2Stats.runInBehind} />
+                        <StatBox label={t('comparison.overlaps')} val1={player.match1Stats.overlaps} val2={player.match2Stats.overlaps} />
+                        <StatBox label={t('comparison.penAreaEntry')} val1={player.match1Stats.penaltyAreaEntry} val2={player.match2Stats.penaltyAreaEntry} />
+                        <StatBox label={t('comparison.penAreaPass')} val1={player.match1Stats.penaltyAreaPass} val2={player.match2Stats.penaltyAreaPass} />
+                        <StatBox label={t('comparison.crosses')} val1={player.match1Stats.crosses} val2={player.match2Stats.crosses} />
+                        <StatBox label={t('comparison.cutBacks')} val1={player.match1Stats.cutBacks} val2={player.match2Stats.cutBacks} />
+                        <StatBox label={t('comparison.shots')} val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
+                        <StatBox label={t('comparison.shotsOnTarget')} val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
                       </div>
                     </TabsContent>
                     
