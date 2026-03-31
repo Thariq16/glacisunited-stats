@@ -544,6 +544,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
 export default function Seasons() {
   const { data: seasons, isLoading } = useSeasons();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const activeSeasonId = useMemo(() => {
     if (!seasons || seasons.length === 0) return null;
