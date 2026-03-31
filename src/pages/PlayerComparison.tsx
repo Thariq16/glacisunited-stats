@@ -134,12 +134,12 @@ export default function PlayerComparison() {
 
               {/* Match 2 */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Match 2</label>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">{t('comparison.match2')}</label>
                 <Select value={match2Id} onValueChange={setMatch2Id}>
                   <SelectTrigger>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <SelectValue placeholder="Select second match" />
+                      <SelectValue placeholder={t('comparison.selectSecond')} />
                     </div>
                   </SelectTrigger>
                   <SelectContent>
