@@ -220,10 +220,10 @@ export default function PlayerComparison() {
                 <CardContent>
                   <Tabs defaultValue="general" className="w-full">
                     <TabsList className="mb-4">
-                      <TabsTrigger value="general">General</TabsTrigger>
-                      <TabsTrigger value="attacking">Attacking</TabsTrigger>
-                      <TabsTrigger value="defensive">Defensive</TabsTrigger>
-                      <TabsTrigger value="setpieces">Set Pieces</TabsTrigger>
+                      <TabsTrigger value="general">{t('comparison.general')}</TabsTrigger>
+                      <TabsTrigger value="attacking">{t('comparison.attacking')}</TabsTrigger>
+                      <TabsTrigger value="defensive">{t('comparison.defensive')}</TabsTrigger>
+                      <TabsTrigger value="setpieces">{t('comparison.setPieces')}</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="general">
