@@ -561,9 +561,9 @@ export default function Seasons() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Seasons</h1>
+            <h1 className="text-4xl font-bold text-foreground">{t("seasons.title")}</h1>
           </div>
-          <p className="text-muted-foreground">Browse match results, stats, and analytics by season</p>
+          <p className="text-muted-foreground">{t("seasons.subtitle")}</p>
         </div>
 
         {isLoading ? (
