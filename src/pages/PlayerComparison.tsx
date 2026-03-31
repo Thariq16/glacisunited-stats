@@ -10,8 +10,10 @@ import { useComparisonStats } from "@/hooks/useComparisonStats";
 import { GitCompare, Calendar, ArrowUp, Minus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
+import { useTranslation } from "react-i18next";
 
 export default function PlayerComparison() {
+  const { t } = useTranslation();
   const [match1Id, setMatch1Id] = useState<string>('');
   const [match2Id, setMatch2Id] = useState<string>('');
   const [selectedTeam, setSelectedTeam] = useState<string>('');
@@ -73,27 +75,27 @@ export default function PlayerComparison() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <GitCompare className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Match Comparison</h1>
+            <h1 className="text-4xl font-bold text-foreground">{t('comparison.title')}</h1>
           </div>
-          <p className="text-muted-foreground">Compare player performance across two different matches</p>
+          <p className="text-muted-foreground">{t('comparison.subtitle')}</p>
         </div>
 
         {/* Selection Controls */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Select Matches to Compare</CardTitle>
+            <CardTitle>{t('comparison.selectMatches')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               {/* Team Filter */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Filter by Team</label>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">{t('comparison.filterByTeam')}</label>
                 <Select value={selectedTeam} onValueChange={setSelectedTeam}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All Teams" />
+                    <SelectValue placeholder={t('comparison.allTeams')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Teams</SelectItem>
+                    <SelectItem value="all">{t('comparison.allTeams')}</SelectItem>
                     {teams.map(team => (
                       <SelectItem key={team.slug} value={team.slug}>{team.name}</SelectItem>
                     ))}
@@ -103,12 +105,12 @@ export default function PlayerComparison() {
 
               {/* Match 1 */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Match 1</label>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">{t('comparison.match1')}</label>
                 <Select value={match1Id} onValueChange={setMatch1Id}>
                   <SelectTrigger>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <SelectValue placeholder="Select first match" />
+                      <SelectValue placeholder={t('comparison.selectFirst')} />
                     </div>
                   </SelectTrigger>
                   <SelectContent>
@@ -132,12 +134,12 @@ export default function PlayerComparison() {
 
               {/* Match 2 */}
               <div>
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Match 2</label>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">{t('comparison.match2')}</label>
                 <Select value={match2Id} onValueChange={setMatch2Id}>
                   <SelectTrigger>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <SelectValue placeholder="Select second match" />
+                      <SelectValue placeholder={t('comparison.selectSecond')} />
                     </div>
                   </SelectTrigger>
                   <SelectContent>
@@ -167,7 +169,7 @@ export default function PlayerComparison() {
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             <Card className="border-primary/50">
               <CardContent className="pt-4">
-                <Badge variant="outline" className="mb-2">Match 1</Badge>
+                <Badge variant="outline" className="mb-2">{t('comparison.match1')}</Badge>
                 <h3 className="font-semibold">{match1.home_team?.name} vs {match1.away_team?.name}</h3>
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(match1.match_date), 'MMMM d, yyyy')} • Score: {match1.home_score}-{match1.away_score}
@@ -176,7 +178,7 @@ export default function PlayerComparison() {
             </Card>
             <Card className="border-accent/50">
               <CardContent className="pt-4">
-                <Badge variant="secondary" className="mb-2">Match 2</Badge>
+                <Badge variant="secondary" className="mb-2">{t('comparison.match2')}</Badge>
                 <h3 className="font-semibold">{match2.home_team?.name} vs {match2.away_team?.name}</h3>
                 <p className="text-sm text-muted-foreground">
                   {format(new Date(match2.match_date), 'MMMM d, yyyy')} • Score: {match2.home_score}-{match2.away_score}
@@ -191,7 +193,7 @@ export default function PlayerComparison() {
           <Card>
             <CardContent className="py-12">
               <p className="text-center text-muted-foreground">
-                Select two matches above to compare player statistics
+                {t('comparison.selectTwo')}
               </p>
             </CardContent>
           </Card>
@@ -218,54 +220,54 @@ export default function PlayerComparison() {
                 <CardContent>
                   <Tabs defaultValue="general" className="w-full">
                     <TabsList className="mb-4">
-                      <TabsTrigger value="general">General</TabsTrigger>
-                      <TabsTrigger value="attacking">Attacking</TabsTrigger>
-                      <TabsTrigger value="defensive">Defensive</TabsTrigger>
-                      <TabsTrigger value="setpieces">Set Pieces</TabsTrigger>
+                      <TabsTrigger value="general">{t('comparison.general')}</TabsTrigger>
+                      <TabsTrigger value="attacking">{t('comparison.attacking')}</TabsTrigger>
+                      <TabsTrigger value="defensive">{t('comparison.defensive')}</TabsTrigger>
+                      <TabsTrigger value="setpieces">{t('comparison.setPieces')}</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="general">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                        <StatBox label="Minutes Played" val1={player.match1Stats.minutesPlayed} val2={player.match2Stats.minutesPlayed} />
-                        <StatBox label="Goals" val1={player.match1Stats.goals} val2={player.match2Stats.goals} />
-                        <StatBox label="Passes" val1={player.match1Stats.passCount} val2={player.match2Stats.passCount} />
-                        <StatBox label="Pass Accuracy" val1={player.match1Stats.passAccuracy} val2={player.match2Stats.passAccuracy} suffix="%" />
-                        <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
-                        <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
+                        <StatBox label={t('comparison.minutesPlayed')} val1={player.match1Stats.minutesPlayed} val2={player.match2Stats.minutesPlayed} />
+                        <StatBox label={t('comparison.goals')} val1={player.match1Stats.goals} val2={player.match2Stats.goals} />
+                        <StatBox label={t('comparison.passes')} val1={player.match1Stats.passCount} val2={player.match2Stats.passCount} />
+                        <StatBox label={t('comparison.passAccuracy')} val1={player.match1Stats.passAccuracy} val2={player.match2Stats.passAccuracy} suffix="%" />
+                        <StatBox label={t('comparison.shots')} val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
+                        <StatBox label={t('comparison.shotsOnTarget')} val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
+                        <StatBox label={t('comparison.fouls')} val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
                       </div>
                     </TabsContent>
                     
                     <TabsContent value="attacking">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-                        <StatBox label="Run in Behind" val1={player.match1Stats.runInBehind} val2={player.match2Stats.runInBehind} />
-                        <StatBox label="Overlaps" val1={player.match1Stats.overlaps} val2={player.match2Stats.overlaps} />
-                        <StatBox label="Pen. Area Entry" val1={player.match1Stats.penaltyAreaEntry} val2={player.match2Stats.penaltyAreaEntry} />
-                        <StatBox label="Pen. Area Pass" val1={player.match1Stats.penaltyAreaPass} val2={player.match2Stats.penaltyAreaPass} />
-                        <StatBox label="Crosses" val1={player.match1Stats.crosses} val2={player.match2Stats.crosses} />
-                        <StatBox label="Cut Backs" val1={player.match1Stats.cutBacks} val2={player.match2Stats.cutBacks} />
-                        <StatBox label="Shots" val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
-                        <StatBox label="Shots on Target" val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
+                        <StatBox label={t('comparison.runInBehind')} val1={player.match1Stats.runInBehind} val2={player.match2Stats.runInBehind} />
+                        <StatBox label={t('comparison.overlaps')} val1={player.match1Stats.overlaps} val2={player.match2Stats.overlaps} />
+                        <StatBox label={t('comparison.penAreaEntry')} val1={player.match1Stats.penaltyAreaEntry} val2={player.match2Stats.penaltyAreaEntry} />
+                        <StatBox label={t('comparison.penAreaPass')} val1={player.match1Stats.penaltyAreaPass} val2={player.match2Stats.penaltyAreaPass} />
+                        <StatBox label={t('comparison.crosses')} val1={player.match1Stats.crosses} val2={player.match2Stats.crosses} />
+                        <StatBox label={t('comparison.cutBacks')} val1={player.match1Stats.cutBacks} val2={player.match2Stats.cutBacks} />
+                        <StatBox label={t('comparison.shots')} val1={player.match1Stats.shots} val2={player.match2Stats.shots} />
+                        <StatBox label={t('comparison.shotsOnTarget')} val1={player.match1Stats.shotsOnTarget} val2={player.match2Stats.shotsOnTarget} />
                       </div>
                     </TabsContent>
                     
                     <TabsContent value="defensive">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        <StatBox label="Tackles" val1={player.match1Stats.tackles} val2={player.match2Stats.tackles} />
-                        <StatBox label="Saves" val1={player.match1Stats.saves} val2={player.match2Stats.saves} />
-                        <StatBox label="Aerial Won" val1={player.match1Stats.aerialDuelsWon} val2={player.match2Stats.aerialDuelsWon} />
-                        <StatBox label="Aerial Lost" val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} />
-                        <StatBox label="Fouls" val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
+                        <StatBox label={t('comparison.tackles')} val1={player.match1Stats.tackles} val2={player.match2Stats.tackles} />
+                        <StatBox label={t('comparison.saves')} val1={player.match1Stats.saves} val2={player.match2Stats.saves} />
+                        <StatBox label={t('comparison.aerialWon')} val1={player.match1Stats.aerialDuelsWon} val2={player.match2Stats.aerialDuelsWon} />
+                        <StatBox label={t('comparison.aerialLost')} val1={player.match1Stats.aerialDuelsLost} val2={player.match2Stats.aerialDuelsLost} />
+                        <StatBox label={t('comparison.fouls')} val1={player.match1Stats.fouls} val2={player.match2Stats.fouls} />
                       </div>
                     </TabsContent>
                     
                     <TabsContent value="setpieces">
                       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                        <StatBox label="Corners" val1={player.match1Stats.corners} val2={player.match2Stats.corners} />
-                        <StatBox label="Corner Success" val1={player.match1Stats.cornerSuccess} val2={player.match2Stats.cornerSuccess} />
-                        <StatBox label="Free Kicks" val1={player.match1Stats.freeKicks} val2={player.match2Stats.freeKicks} />
-                        <StatBox label="Throw-ins" val1={player.match1Stats.throwIns} val2={player.match2Stats.throwIns} />
-                        <StatBox label="Throw-in Success" val1={player.match1Stats.tiSuccess} val2={player.match2Stats.tiSuccess} />
+                        <StatBox label={t('comparison.corners')} val1={player.match1Stats.corners} val2={player.match2Stats.corners} />
+                        <StatBox label={t('comparison.cornerSuccess')} val1={player.match1Stats.cornerSuccess} val2={player.match2Stats.cornerSuccess} />
+                        <StatBox label={t('comparison.freeKicks')} val1={player.match1Stats.freeKicks} val2={player.match2Stats.freeKicks} />
+                        <StatBox label={t('comparison.throwIns')} val1={player.match1Stats.throwIns} val2={player.match2Stats.throwIns} />
+                        <StatBox label={t('comparison.throwInSuccess')} val1={player.match1Stats.tiSuccess} val2={player.match2Stats.tiSuccess} />
                       </div>
                     </TabsContent>
                   </Tabs>
@@ -277,7 +279,7 @@ export default function PlayerComparison() {
           <Card>
             <CardContent className="py-12">
               <p className="text-center text-muted-foreground">
-                No players found in both selected matches. Try selecting different matches or a specific team.
+                {t('comparison.noPlayers')}
               </p>
             </CardContent>
           </Card>

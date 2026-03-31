@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { usePlayerStats, MatchFilter, useAllMatches } from "@/hooks/usePlayerStats";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { Users, BarChart3, CalendarDays } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SquadAnalysisView } from "@/components/views/SquadAnalysisView";
 import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
@@ -333,6 +334,7 @@ function PerMatchTeamAnalysis() {
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function SquadAnalysis() {
   const [mode, setMode] = useState<'overall' | 'per-match'>('overall');
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -342,9 +344,9 @@ export default function SquadAnalysis() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">Squad Analysis</h1>
+            <h1 className="text-4xl font-bold text-foreground">{t('squad.title')}</h1>
           </div>
-          <p className="text-muted-foreground mb-6">Comprehensive team intelligence and composition analysis</p>
+          <p className="text-muted-foreground mb-6">{t('squad.subtitle')}</p>
 
           {/* Mode Toggle */}
           <div className="flex items-center gap-2 mb-6">
@@ -357,7 +359,7 @@ export default function SquadAnalysis() {
               }`}
             >
               <BarChart3 className="h-4 w-4" />
-              Overall Squad Analysis
+              {t('squad.overallAnalysis')}
             </button>
             <button
               onClick={() => setMode('per-match')}
@@ -368,7 +370,7 @@ export default function SquadAnalysis() {
               }`}
             >
               <CalendarDays className="h-4 w-4" />
-              Per Match Analysis
+              {t('squad.perMatchAnalysis')}
             </button>
           </div>
         </div>

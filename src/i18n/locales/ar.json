@@ -54,14 +54,25 @@
     "selectSeason": "اختر موسمًا لعرض التحليلات التفصيلية"
   },
   "players": {
-    "title": "اللاعبون",
-    "subtitle": "عرض ملفات اللاعبين والإحصائيات",
+    "title": "لاعبو Glacis United FC",
+    "subtitle": "عرض إحصائيات اللاعبين مع تصورات التمريرات",
+    "subtitleLast1": "للمباراة الأخيرة",
+    "subtitleLast3": "لآخر 3 مباريات",
+    "subtitleAll": "لجميع المباريات",
     "search": "البحث عن لاعبين...",
     "allPositions": "جميع المراكز",
     "sortBy": "ترتيب حسب",
     "name": "الاسم",
     "goals": "الأهداف",
-    "rating": "التقييم"
+    "rating": "التقييم",
+    "cards": "بطاقات",
+    "table": "جدول",
+    "player": "اللاعب",
+    "passPercent": "% التمرير",
+    "forward": "أمامي",
+    "backward": "خلفي",
+    "minutes": "الدقائق",
+    "noData": "لا تتوفر بيانات لاعبين للفلتر المحدد."
   },
   "match": {
     "back": "رجوع",
@@ -87,7 +98,9 @@
     "view": "عرض",
     "win": "ف",
     "draw": "ت",
-    "loss": "خ"
+    "loss": "خ",
+    "vs": "ضد",
+    "score": "النتيجة"
   },
   "footer": {
     "navigation": "التنقل",
@@ -111,14 +124,54 @@
   },
   "squad": {
     "title": "تحليل الفريق",
+    "subtitle": "تحليل شامل لذكاء الفريق وتركيبته",
     "overview": "نظرة عامة",
     "attacking": "الهجوم",
     "defensive": "الدفاع",
     "setPieces": "الكرات الثابتة",
-    "passes": "التمريرات"
+    "passes": "التمريرات",
+    "overallAnalysis": "تحليل الفريق الشامل",
+    "perMatchAnalysis": "تحليل لكل مباراة",
+    "selectMatch": "اختر مباراة",
+    "noMatches": "لا تتوفر مباريات"
   },
   "comparison": {
-    "title": "مقارنة اللاعبين",
-    "selectPlayers": "اختر لاعبين للمقارنة"
+    "title": "مقارنة المباريات",
+    "subtitle": "مقارنة أداء اللاعبين عبر مباراتين مختلفتين",
+    "selectMatches": "اختر المباريات للمقارنة",
+    "filterByTeam": "تصفية حسب الفريق",
+    "allTeams": "جميع الفرق",
+    "match1": "المباراة 1",
+    "match2": "المباراة 2",
+    "selectFirst": "اختر المباراة الأولى",
+    "selectSecond": "اختر المباراة الثانية",
+    "selectTwo": "اختر مباراتين أعلاه لمقارنة إحصائيات اللاعبين",
+    "noPlayers": "لم يتم العثور على لاعبين في كلتا المباراتين. حاول اختيار مباريات مختلفة أو فريق محدد.",
+    "general": "عام",
+    "attacking": "هجومي",
+    "defensive": "دفاعي",
+    "setPieces": "الكرات الثابتة",
+    "minutesPlayed": "الدقائق الملعوبة",
+    "goals": "الأهداف",
+    "passes": "التمريرات",
+    "passAccuracy": "دقة التمرير",
+    "shots": "التسديدات",
+    "shotsOnTarget": "تسديدات على المرمى",
+    "fouls": "الأخطاء",
+    "runInBehind": "اختراق خلفي",
+    "overlaps": "تداخلات",
+    "penAreaEntry": "دخول منطقة الجزاء",
+    "penAreaPass": "تمريرة لمنطقة الجزاء",
+    "crosses": "عرضيات",
+    "cutBacks": "تمريرات راجعة",
+    "tackles": "تدخلات",
+    "saves": "تصديات",
+    "aerialWon": "كرة هوائية رابحة",
+    "aerialLost": "كرة هوائية خاسرة",
+    "corners": "ركنيات",
+    "cornerSuccess": "ركنية ناجحة",
+    "freeKicks": "ركلات حرة",
+    "throwIns": "رميات تماس",
+    "throwInSuccess": "رمية تماس ناجحة"
   }
 }

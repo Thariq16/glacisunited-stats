@@ -54,14 +54,25 @@
     "selectSeason": "Selecciona una temporada para ver análisis detallados"
   },
   "players": {
-    "title": "Jugadores",
-    "subtitle": "Ver perfiles y estadísticas de jugadores",
+    "title": "Jugadores de Glacis United FC",
+    "subtitle": "Ver estadísticas de jugadores con visualizaciones de pases",
+    "subtitleLast1": "del último partido",
+    "subtitleLast3": "de los últimos 3 partidos",
+    "subtitleAll": "de todos los partidos",
     "search": "Buscar jugadores...",
     "allPositions": "Todas las Posiciones",
     "sortBy": "Ordenar por",
     "name": "Nombre",
     "goals": "Goles",
-    "rating": "Valoración"
+    "rating": "Valoración",
+    "cards": "Tarjetas",
+    "table": "Tabla",
+    "player": "Jugador",
+    "passPercent": "% Pases",
+    "forward": "Adelante",
+    "backward": "Atrás",
+    "minutes": "Minutos",
+    "noData": "No hay datos de jugadores disponibles para el filtro seleccionado."
   },
   "match": {
     "back": "Volver",
@@ -87,7 +98,9 @@
     "view": "Ver",
     "win": "V",
     "draw": "E",
-    "loss": "D"
+    "loss": "D",
+    "vs": "vs",
+    "score": "Resultado"
   },
   "footer": {
     "navigation": "Navegación",
@@ -111,14 +124,54 @@
   },
   "squad": {
     "title": "Análisis de Plantilla",
+    "subtitle": "Inteligencia integral del equipo y análisis de composición",
     "overview": "Resumen",
     "attacking": "Ataque",
     "defensive": "Defensa",
     "setPieces": "Balón Parado",
-    "passes": "Pases"
+    "passes": "Pases",
+    "overallAnalysis": "Análisis General de Plantilla",
+    "perMatchAnalysis": "Análisis por Partido",
+    "selectMatch": "Seleccionar un partido",
+    "noMatches": "No hay partidos disponibles"
   },
   "comparison": {
-    "title": "Comparación de Jugadores",
-    "selectPlayers": "Selecciona dos jugadores para comparar"
+    "title": "Comparación de Partidos",
+    "subtitle": "Comparar rendimiento de jugadores entre dos partidos diferentes",
+    "selectMatches": "Seleccionar Partidos a Comparar",
+    "filterByTeam": "Filtrar por Equipo",
+    "allTeams": "Todos los Equipos",
+    "match1": "Partido 1",
+    "match2": "Partido 2",
+    "selectFirst": "Seleccionar primer partido",
+    "selectSecond": "Seleccionar segundo partido",
+    "selectTwo": "Selecciona dos partidos arriba para comparar estadísticas de jugadores",
+    "noPlayers": "No se encontraron jugadores en ambos partidos. Intenta seleccionar partidos diferentes o un equipo específico.",
+    "general": "General",
+    "attacking": "Ataque",
+    "defensive": "Defensa",
+    "setPieces": "Balón Parado",
+    "minutesPlayed": "Minutos Jugados",
+    "goals": "Goles",
+    "passes": "Pases",
+    "passAccuracy": "Precisión de Pase",
+    "shots": "Tiros",
+    "shotsOnTarget": "Tiros a Puerta",
+    "fouls": "Faltas",
+    "runInBehind": "Desmarque",
+    "overlaps": "Solapamientos",
+    "penAreaEntry": "Entrada al Área",
+    "penAreaPass": "Pase al Área",
+    "crosses": "Centros",
+    "cutBacks": "Recortes",
+    "tackles": "Entradas",
+    "saves": "Paradas",
+    "aerialWon": "Duelo Aéreo Ganado",
+    "aerialLost": "Duelo Aéreo Perdido",
+    "corners": "Córners",
+    "cornerSuccess": "Córner Exitoso",
+    "freeKicks": "Tiros Libres",
+    "throwIns": "Saques de Banda",
+    "throwInSuccess": "Saque de Banda Exitoso"
   }
 }
