@@ -254,7 +254,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
         {/* Form Strip */}
         <Card className="border-border/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Recent Form</CardTitle>
+            <CardTitle className="text-sm">{t("seasons.form")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-1.5 flex-wrap">
