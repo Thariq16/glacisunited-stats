@@ -1,116 +1,51 @@
 
-# Plan: Fix Tactical & Advanced Tab Not Loading Data
 
-## Root Cause Analysis
+## Splitting Into Two Projects
 
-The database contains **duplicate player records** for "K Klaudio":
+### Current Architecture
 
-| jersey | name | hidden | id |
-|--------|------|--------|-----|
-| 10 | K Klaudio | false | 77b2ac73... |
-| 9 | K Klaudio | true | 7fc73eeb... |
+The app has two distinct user workflows in one codebase:
 
-Both `useSinglePlayerPassEvents` and `usePlayerAdvancedStats` hooks query for the player by name using `.single()`, which fails with a 406 error when multiple rows are returned (even if one is hidden).
+1. **Public/Coach App** — Match stats, player profiles, squad analysis, seasons, player comparison (pages: Home, Matches, MatchDetail, Players, PlayerProfile, SquadAnalysis, Seasons, PlayerComparison, TeamStats)
+2. **Analyst/Admin App** — Data entry, match event logging, squad selection, CSV uploads, comment management (pages under `/admin/*`, plus the data entry components)
 
-**Error from network logs:**
-```json
-{
-  "code": "PGRST116",
-  "details": "The result contains 2 rows",
-  "message": "Cannot coerce the result to a single JSON object"
-}
-```
+### Recommended Split
 
-The Overview tab works because it uses `useTeamWithPlayers` which already filters hidden players and matches by name from pre-filtered results.
+| | **Project A: Stats Viewer** | **Project B: Analyst SaaS** |
+|---|---|---|
+| **Users** | Coaches, players, public | Analysts (paid SaaS users) |
+| **Pages** | Home, Matches, MatchDetail, Players, PlayerProfile, SquadAnalysis, Seasons, Compare, TeamStats | Admin dashboard, Match Events, Squad Selection, Data Import, Comments, Seasons management |
+| **Auth** | Optional (coach login for Notes) | Required (analyst accounts, org-based multi-tenancy) |
+| **Database** | Shared Supabase backend (read-only) | Shared Supabase backend (read-write) |
 
----
+### How to Do It
 
-## Technical Implementation
+This is a **structural/organizational decision** rather than a code change Lovable can automate in one step. Here is the recommended approach:
 
-### 1. Update useSinglePlayerPassEvents Hook
-**File: `src/hooks/usePlayerPassEvents.ts`**
+1. **Create a new Lovable project** for the Analyst SaaS app
+2. **Connect both projects to the same Supabase backend** — the database, RLS policies, and edge functions stay shared. Both projects use the same `SUPABASE_URL` and keys.
+3. **Copy the admin features** (`src/features/admin/`, related hooks, services, and event components) into the new project
+4. **Remove admin routes and code** from this project, keeping it as the read-only stats viewer
+5. **Expand multi-tenancy** in the SaaS project — the `organizations` and `organization_members` tables are already in place, so you can build org-based onboarding, billing, and team management there
 
-Add a filter to exclude hidden players when querying by name:
+### What Stays Shared
 
-**Current code (lines 228-234):**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .single();
-```
+- **Supabase database** — both projects read/write the same tables
+- **RLS policies** — already enforce role-based access server-side
+- **Edge functions** — shared backend logic
 
-**Updated code:**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .or('hidden.is.null,hidden.eq.false')
-  .maybeSingle();
-```
+### What You Need to Decide
 
-Key changes:
-- Add `.or('hidden.is.null,hidden.eq.false')` to filter out hidden players
-- Change `.single()` to `.maybeSingle()` for safer handling
+- **Domain strategy**: e.g., `app.glacisunited-stats.com` (viewer) vs `analyst.glacisunited-stats.com` (SaaS)
+- **Billing/subscription**: Stripe integration for the SaaS project
+- **Whether to keep shared components** (Navbar, Footer, UI library) as copy or extract to a shared package
 
-### 2. Update usePlayerAdvancedStats Hook
-**File: `src/hooks/usePlayerAdvancedStats.ts`**
+### Practical Next Steps (in Lovable)
 
-Apply the same fix to the player query:
+1. Create the new project (or remix this one)
+2. In the **new project**: delete public pages, keep admin pages, build SaaS features (onboarding, billing, org management)
+3. In **this project**: remove `/admin/*` routes and `src/features/admin/` directory
+4. Connect both projects to the same backend via environment variables
 
-**Current code (lines 40-45):**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .single();
-```
+This approach lets you iterate on each product independently while sharing the same data layer.
 
-**Updated code:**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .or('hidden.is.null,hidden.eq.false')
-  .maybeSingle();
-```
-
----
-
-## Data Cleanup Recommendation
-
-While the code fix will resolve the immediate issue, consider cleaning up the duplicate player record in the database:
-
-**The hidden duplicate:**
-- id: `7fc73eeb-f47e-4557-ba6c-6d5280c6657e`
-- name: K Klaudio
-- jersey: 9
-- hidden: true
-
-This can be removed if there are no match events associated with it, or merged with the active record.
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/hooks/usePlayerPassEvents.ts` | Add hidden filter + use maybeSingle() |
-| `src/hooks/usePlayerAdvancedStats.ts` | Add hidden filter + use maybeSingle() |
-
----
-
-## Expected Result
-
-After implementation:
-- The Tactical & Advanced tab will correctly load pass maps and heatmaps for K Klaudio
-- The hook will select only the active (non-hidden) player record
-- Other players with duplicate hidden records will also work correctly
