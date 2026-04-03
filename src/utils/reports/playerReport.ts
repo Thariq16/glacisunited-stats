@@ -232,12 +232,15 @@ export function generatePlayerReport(data: PlayerReportData) {
     sections.push({
       heading: 'Possession Losses',
       html: buildPitchHeatmapSvg(
-        advancedStats.possessionLossEvents.map(l => ({
-          x: l.x,
-          y: l.y,
-          color: l.zone === 'defensive' ? '#ef4444' : l.zone === 'middle' ? '#f59e0b' : '#3b82f6',
-          radius: 5,
-        })),
+        advancedStats.possessionLossEvents.map(l => {
+          const zone = l.x < 33.33 ? 'defensive' : l.x < 66.66 ? 'middle' : 'final';
+          return {
+            x: l.x,
+            y: l.y,
+            color: zone === 'defensive' ? '#ef4444' : zone === 'middle' ? '#f59e0b' : '#3b82f6',
+            radius: 5,
+          };
+        }),
         undefined,
         500,
         340
