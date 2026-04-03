@@ -1,116 +1,45 @@
 
-# Plan: Fix Tactical & Advanced Tab Not Loading Data
 
-## Root Cause Analysis
+## HTML Report Download Feature
 
-The database contains **duplicate player records** for "K Klaudio":
+### Overview
+Add download buttons on Match Detail, Player Profile, and Seasons pages that generate styled HTML report files. Only visible to authenticated Coach, Analyst, or Admin users.
 
-| jersey | name | hidden | id |
-|--------|------|--------|-----|
-| 10 | K Klaudio | false | 77b2ac73... |
-| 9 | K Klaudio | true | 7fc73eeb... |
+### Approach
+Create a shared utility that captures page data and generates a self-contained HTML file (inline CSS, no external dependencies) that can be opened in any browser or printed to PDF.
 
-Both `useSinglePlayerPassEvents` and `usePlayerAdvancedStats` hooks query for the player by name using `.single()`, which fails with a 406 error when multiple rows are returned (even if one is hidden).
+### Implementation Steps
 
-**Error from network logs:**
-```json
-{
-  "code": "PGRST116",
-  "details": "The result contains 2 rows",
-  "message": "Cannot coerce the result to a single JSON object"
-}
-```
+**1. Create report generation utility** (`src/utils/generateReport.ts`)
+- A function that takes a title, metadata object, and an array of sections (each with heading + HTML content)
+- Generates a complete, styled HTML document string with inline Tailwind-like CSS
+- Includes club branding (colors, header)
+- Triggers browser download via `Blob` + temporary anchor element
 
-The Overview tab works because it uses `useTeamWithPlayers` which already filters hidden players and matches by name from pre-filtered results.
+**2. Create report builder functions** (`src/utils/reports/`)
+- `matchReport.ts` — builds HTML sections from match data: score header, team stats comparison table, player performances (sorted by contribution), xG stats, set piece summary
+- `playerReport.ts` — builds HTML sections from player stats: bio/profile, per-match stats table, efficiency metrics, pass stats, defensive stats, trends
+- `seasonReport.ts` — builds HTML from season analytics: KPIs (W/D/L, points, goal diff), match results list, top scorers/passers/defenders leaderboards
 
----
+**3. Create a `DownloadReportButton` component**
+- Accepts `reportType`, relevant data props, and a generate function
+- Shows a `Download` icon button, visible only when `isAdmin || isCoach` (from `useAuth`)
+- On click, calls the appropriate report builder and triggers download
 
-## Technical Implementation
+**4. Add buttons to pages**
+- **Match Detail** (`src/pages/MatchDetail.tsx`): Add download button next to the "Back to Matches" button, passing match data, players, xG stats
+- **Player Profile** (`src/pages/PlayerProfile.tsx`): Add download button in the header area, passing aggregated player stats
+- **Seasons** (`src/pages/Seasons.tsx`): Add download button per season card, passing season analytics data
 
-### 1. Update useSinglePlayerPassEvents Hook
-**File: `src/hooks/usePlayerPassEvents.ts`**
+### Access Control
+- Buttons are client-side gated: only rendered when `useAuth()` returns `isAdmin`, `isCoach`, or analyst role
+- No new database tables or RLS changes needed — reports use already-fetched read-only data
 
-Add a filter to exclude hidden players when querying by name:
+### Report Format
+Self-contained HTML files with:
+- Inline CSS (print-friendly)
+- Club header with match/player/season context
+- Stat tables with alternating row colors
+- Generated timestamp footer
+- File naming: `match-report-{date}-{teams}.html`, `player-report-{name}.html`, `season-report-{name}.html`
 
-**Current code (lines 228-234):**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .single();
-```
-
-**Updated code:**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .or('hidden.is.null,hidden.eq.false')
-  .maybeSingle();
-```
-
-Key changes:
-- Add `.or('hidden.is.null,hidden.eq.false')` to filter out hidden players
-- Change `.single()` to `.maybeSingle()` for safer handling
-
-### 2. Update usePlayerAdvancedStats Hook
-**File: `src/hooks/usePlayerAdvancedStats.ts`**
-
-Apply the same fix to the player query:
-
-**Current code (lines 40-45):**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .single();
-```
-
-**Updated code:**
-```typescript
-const { data: playerData } = await supabase
-  .from('players')
-  .select('id, name, jersey_number')
-  .eq('team_id', team.id)
-  .eq('name', decodedName)
-  .or('hidden.is.null,hidden.eq.false')
-  .maybeSingle();
-```
-
----
-
-## Data Cleanup Recommendation
-
-While the code fix will resolve the immediate issue, consider cleaning up the duplicate player record in the database:
-
-**The hidden duplicate:**
-- id: `7fc73eeb-f47e-4557-ba6c-6d5280c6657e`
-- name: K Klaudio
-- jersey: 9
-- hidden: true
-
-This can be removed if there are no match events associated with it, or merged with the active record.
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/hooks/usePlayerPassEvents.ts` | Add hidden filter + use maybeSingle() |
-| `src/hooks/usePlayerAdvancedStats.ts` | Add hidden filter + use maybeSingle() |
-
----
-
-## Expected Result
-
-After implementation:
-- The Tactical & Advanced tab will correctly load pass maps and heatmaps for K Klaudio
-- The hook will select only the active (non-hidden) player record
-- Other players with duplicate hidden records will also work correctly
