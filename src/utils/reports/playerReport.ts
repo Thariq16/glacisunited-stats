@@ -96,11 +96,14 @@ export function generatePlayerReport(data: PlayerReportData) {
   }
 
   // Tactical Radar Chart
+  const passAccuracy = player.passCount > 0
+    ? Math.round((player.successfulPass / player.passCount) * 1000) / 10
+    : 0;
   const radarData = [
-    { category: 'Attack', value: tacticalProfile.attacking },
-    { category: 'Passing', value: tacticalProfile.passing },
-    { category: 'Defense', value: tacticalProfile.defending },
-    { category: 'Set Pieces', value: tacticalProfile.setPieces },
+    { category: 'Attack', value: tacticalProfile.attackingThreat },
+    { category: 'Passing', value: tacticalProfile.passingQuality },
+    { category: 'Defense', value: tacticalProfile.defensiveStrength },
+    { category: 'Set Pieces', value: tacticalProfile.setpieceAbility },
     { category: 'Discipline', value: tacticalProfile.discipline },
     { category: 'Workrate', value: tacticalProfile.workRate },
   ];
