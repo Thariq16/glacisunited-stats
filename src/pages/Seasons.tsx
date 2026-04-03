@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Calendar, ChevronRight, Target, TrendingUp, Shield, Users, Crosshair, BarChart3 } from "lucide-react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
+import { generateSeasonReport } from "@/utils/reports/seasonReport";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
@@ -203,7 +205,19 @@ function SeasonAnalytics({ season }: { season: Season }) {
 
   return (
     <div className="space-y-6">
-      {/* Overview Stats */}
+      <div className="flex justify-end">
+        <DownloadReportButton
+          label="Download Report"
+          onGenerate={() =>
+            generateSeasonReport({
+              seasonName: season.name,
+              startDate: season.start_date,
+              endDate: season.end_date,
+              stats,
+            })
+          }
+        />
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: t("seasons.played"), value: stats.played, icon: Calendar },

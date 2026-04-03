@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // NEW
 import { ArrowLeft, Target, TrendingUp, Shield, Activity, Users, AlertCircle, Flag } from "lucide-react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
+import { generatePlayerReport } from "@/utils/reports/playerReport";
 import { PlayerEfficiencyMetrics } from "@/components/PlayerEfficiencyMetrics";
 import { TacticalInsightsCard } from "@/components/TacticalInsightsCard";
 import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
@@ -231,12 +233,25 @@ export default function PlayerProfile() {
                 <p className="text-sm text-muted-foreground mt-3 max-w-2xl">{playerProfile.bio}</p>
               )}
             </div>
-            {teamId && playerName && (
-              <PlayerProfileActions
-                playerName={decodeURIComponent(playerName)}
-                teamSlug={teamId}
+            <div className="flex items-center gap-2">
+              <DownloadReportButton
+                label="Report"
+                onGenerate={() =>
+                  generatePlayerReport({
+                    player,
+                    teamName: team.name,
+                    playerProfile,
+                    matchFilter,
+                  })
+                }
               />
-            )}
+              {teamId && playerName && (
+                <PlayerProfileActions
+                  playerName={decodeURIComponent(playerName)}
+                  teamSlug={teamId}
+                />
+              )}
+            </div>
           </div>
         </div>
 

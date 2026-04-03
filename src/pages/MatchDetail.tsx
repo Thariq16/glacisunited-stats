@@ -3,6 +3,8 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, BarChart3, MessageSquare, TrendingUp, Flag } from "lucide-react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
+import { generateMatchReport } from "@/utils/reports/matchReport";
 import { useState, useMemo } from "react";
 import {
   Dialog,
@@ -93,14 +95,32 @@ export default function MatchDetail() {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Matches
-        </Button>
+        <div className="flex items-center gap-2 mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Matches
+          </Button>
+          <DownloadReportButton
+            label="Report"
+            onGenerate={() =>
+              generateMatchReport({
+                homeTeamName: homeTeam?.name || 'Home Team',
+                awayTeamName: awayTeam?.name || 'Away Team',
+                homeScore: match.home_score,
+                awayScore: match.away_score,
+                matchDate: match.match_date,
+                competition: match.competition,
+                venue: match.venue,
+                homePlayers: match.homePlayers,
+                awayPlayers: match.awayPlayers,
+                xgStats: xgStats,
+              })
+            }
+          />
+        </div>
 
         {/* Match Header */}
         <MatchScoreHeader
