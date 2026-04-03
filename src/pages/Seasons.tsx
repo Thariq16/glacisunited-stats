@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Calendar, ChevronRight, Target, TrendingUp, Shield, Users, Crosshair, BarChart3 } from "lucide-react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
+import { generateSeasonReport } from "@/utils/reports/seasonReport";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
