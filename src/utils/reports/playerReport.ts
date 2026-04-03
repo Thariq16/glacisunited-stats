@@ -204,8 +204,7 @@ export function generatePlayerReport(data: PlayerReportData) {
         defensiveEvents.map(e => ({
           x: e.x,
           y: e.y,
-          color: typeColor[e.event_type] || '#64748b',
-          label: e.player?.jersey_number != null ? String(e.player.jersey_number) : undefined,
+          color: typeColor[e.type] || '#64748b',
           radius: 5,
         }))
       ),
