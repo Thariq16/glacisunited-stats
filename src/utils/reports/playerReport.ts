@@ -37,8 +37,8 @@ interface PlayerReportData {
   defensiveEvents?: Array<{
     x: number;
     y: number;
-    event_type: string;
-    player?: { jersey_number: number } | null;
+    type: string;
+    description?: string;
   }> | null;
   xgStats?: {
     totalXG: number;
