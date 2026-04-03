@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"; // NEW
 import { ArrowLeft, Target, TrendingUp, Shield, Activity, Users, AlertCircle, Flag } from "lucide-react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
+import { generatePlayerReport } from "@/utils/reports/playerReport";
 import { PlayerEfficiencyMetrics } from "@/components/PlayerEfficiencyMetrics";
 import { TacticalInsightsCard } from "@/components/TacticalInsightsCard";
 import { PlayerPassPositionMap } from "@/components/PlayerPassPositionMap";
