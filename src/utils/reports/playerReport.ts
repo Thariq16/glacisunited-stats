@@ -305,14 +305,14 @@ export function generatePlayerReport(data: PlayerReportData) {
   // Foul distribution
   if (positioning.foulDistribution) {
     const fd = positioning.foulDistribution;
-    const total = fd.defensive + fd.middle + fd.final;
+    const total = fd.defensiveThird + fd.middleThird + fd.finalThird;
     if (total > 0) {
       sections.push({
         heading: 'Positional Intelligence — Foul Distribution',
         html: buildHorizontalBarChart([
-          { label: 'Defensive Third', value: fd.defensive, color: '#ef4444' },
-          { label: 'Middle Third', value: fd.middle, color: '#f59e0b' },
-          { label: 'Final Third', value: fd.final, color: '#22c55e' },
+          { label: 'Defensive Third', value: fd.defensiveThird, color: '#ef4444' },
+          { label: 'Middle Third', value: fd.middleThird, color: '#f59e0b' },
+          { label: 'Final Third', value: fd.finalThird, color: '#22c55e' },
         ]),
       });
     }
