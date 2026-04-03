@@ -242,6 +242,11 @@ export default function PlayerProfile() {
                     teamName: team.name,
                     playerProfile,
                     matchFilter,
+                    trendData: trendData || null,
+                    advancedStats: advancedStats || null,
+                    playerShots: playerShots || null,
+                    defensiveEvents: defensiveEvents || null,
+                    xgStats: xgStats || null,
                   })
                 }
               />

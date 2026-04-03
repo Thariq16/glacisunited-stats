@@ -24,6 +24,8 @@ import { MatchScoreHeader } from "@/components/MatchScoreHeader";
 import { MatchQuickStats } from "@/components/MatchQuickStats";
 import { PlayerStats } from "@/utils/parseCSV";
 import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
+import { useSetPieceAnalytics } from "@/hooks/useSetPieceAnalytics";
+import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -38,6 +40,16 @@ export default function MatchDetail() {
 
   // Fetch xG stats for the match
   const { data: xgStats } = useMatchXGStats(matchId, homeTeam?.id, awayTeam?.id);
+
+  // Fetch set piece data for report
+  const isHomeGlacis = homeTeam?.name?.toLowerCase()?.includes('glacis');
+  const glacisTeam = isHomeGlacis ? homeTeam : awayTeam;
+  const oppositionTeam = isHomeGlacis ? awayTeam : homeTeam;
+  const { data: setPieceData } = useSetPieceAnalytics(matchId, glacisTeam?.id);
+  const { data: opponentSetPieceData } = useSetPieceAnalytics(matchId, oppositionTeam?.id);
+
+  // Fetch visualization data for report
+  const { data: vizData } = useMatchVisualizationData(matchId, homeTeam?.id, awayTeam?.id, homeTeam?.name || 'Home Team', awayTeam?.name || 'Away Team');
 
   const canViewNotes = isAdmin || isCoach;
 
@@ -117,6 +129,14 @@ export default function MatchDetail() {
                 homePlayers: match.homePlayers,
                 awayPlayers: match.awayPlayers,
                 xgStats: xgStats,
+                setPieceData: setPieceData || null,
+                opponentSetPieceData: opponentSetPieceData || null,
+                matchEventStats: vizData ? { home: vizData.matchEventStats.home, away: vizData.matchEventStats.away } : null,
+                homePassesByThird: vizData?.homePassesByThird || null,
+                awayPassesByThird: vizData?.awayPassesByThird || null,
+                shots: vizData?.shots || null,
+                homeTeamId: homeTeam?.id,
+                awayTeamId: awayTeam?.id,
               })
             }
           />
