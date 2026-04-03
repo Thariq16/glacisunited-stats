@@ -3,6 +3,8 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, BarChart3, MessageSquare, TrendingUp, Flag } from "lucide-react";
+import { DownloadReportButton } from "@/components/DownloadReportButton";
+import { generateMatchReport } from "@/utils/reports/matchReport";
 import { useState, useMemo } from "react";
 import {
   Dialog,
