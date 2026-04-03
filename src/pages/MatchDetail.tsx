@@ -41,6 +41,16 @@ export default function MatchDetail() {
   // Fetch xG stats for the match
   const { data: xgStats } = useMatchXGStats(matchId, homeTeam?.id, awayTeam?.id);
 
+  // Fetch set piece data for report
+  const isHomeGlacis = homeTeam?.name?.toLowerCase()?.includes('glacis');
+  const glacisTeam = isHomeGlacis ? homeTeam : awayTeam;
+  const oppositionTeam = isHomeGlacis ? awayTeam : homeTeam;
+  const { data: setPieceData } = useSetPieceAnalytics(matchId, glacisTeam?.id);
+  const { data: opponentSetPieceData } = useSetPieceAnalytics(matchId, oppositionTeam?.id);
+
+  // Fetch visualization data for report
+  const { data: vizData } = useMatchVisualizationData(matchId, homeTeam?.id, awayTeam?.id, homeTeam?.name || 'Home Team', awayTeam?.name || 'Away Team');
+
   const canViewNotes = isAdmin || isCoach;
 
   // Helper to calculate contribution score and sort players
