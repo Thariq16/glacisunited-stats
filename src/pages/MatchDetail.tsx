@@ -24,6 +24,8 @@ import { MatchScoreHeader } from "@/components/MatchScoreHeader";
 import { MatchQuickStats } from "@/components/MatchQuickStats";
 import { PlayerStats } from "@/utils/parseCSV";
 import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
+import { useSetPieceAnalytics } from "@/hooks/useSetPieceAnalytics";
+import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
