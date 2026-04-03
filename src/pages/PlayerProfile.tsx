@@ -233,12 +233,25 @@ export default function PlayerProfile() {
                 <p className="text-sm text-muted-foreground mt-3 max-w-2xl">{playerProfile.bio}</p>
               )}
             </div>
-            {teamId && playerName && (
-              <PlayerProfileActions
-                playerName={decodeURIComponent(playerName)}
-                teamSlug={teamId}
+            <div className="flex items-center gap-2">
+              <DownloadReportButton
+                label="Report"
+                onGenerate={() =>
+                  generatePlayerReport({
+                    player,
+                    teamName: team.name,
+                    playerProfile,
+                    matchFilter,
+                  })
+                }
               />
-            )}
+              {teamId && playerName && (
+                <PlayerProfileActions
+                  playerName={decodeURIComponent(playerName)}
+                  teamSlug={teamId}
+                />
+              )}
+            </div>
           </div>
         </div>
 
