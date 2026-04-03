@@ -129,6 +129,14 @@ export default function MatchDetail() {
                 homePlayers: match.homePlayers,
                 awayPlayers: match.awayPlayers,
                 xgStats: xgStats,
+                setPieceData: setPieceData || null,
+                opponentSetPieceData: opponentSetPieceData || null,
+                matchEventStats: vizData ? { home: vizData.matchEventStats.home, away: vizData.matchEventStats.away } : null,
+                homePassesByThird: vizData?.homePassesByThird || null,
+                awayPassesByThird: vizData?.awayPassesByThird || null,
+                shots: vizData?.shots || null,
+                homeTeamId: homeTeam?.id,
+                awayTeamId: awayTeam?.id,
               })
             }
           />
