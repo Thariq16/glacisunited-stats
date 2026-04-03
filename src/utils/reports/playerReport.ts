@@ -113,7 +113,7 @@ export function generatePlayerReport(data: PlayerReportData) {
       <div style="flex:1;min-width:280px;">${buildRadarChartSvg(radarData)}</div>
       <div style="flex:1;min-width:200px;">${buildProgressBars([
         { label: 'Shot Conversion', value: `${metrics.shotConversionRate}%`, percent: metrics.shotConversionRate },
-        { label: 'Pass Accuracy', value: `${metrics.passAccuracy}%`, percent: metrics.passAccuracy },
+        { label: 'Pass Accuracy', value: `${passAccuracy}%`, percent: passAccuracy },
         { label: 'Aerial Success', value: `${metrics.aerialDuelSuccessRate}%`, percent: metrics.aerialDuelSuccessRate },
         { label: 'Discipline', value: `${metrics.disciplineScore}%`, percent: metrics.disciplineScore },
         { label: 'Performance Rating', value: `${metrics.performanceRating}%`, percent: metrics.performanceRating },
