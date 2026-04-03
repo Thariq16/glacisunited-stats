@@ -221,7 +221,7 @@ export function generatePlayerReport(data: PlayerReportData) {
           label: lane.lane,
           value: lane.passCount,
           subLabel: `${lane.threatPercent}%`,
-          color: lane.lane === 'Center' ? '#1e3a5f' : '#3b82f6',
+          color: lane.lane === 'center' ? '#1e3a5f' : '#3b82f6',
         }))
       ),
     });
