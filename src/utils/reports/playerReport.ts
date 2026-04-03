@@ -121,6 +121,11 @@ export function generatePlayerReport(data: PlayerReportData) {
     </div>`,
   });
 
+  // Compute pass accuracy for efficiency display
+  const effPassAccuracy = player.passCount > 0
+    ? Math.round((player.successfulPass / player.passCount) * 1000) / 10
+    : 0;
+
   // Attacking
   const atkRows = [
     ['Shots', `${player.shotsOnTarget}/${player.shotsAttempted}`],
