@@ -29,7 +29,8 @@ import { useNavigate } from "react-router-dom";
 import { useOrgPath } from '@/hooks/useOrgPath';
 
 function AdminPlayersContent() {
-  const [selectedTeam, setSelectedTeam] = useState('glacis-united-fc');
+  const { primaryTeam, currentOrg } = useOrganization();
+  const [selectedTeam, setSelectedTeam] = useState(primaryTeam?.slug || '');
   const [editingPlayer, setEditingPlayer] = useState<any>(null);
   const [editForm, setEditForm] = useState({ name: '', jersey_number: '', role: '', hidden: false });
   const [showHidden, setShowHidden] = useState(false);
@@ -37,8 +38,8 @@ function AdminPlayersContent() {
   const [createForm, setCreateForm] = useState({ name: '', jersey_number: '', role: '', team_id: '' });
   const [deletePlayer, setDeletePlayer] = useState<{ id: string; name: string } | null>(null);
   
-  const { data: players, refetch } = usePlayerStats(selectedTeam, 'all', showHidden);
-  const { data: teams } = useTeams();
+  const { data: players, refetch } = usePlayerStats(selectedTeam || primaryTeam?.slug || '', 'all', showHidden);
+  const { data: teams } = useTeams(currentOrg?.id);
   const { toast } = useToast();
   const navigate = useNavigate();
   const orgPath = useOrgPath();
