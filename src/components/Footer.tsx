@@ -28,8 +28,6 @@ export function Footer() {
   const adminLinks = [
     { to: orgPath('admin'), label: 'Admin Dashboard', icon: Shield },
     { to: orgPath('admin/players'), label: 'Player Management', icon: UserCog },
-    { to: orgPath('admin/upload'), label: 'Data Import', icon: Upload },
-    { to: orgPath('admin/match-upload'), label: 'Match Upload', icon: FileUp },
   ];
 
   return (
