@@ -33,6 +33,7 @@ export default function MatchDetail() {
   const navigate = useNavigate();
   const { data: match, isLoading, error } = useMatchDetail(matchId);
   const { isAdmin, isCoach } = useAuth();
+  const { primaryTeam } = useOrganization();
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null);
 
   // Extract team info for xG query
@@ -42,12 +43,12 @@ export default function MatchDetail() {
   // Fetch xG stats for the match
   const { data: xgStats } = useMatchXGStats(matchId, homeTeam?.id, awayTeam?.id);
 
-  // Fetch set piece data for report
-  const isHomeGlacis = homeTeam?.name?.toLowerCase()?.includes('glacis');
-  const glacisTeam = isHomeGlacis ? homeTeam : awayTeam;
-  const oppositionTeam = isHomeGlacis ? awayTeam : homeTeam;
-  const { data: setPieceData } = useSetPieceAnalytics(matchId, glacisTeam?.id);
-  const { data: opponentSetPieceData } = useSetPieceAnalytics(matchId, oppositionTeam?.id);
+  // Fetch set piece data for report — use primary team instead of hardcoded
+  const isPrimaryHome = primaryTeam && homeTeam?.slug === primaryTeam.slug;
+  const ourTeam = isPrimaryHome ? homeTeam : (primaryTeam && awayTeam?.slug === primaryTeam.slug ? awayTeam : homeTeam);
+  const theirTeam = ourTeam === homeTeam ? awayTeam : homeTeam;
+  const { data: setPieceData } = useSetPieceAnalytics(matchId, ourTeam?.id);
+  const { data: opponentSetPieceData } = useSetPieceAnalytics(matchId, theirTeam?.id);
 
   // Fetch visualization data for report
   const { data: vizData } = useMatchVisualizationData(matchId, homeTeam?.id, awayTeam?.id, homeTeam?.name || 'Home Team', awayTeam?.name || 'Away Team');
