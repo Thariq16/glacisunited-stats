@@ -187,7 +187,8 @@ function useSeasonAnalytics(seasonId: string | undefined, primaryTeamId: string 
 }
 
 function SeasonAnalytics({ season }: { season: Season }) {
-  const { data: stats, isLoading } = useSeasonAnalytics(season.id);
+  const { primaryTeam } = useOrganization();
+  const { data: stats, isLoading } = useSeasonAnalytics(season.id, primaryTeam?.id);
   const navigate = useNavigate();
   const orgPath = useOrgPath();
   const { t } = useTranslation();
