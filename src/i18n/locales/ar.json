@@ -54,7 +54,7 @@
     "selectSeason": "اختر موسمًا لعرض التحليلات التفصيلية"
   },
   "players": {
-    "title": "لاعبو Glacis United FC",
+    "title": "لاعبو {{orgName}}",
     "subtitle": "عرض إحصائيات اللاعبين مع تصورات التمريرات",
     "subtitleLast1": "للمباراة الأخيرة",
     "subtitleLast3": "لآخر 3 مباريات",

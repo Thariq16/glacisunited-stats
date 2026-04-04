@@ -14,12 +14,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQueryClient } from "@tanstack/react-query";
 
 function AdminSettingsContent() {
   const { currentOrg } = useOrganization();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
 
   const [logoUrl, setLogoUrl] = useState(currentOrg?.logo_url || "");
   const [primaryColor, setPrimaryColor] = useState("");
@@ -44,6 +46,35 @@ function AdminSettingsContent() {
         });
     }
   }, [currentOrg]);
+
+  const syncBrandingCache = (updates: {
+    logo_url?: string | null;
+    primary_color?: string | null;
+    accent_color?: string | null;
+  }) => {
+    if (!currentOrg) return;
+
+    if ("logo_url" in updates) {
+      queryClient.setQueryData(
+        ["organization", currentOrg.slug],
+        (existing: typeof currentOrg | null | undefined) =>
+          existing ? { ...existing, logo_url: updates.logo_url ?? null } : existing
+      );
+    }
+
+    if ("primary_color" in updates || "accent_color" in updates) {
+      queryClient.setQueryData(
+        ["org-branding", currentOrg.id],
+        (existing: { primary_color: string | null; accent_color: string | null } | null | undefined) => ({
+          primary_color: "primary_color" in updates ? updates.primary_color ?? null : existing?.primary_color ?? null,
+          accent_color: "accent_color" in updates ? updates.accent_color ?? null : existing?.accent_color ?? null,
+        })
+      );
+    }
+
+    void queryClient.invalidateQueries({ queryKey: ["organization", currentOrg.slug] });
+    void queryClient.invalidateQueries({ queryKey: ["org-branding", currentOrg.id] });
+  };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,6 +103,8 @@ function AdminSettingsContent() {
         .update({ logo_url: newUrl })
         .eq("id", currentOrg.id);
 
+      syncBrandingCache({ logo_url: newUrl });
+
       toast({ title: "Logo updated", description: "Your club logo has been uploaded." });
     } catch (err: any) {
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
@@ -93,6 +126,10 @@ function AdminSettingsContent() {
         .eq("id", currentOrg.id);
 
       if (error) throw error;
+      syncBrandingCache({
+        primary_color: primaryColor || null,
+        accent_color: accentColor || null,
+      });
       toast({ title: "Colors saved", description: "Theme colors have been updated. Refresh to see changes." });
     } catch (err: any) {
       toast({ title: "Save failed", description: err.message, variant: "destructive" });
