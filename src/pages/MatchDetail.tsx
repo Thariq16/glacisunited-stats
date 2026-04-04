@@ -26,6 +26,7 @@ import { PlayerStats } from "@/utils/parseCSV";
 import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
 import { useSetPieceAnalytics } from "@/hooks/useSetPieceAnalytics";
 import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
+import { useOrganization } from "@/contexts/OrganizationContext";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
