@@ -277,7 +277,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
               {stats.formData.map((f, i) => (
                 <button
                   key={i}
-                  onClick={() => navigate(orgPath(`match/${f.matchId}`)}
+                  onClick={() => navigate(orgPath(`match/${f.matchId}`))}
                   className={`w-9 h-9 rounded-md border text-xs font-bold flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${resultColor(f.result)}`}
                   title={`${f.date}: ${f.opponent} (${f.gf}-${f.ga})`}
                 >
@@ -534,7 +534,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
             <Card
               key={i}
               className="cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => navigate(orgPath(`match/${f.matchId}`)}
+              onClick={() => navigate(orgPath(`match/${f.matchId}`))}
             >
               <CardContent className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">

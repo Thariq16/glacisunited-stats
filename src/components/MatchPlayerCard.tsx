@@ -30,7 +30,7 @@ export function MatchPlayerCard({
 
     const handleClick = () => {
         if (teamId) {
-            navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
+            navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`));
         }
     };
 

@@ -117,7 +117,7 @@ export function PlayerProfileActions({ playerName, teamSlug }: PlayerProfileActi
       queryClient.invalidateQueries({ queryKey: ['team-with-players'] });
       // If name changed, navigate to new URL
       if (form.name && form.name !== playerName) {
-        navigate(orgPath(`team/${teamSlug}/player/${encodeURIComponent(form.name)}`, { replace: true });
+        navigate(orgPath(`team/${teamSlug}/player/${encodeURIComponent(form.name)}`), { replace: true });
       }
     }
   };
@@ -139,7 +139,7 @@ export function PlayerProfileActions({ playerName, teamSlug }: PlayerProfileActi
       toast({ title: 'Success', description: `${playerData.name} has been removed` });
       setIsDeleteOpen(false);
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
-      navigate(orgPath(`team/${teamSlug}`, { replace: true });
+      navigate(orgPath(`team/${teamSlug}`), { replace: true });
     }
   };
 

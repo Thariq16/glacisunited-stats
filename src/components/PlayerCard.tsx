@@ -15,7 +15,7 @@ export function PlayerCard({ player, teamId }: PlayerCardProps) {
   const orgPath = useOrgPath();
 
   const handleClick = () => {
-    navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
+    navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`));
   };
 
   return (

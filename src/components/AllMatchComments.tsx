@@ -205,7 +205,7 @@ export function AllMatchComments() {
           <Card 
             key={match.matchId}
             className="cursor-pointer hover:border-primary transition-colors"
-            onClick={() => navigate(orgPath(`match/${match.matchId}`)}
+            onClick={() => navigate(orgPath(`match/${match.matchId}`))}
           >
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-lg">

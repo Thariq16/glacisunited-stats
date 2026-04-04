@@ -40,7 +40,7 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
 
   const handleViewProfile = () => {
     setDialogOpen(false);
-    navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
+    navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`));
   };
 
   const getRoleColor = (role: string) => {
