@@ -150,6 +150,21 @@ function AdminContent() {
               </CardContent>
             </Card>
           )}
+
+          {isOrgAdmin && (
+            <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate(orgPath('admin/settings'))}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Settings
+                </CardTitle>
+                <CardDescription>Club logo, theme colors, dark mode, and language preferences</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">Open Settings</Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
       <Footer />
