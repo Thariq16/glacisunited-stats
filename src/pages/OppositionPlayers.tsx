@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function OppositionPlayers() {
-  const { primaryTeam } = useOrganization();
+  const { primaryTeam, orgTeams } = useOrganization();
   const teamSlug = primaryTeam?.slug || '';
+  const orgTeamIds = orgTeams.map(t => t.id);
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
-  const { data: oppositionTeams, isLoading } = useOppositionTeams(teamSlug, matchFilter);
+  const { data: oppositionTeams, isLoading } = useOppositionTeams(teamSlug, matchFilter, orgTeamIds);
   
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -27,8 +27,7 @@ import {
 } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrgPath } from '@/hooks/useOrgPath';
-
-const GLACIS_TEAM_ID = "807c025b-5d48-4738-88f7-0de0229cf1c6";
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface MatchResult {
   id: string;
