@@ -1,8 +1,10 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAllMatches } from '@/hooks/usePlayerStats';
+import { useOrganization } from '@/contexts/OrganizationContext';
 import { useSeasons } from '@/hooks/useSeasons';
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface MatchFilterSelectProps {
   value: string;
@@ -14,7 +16,9 @@ interface MatchFilterSelectProps {
 }
 
 export function MatchFilterSelect({ value, onValueChange, teamSlug, seasonId, onSeasonChange, showSeasonFilter = false }: MatchFilterSelectProps) {
-  const { data: matches, isLoading } = useAllMatches();
+  const { orgTeams } = useOrganization();
+  const orgTeamIds = useMemo(() => orgTeams.map(t => t.id), [orgTeams]);
+  const { data: matches, isLoading } = useAllMatches(orgTeamIds);
   const { data: seasons } = useSeasons();
   
   // Filter matches by team and season

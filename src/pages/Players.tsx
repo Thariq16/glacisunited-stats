@@ -5,6 +5,7 @@ import { EnhancedPlayerCard } from "@/components/EnhancedPlayerCard";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";
 import { usePlayerStats, MatchFilter } from "@/hooks/usePlayerStats";
 import { usePlayerPassEvents } from "@/hooks/usePlayerPassEvents";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { Users } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,12 +21,14 @@ import {
 
 export default function Players() {
   const { t } = useTranslation();
+  const { primaryTeam } = useOrganization();
+  const teamSlug = primaryTeam?.slug || '';
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   
-  const { data: players, isLoading } = usePlayerStats('glacis-united-fc', matchFilter);
+  const { data: players, isLoading } = usePlayerStats(teamSlug, matchFilter);
   const { data: passEvents } = usePlayerPassEvents(
-    'glacis-united-fc', 
+    teamSlug, 
     matchFilter === 'all' ? 'all' : matchFilter === 'last3' ? 'last3' : 'last1'
   );
 
@@ -52,6 +55,18 @@ export default function Players() {
     : matchFilter === 'last3' ? ` ${t('players.subtitleLast3')}` 
     : matchFilter === 'all' ? ` ${t('players.subtitleAll')}` : '';
 
+  if (!teamSlug) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8 flex-1">
+          <p className="text-muted-foreground text-center py-12">No team found for this organization.</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -70,7 +85,7 @@ export default function Players() {
             <MatchFilterSelect 
               value={matchFilter} 
               onValueChange={setMatchFilter}
-              teamSlug="glacis-united-fc"
+              teamSlug={teamSlug}
             />
             
             <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'cards' | 'table')}>
@@ -96,7 +111,7 @@ export default function Players() {
                   <EnhancedPlayerCard 
                     key={`${player.jerseyNumber}-${player.playerName}`}
                     player={player}
-                    teamId="glacis-united-fc"
+                    teamId={teamSlug}
                     passData={passDataMap.get(player.playerName)}
                   />
                 ))}
