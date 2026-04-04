@@ -438,7 +438,7 @@ export function useOppositionTeams(excludeSlug: string = '', matchFilter: MatchF
               )
             `)
             .eq('team_id', team.id)
-            .eq('hidden', false);
+            .or('hidden.is.null,hidden.eq.false');
 
           // Check if we have legacy stats
           let hasLegacyStats = false;
