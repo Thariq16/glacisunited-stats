@@ -4,15 +4,18 @@ import { PlayerStats } from '@/utils/parseCSV';
 import { MatchFilter } from './usePlayerStats';
 import { fetchAndAggregateEventsForTeam, createEmptyPlayerStats } from '@/utils/aggregateMatchEvents';
 
-export function useTeams() {
+export function useTeams(organizationId?: string) {
   return useQuery({
-    queryKey: ['teams'],
+    queryKey: ['teams', organizationId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('teams')
         .select('id, name, slug')
         .order('name');
-
+      if (organizationId) {
+        query = query.eq('organization_id', organizationId);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     },

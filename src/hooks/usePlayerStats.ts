@@ -338,9 +338,9 @@ export function usePlayerStats(teamSlug: string, matchFilter: MatchFilter = 'all
   });
 }
 
-export function useMatches(teamSlug?: string) {
+export function useMatches(teamSlug?: string, orgTeamIds?: string[]) {
   return useQuery({
-    queryKey: ['matches', teamSlug],
+    queryKey: ['matches', teamSlug, orgTeamIds],
     queryFn: async () => {
       if (teamSlug) {
         const { data, error } = await matchService.getByTeamSlug(teamSlug);
@@ -348,18 +348,18 @@ export function useMatches(teamSlug?: string) {
         return data || [];
       }
 
-      const { data, error } = await matchService.getAll();
+      const { data, error } = await matchService.getAll(orgTeamIds);
       if (error) throw error;
       return data || [];
     },
   });
 }
 
-export function useAllMatches() {
+export function useAllMatches(orgTeamIds?: string[]) {
   return useQuery({
-    queryKey: ['all-matches'],
+    queryKey: ['all-matches', orgTeamIds],
     queryFn: async () => {
-      const { data, error } = await matchService.getAll();
+      const { data, error } = await matchService.getAll(orgTeamIds);
       if (error) throw error;
       return data || [];
     },
