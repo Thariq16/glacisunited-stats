@@ -21,7 +21,7 @@ import {
 
 export default function Players() {
   const { t } = useTranslation();
-  const { primaryTeam } = useOrganization();
+  const { currentOrg, primaryTeam } = useOrganization();
   const teamSlug = primaryTeam?.slug || '';
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
@@ -55,6 +55,10 @@ export default function Players() {
     : matchFilter === 'last3' ? ` ${t('players.subtitleLast3')}` 
     : matchFilter === 'all' ? ` ${t('players.subtitleAll')}` : '';
 
+  const pageTitle = currentOrg?.name
+    ? t('players.title', { orgName: currentOrg.name })
+    : t('nav.players');
+
   if (!teamSlug) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
@@ -75,7 +79,7 @@ export default function Players() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Users className="h-8 w-8 text-primary" />
-            <h1 className="text-4xl font-bold text-foreground">{t('players.title')}</h1>
+            <h1 className="text-4xl font-bold text-foreground">{pageTitle}</h1>
           </div>
           <p className="text-muted-foreground mb-6">
             {t('players.subtitle')}{filterSuffix}
