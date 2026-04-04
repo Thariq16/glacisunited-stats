@@ -18,7 +18,9 @@ interface MatchFilterSelectProps {
 }
 
 export function MatchFilterSelect({ value, onValueChange, teamSlug, seasonId, onSeasonChange, showSeasonFilter = false }: MatchFilterSelectProps) {
-  const { data: matches, isLoading } = useAllMatches();
+  const { orgTeams } = useOrganization();
+  const orgTeamIds = useMemo(() => orgTeams.map(t => t.id), [orgTeams]);
+  const { data: matches, isLoading } = useAllMatches(orgTeamIds);
   const { data: seasons } = useSeasons();
   
   // Filter matches by team and season
