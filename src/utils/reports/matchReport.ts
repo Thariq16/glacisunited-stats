@@ -226,15 +226,11 @@ export function generateMatchReport(data: MatchReportData) {
   };
 
   if (setPieceData) {
-    const isHomeGlacis = homeTeamName.toLowerCase().includes('glacis');
-    const glacisName = isHomeGlacis ? homeTeamName : awayTeamName;
-    sections.push({ heading: `${glacisName} — Set Piece Analysis`, html: buildSetPieceSection(setPieceData, glacisName) });
+    sections.push({ heading: `${homeTeamName} — Set Piece Analysis`, html: buildSetPieceSection(setPieceData, homeTeamName) });
   }
 
   if (opponentSetPieceData) {
-    const isHomeGlacis = homeTeamName.toLowerCase().includes('glacis');
-    const oppName = isHomeGlacis ? awayTeamName : homeTeamName;
-    sections.push({ heading: `${oppName} — Set Piece Analysis`, html: buildSetPieceSection(opponentSetPieceData, oppName) });
+    sections.push({ heading: `${awayTeamName} — Set Piece Analysis`, html: buildSetPieceSection(opponentSetPieceData, awayTeamName) });
   }
 
   // 6. Player performances for each team

@@ -17,34 +17,38 @@ interface MatchScoreHeaderProps {
     } | null;
     onViewHomePlayers: () => void;
     onViewAwayPlayers: () => void;
+    primaryTeamSlug?: string;
 }
-
-const GLACIS_SLUG = 'glacis-united-fc';
 
 type MatchResult = 'win' | 'draw' | 'loss';
 
-function getMatchResult(homeScore: number, awayScore: number, homeTeam: { slug: string } | null, awayTeam: { slug: string } | null): MatchResult {
-    // Determine result from Glacis United's perspective
-    const isGlacisHome = homeTeam?.slug === GLACIS_SLUG;
-    const isGlacisAway = awayTeam?.slug === GLACIS_SLUG;
-
-    let glacisScore: number;
-    let opponentScore: number;
-
-    if (isGlacisHome) {
-        glacisScore = homeScore;
-        opponentScore = awayScore;
-    } else if (isGlacisAway) {
-        glacisScore = awayScore;
-        opponentScore = homeScore;
-    } else {
-        // Fallback to home perspective if Glacis isn't playing
-        glacisScore = homeScore;
-        opponentScore = awayScore;
+function getMatchResult(homeScore: number, awayScore: number, homeTeam: { slug: string } | null, awayTeam: { slug: string } | null, primaryTeamSlug?: string): MatchResult {
+    if (!primaryTeamSlug) {
+        // Fallback to home perspective
+        if (homeScore > awayScore) return 'win';
+        if (homeScore < awayScore) return 'loss';
+        return 'draw';
     }
 
-    if (glacisScore > opponentScore) return 'win';
-    if (glacisScore < opponentScore) return 'loss';
+    const isHome = homeTeam?.slug === primaryTeamSlug;
+    const isAway = awayTeam?.slug === primaryTeamSlug;
+
+    let ourScore: number;
+    let theirScore: number;
+
+    if (isHome) {
+        ourScore = homeScore;
+        theirScore = awayScore;
+    } else if (isAway) {
+        ourScore = awayScore;
+        theirScore = homeScore;
+    } else {
+        ourScore = homeScore;
+        theirScore = awayScore;
+    }
+
+    if (ourScore > theirScore) return 'win';
+    if (ourScore < theirScore) return 'loss';
     return 'draw';
 }
 
