@@ -40,10 +40,10 @@ interface MatchResult {
   away_team: { name: string } | null;
 }
 
-function useSeasonAnalytics(seasonId: string | undefined) {
+function useSeasonAnalytics(seasonId: string | undefined, primaryTeamId: string | undefined) {
   return useQuery({
-    queryKey: ["season-analytics", seasonId],
-    enabled: !!seasonId,
+    queryKey: ["season-analytics", seasonId, primaryTeamId],
+    enabled: !!seasonId && !!primaryTeamId,
     queryFn: async () => {
       // Fetch matches
       const { data: matches, error: mErr } = await supabase
@@ -52,6 +52,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
           "id, home_score, away_score, home_team_id, away_team_id, match_date, home_team:teams!matches_home_team_id_fkey(name), away_team:teams!matches_away_team_id_fkey(name)"
         )
         .eq("season_id", seasonId!)
+        .or(`home_team_id.eq.${primaryTeamId},away_team_id.eq.${primaryTeamId}`)
         .order("match_date", { ascending: true });
       if (mErr) throw mErr;
       if (!matches || matches.length === 0) return null;
@@ -74,7 +75,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
       }[] = [];
 
       typedMatches.forEach((m) => {
-        const isHome = m.home_team_id === GLACIS_TEAM_ID;
+        const isHome = m.home_team_id === primaryTeamId;
         const gf = isHome ? m.home_score : m.away_score;
         const ga = isHome ? m.away_score : m.home_score;
         const opponent = isHome
