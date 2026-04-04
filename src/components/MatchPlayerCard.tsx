@@ -4,6 +4,7 @@ import { PlayerStats } from "@/utils/parseCSV";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Shield, Clock, Star, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 interface MatchPlayerCardProps {
     player: PlayerStats;
@@ -25,10 +26,11 @@ export function MatchPlayerCard({
     rank
 }: MatchPlayerCardProps) {
     const navigate = useNavigate();
+  const orgPath = useOrgPath();
 
     const handleClick = () => {
         if (teamId) {
-            navigate(`/team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
+            navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`));
         }
     };
 

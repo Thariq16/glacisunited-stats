@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrgPath } from '@/hooks/useOrgPath';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -10,21 +12,25 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requireAdmin = false, requireCoach = false }: ProtectedRouteProps) {
-  const { user, isAdmin, isCoach, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isOrgAdmin, isOrgMember, orgRole, loading: orgLoading } = useOrganization();
+  const orgPath = useOrgPath();
   const navigate = useNavigate();
+
+  const loading = authLoading || orgLoading;
+  const isCoachRole = orgRole === 'coach' || orgRole === 'analyst';
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        navigate('/auth');
-      } else if (requireAdmin && !isAdmin) {
-        navigate('/');
-      } else if (requireCoach && !isAdmin && !isCoach) {
-        // Admins can access coach routes too
-        navigate('/');
+        navigate(orgPath('auth'));
+      } else if (requireAdmin && !isOrgAdmin) {
+        navigate(orgPath(''));
+      } else if (requireCoach && !isOrgAdmin && !isCoachRole) {
+        navigate(orgPath(''));
       }
     }
-  }, [user, isAdmin, isCoach, loading, requireAdmin, requireCoach, navigate]);
+  }, [user, isOrgAdmin, isCoachRole, loading, requireAdmin, requireCoach, navigate, orgPath]);
 
   if (loading) {
     return (
@@ -34,17 +40,9 @@ export function ProtectedRoute({ children, requireAdmin = false, requireCoach = 
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
-  if (requireAdmin && !isAdmin) {
-    return null;
-  }
-
-  if (requireCoach && !isAdmin && !isCoach) {
-    return null;
-  }
+  if (!user) return null;
+  if (requireAdmin && !isOrgAdmin) return null;
+  if (requireCoach && !isOrgAdmin && !isCoachRole) return null;
 
   return <>{children}</>;
 }

@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 const BREAK_THRESHOLD_MS = 60 * 60 * 1000; // 1 hour
 
@@ -69,6 +70,7 @@ interface DayStats {
 
 function AdminDataEntryStatsContent() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
 
   const { data: rawData, isLoading } = useQuery({
     queryKey: ['data-entry-stats-v2'],
@@ -175,7 +177,7 @@ function AdminDataEntryStatsContent() {
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-6">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="gap-2 mb-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate(orgPath('admin'))} className="gap-2 mb-4">
             <ArrowLeft className="h-4 w-4" />
             Back to Dashboard
           </Button>

@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 interface EnhancedPlayerCardProps {
   player: PlayerStats;
@@ -21,6 +22,7 @@ interface EnhancedPlayerCardProps {
 
 export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerCardProps) {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const [dialogOpen, setDialogOpen] = useState(false);
   
   const successRate = player.passCount > 0 
@@ -38,7 +40,7 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
 
   const handleViewProfile = () => {
     setDialogOpen(false);
-    navigate(`/team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
+    navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`));
   };
 
   const getRoleColor = (role: string) => {

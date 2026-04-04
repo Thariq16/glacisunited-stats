@@ -5,16 +5,18 @@ import { DataImport } from "@/features/admin/components/DataImport";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 function AdminUploadContent() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
       <main className="container mx-auto px-4 py-8 flex-1">
-        <Button variant="ghost" onClick={() => navigate('/admin')} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate(orgPath('admin'))} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Admin
         </Button>

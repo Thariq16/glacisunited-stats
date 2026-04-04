@@ -26,6 +26,7 @@ import {
   Legend,
 } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 const GLACIS_TEAM_ID = "807c025b-5d48-4738-88f7-0de0229cf1c6";
 
@@ -188,6 +189,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
 function SeasonAnalytics({ season }: { season: Season }) {
   const { data: stats, isLoading } = useSeasonAnalytics(season.id);
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const { t } = useTranslation();
 
   if (isLoading)
@@ -275,7 +277,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
               {stats.formData.map((f, i) => (
                 <button
                   key={i}
-                  onClick={() => navigate(`/match/${f.matchId}`)}
+                  onClick={() => navigate(orgPath(`match/${f.matchId}`))}
                   className={`w-9 h-9 rounded-md border text-xs font-bold flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity ${resultColor(f.result)}`}
                   title={`${f.date}: ${f.opponent} (${f.gf}-${f.ga})`}
                 >
@@ -532,7 +534,7 @@ function SeasonAnalytics({ season }: { season: Season }) {
             <Card
               key={i}
               className="cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => navigate(`/match/${f.matchId}`)}
+              onClick={() => navigate(orgPath(`match/${f.matchId}`))}
             >
               <CardContent className="p-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">

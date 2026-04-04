@@ -26,6 +26,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 function AdminPlayersContent() {
   const [selectedTeam, setSelectedTeam] = useState('glacis-united-fc');
@@ -40,6 +41,7 @@ function AdminPlayersContent() {
   const { data: teams } = useTeams();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
 
   const handleEditClick = async (player: any) => {
     // Fetch player ID from database
@@ -176,7 +178,7 @@ function AdminPlayersContent() {
       
       <main className="container mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
-          <Button variant="ghost" onClick={() => navigate('/admin')} className="mb-4">
+          <Button variant="ghost" onClick={() => navigate(orgPath('admin'))} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Admin
           </Button>

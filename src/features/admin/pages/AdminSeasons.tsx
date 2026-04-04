@@ -17,6 +17,7 @@ import {
 import { Calendar, CheckCircle, Edit2, Plus, Trash2, Trophy, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 function SeasonForm({ initial, onSubmit, onCancel, isPending, submitLabel }: {
   initial?: { name: string; start_date: string; end_date: string };

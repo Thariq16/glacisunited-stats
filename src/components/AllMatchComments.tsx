@@ -7,6 +7,7 @@ import { MessageSquare, Calendar, Filter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Badge } from "@/components/ui/badge";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 type NoteFilter = 'all' | '1st_half' | '2nd_half' | 'overall';
 
@@ -52,6 +53,7 @@ function getNoteTypeBadgeVariant(type: NoteFilter): "default" | "secondary" | "o
 
 export function AllMatchComments() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const [filter, setFilter] = useState<NoteFilter>('all');
   
   const { data: matchesWithComments, isLoading } = useQuery({
@@ -203,7 +205,7 @@ export function AllMatchComments() {
           <Card 
             key={match.matchId}
             className="cursor-pointer hover:border-primary transition-colors"
-            onClick={() => navigate(`/match/${match.matchId}`)}
+            onClick={() => navigate(orgPath(`match/${match.matchId}`))}
           >
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-lg">

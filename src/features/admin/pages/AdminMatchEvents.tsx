@@ -44,10 +44,12 @@ import { BallPosition } from '@/components/match-events/PitchDiagram';
 import { GoalMouthDiagram, ShotPlacement, getZoneFromPosition } from '@/components/match-events/GoalMouthDiagram';
 import { useMatchEventQueries } from '../hooks';
 import { useMatchEventMutations } from '../hooks';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 function AdminMatchEventsContent() {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
   const hasSetInProgress = useRef(false);
@@ -1233,7 +1235,7 @@ function AdminMatchEventsContent() {
       <div className="min-h-screen bg-background">
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/matches')} className="mb-6">
+            <Button variant="ghost" size="sm" onClick={() => navigate(orgPath('admin/matches'))} className="mb-6">
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -1344,7 +1346,7 @@ function AdminMatchEventsContent() {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/matches')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate(orgPath('admin/matches'))}>
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -1420,7 +1422,7 @@ function AdminMatchEventsContent() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(`/admin/squad-selection/${matchId}`)}
+              onClick={() => navigate(orgPath(`admin/squad-selection/${matchId}`))}
             >
               Select Squad
             </Button>

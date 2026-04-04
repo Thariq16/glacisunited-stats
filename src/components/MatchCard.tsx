@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin } from "lucide-react";
+import { useOrgPath } from "@/hooks/useOrgPath";
 
 interface MatchCardProps {
   match: {
@@ -18,11 +19,12 @@ interface MatchCardProps {
 
 export function MatchCard({ match }: MatchCardProps) {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
 
   return (
     <Card 
       className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary"
-      onClick={() => navigate(`/match/${match.id}`)}
+      onClick={() => navigate(orgPath(`match/${match.id}`))}
     >
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-4">

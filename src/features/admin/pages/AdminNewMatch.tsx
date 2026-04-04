@@ -14,9 +14,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ArrowLeft, Calendar, MapPin, Trophy, Loader2, Plus, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 function AdminNewMatchContent() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
@@ -95,7 +97,7 @@ function AdminNewMatchContent() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       toast.success('Match created successfully');
-      navigate(`/admin/squad-selection/${data.id}`);
+      navigate(orgPath(`admin/squad-selection/${data.id}`));
     },
     onError: (error) => {
       console.error('Error creating match:', error);
@@ -141,7 +143,7 @@ function AdminNewMatchContent() {
       <main className="container mx-auto px-4 py-8 flex-1">
         <Button
           variant="ghost"
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate(orgPath('admin'))}
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

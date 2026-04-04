@@ -2,7 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MatchCard } from "@/components/MatchCard";
 import { useMatches } from "@/hooks/usePlayerStats";
-import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { Trophy, MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,9 +11,9 @@ import { useTranslation } from "react-i18next";
 
 export default function Matches() {
   const { data: matches, isLoading } = useMatches();
-  const { isAdmin, isCoach } = useAuth();
+  const { isOrgAdmin, orgRole } = useOrganization();
   const { t } = useTranslation();
-  const showComments = isAdmin || isCoach;
+  const showComments = isOrgAdmin || orgRole === 'coach' || orgRole === 'analyst';
 
   const matchGrid = isLoading ? (
     <div className="grid gap-4 md:grid-cols-2">
