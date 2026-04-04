@@ -359,21 +359,32 @@ export function useOppositionTeams(excludeSlug: string = '', matchFilter: MatchF
       if (teamsError) throw teamsError;
       if (!teams || teams.length === 0) return [];
 
+      // Build org team filter for scoping matches to those involving the current org
+      const orgTeamFilter = orgTeamIds.length > 0
+        ? orgTeamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',')
+        : '';
+
       // Get players with stats for each team
       const teamsWithPlayers = await Promise.all(
         teams.map(async (team) => {
           // Determine which match IDs to filter by for this team
+          // IMPORTANT: Only include matches where this opposition team played AGAINST the current org's teams
           let matchIds: string[] = [];
 
           if (isSpecificMatch) {
             matchIds = [matchFilter];
           } else if (matchFilter === 'last1' || matchFilter === 'last3') {
-            const matchesQuery = supabase
+            let matchesQuery = supabase
               .from('matches')
               .select('id')
               .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
               .in('status', ['completed', 'in_progress'])
               .order('match_date', { ascending: false });
+
+            // Scope to matches involving org teams
+            if (orgTeamFilter) {
+              matchesQuery = matchesQuery.or(orgTeamFilter);
+            }
 
             if (matchFilter === 'last1') {
               matchesQuery.limit(1);
@@ -384,11 +395,18 @@ export function useOppositionTeams(excludeSlug: string = '', matchFilter: MatchF
             const { data: matches } = await matchesQuery;
             matchIds = matches?.map(m => m.id) || [];
           } else {
-            const { data: matches } = await supabase
+            // For 'all' filter: get matches where this team played against an org team
+            let allQuery = supabase
               .from('matches')
               .select('id')
               .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
               .in('status', ['completed', 'in_progress']);
+            
+            if (orgTeamFilter) {
+              allQuery = allQuery.or(orgTeamFilter);
+            }
+
+            const { data: matches } = await allQuery;
             matchIds = matches?.map(m => m.id) || [];
           }
 
