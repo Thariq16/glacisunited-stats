@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { useOrgPath } from '@/hooks/useOrgPath';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,16 +55,16 @@ export default function Auth() {
   const [rememberMe, setRememberMe] = useState(true);
   
   const { signIn, signUp, user, resetPassword, updatePassword } = useAuth();
+  const { currentOrg } = useOrganization();
+  const orgPath = useOrgPath();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // If user is logged in and in reset mode, stay on page to update password
-    // Otherwise redirect to home
     if (user && !isResetMode) {
-      navigate('/');
+      navigate(orgPath(''));
     }
-  }, [user, navigate, isResetMode]);
+  }, [user, navigate, isResetMode, orgPath]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,33 +77,22 @@ export default function Auth() {
       const { error } = await signIn(email, password);
       
       if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          toast({
-            title: 'Login failed',
-            description: 'Invalid email or password',
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Login failed',
-            description: error.message,
-            variant: 'destructive',
-          });
-        }
-      } else {
         toast({
-          title: 'Welcome back!',
-          description: 'You have successfully logged in',
+          title: 'Login failed',
+          description: error.message.includes('Invalid login credentials') 
+            ? 'Invalid email or password' 
+            : error.message,
+          variant: 'destructive',
         });
-        navigate('/');
+      } else {
+        toast({ title: 'Welcome back!', description: 'You have successfully logged in' });
+        navigate(orgPath(''));
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
         error.issues.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0].toString()] = err.message;
-          }
+          if (err.path[0]) fieldErrors[err.path[0].toString()] = err.message;
         });
         setErrors(fieldErrors);
       }
@@ -121,33 +112,22 @@ export default function Auth() {
       const { error } = await signUp(email, password, username);
       
       if (error) {
-        if (error.message.includes('already registered')) {
-          toast({
-            title: 'Signup failed',
-            description: 'This email is already registered. Please login instead.',
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Signup failed',
-            description: error.message,
-            variant: 'destructive',
-          });
-        }
-      } else {
         toast({
-          title: 'Account created!',
-          description: 'You can now log in with your credentials',
+          title: 'Signup failed',
+          description: error.message.includes('already registered')
+            ? 'This email is already registered. Please login instead.'
+            : error.message,
+          variant: 'destructive',
         });
+      } else {
+        toast({ title: 'Account created!', description: 'You can now log in with your credentials' });
         setIsLogin(true);
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
         error.issues.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0].toString()] = err.message;
-          }
+          if (err.path[0]) fieldErrors[err.path[0].toString()] = err.message;
         });
         setErrors(fieldErrors);
       }
@@ -167,16 +147,9 @@ export default function Auth() {
       const { error } = await resetPassword(email);
       
       if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } else {
-        toast({
-          title: 'Check your email',
-          description: 'We sent you a password reset link. Please check your inbox.',
-        });
+        toast({ title: 'Check your email', description: 'We sent you a password reset link.' });
         setShowForgotPassword(false);
         setEmail('');
       }
@@ -184,9 +157,7 @@ export default function Auth() {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
         error.issues.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0].toString()] = err.message;
-          }
+          if (err.path[0]) fieldErrors[err.path[0].toString()] = err.message;
         });
         setErrors(fieldErrors);
       }
@@ -206,25 +177,16 @@ export default function Auth() {
       const { error } = await updatePassword(newPassword);
       
       if (error) {
-        toast({
-          title: 'Error',
-          description: error.message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } else {
-        toast({
-          title: 'Password updated',
-          description: 'Your password has been successfully updated.',
-        });
-        navigate('/');
+        toast({ title: 'Password updated', description: 'Your password has been successfully updated.' });
+        navigate(orgPath(''));
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
         error.issues.forEach((err) => {
-          if (err.path[0]) {
-            fieldErrors[err.path[0].toString()] = err.message;
-          }
+          if (err.path[0]) fieldErrors[err.path[0].toString()] = err.message;
         });
         setErrors(fieldErrors);
       }
@@ -233,47 +195,28 @@ export default function Auth() {
     }
   };
 
-  // Show password update form when in reset mode and user is authenticated
+  const orgName = currentOrg?.name || 'Football Stats';
+
   if (isResetMode && user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Set New Password</CardTitle>
-            <CardDescription>
-              Enter your new password below
-            </CardDescription>
+            <CardDescription>Enter your new password below</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={isLoading}
-                />
-                {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password}</p>
-                )}
+                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={isLoading} />
+                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                <Input
-                  id="confirm-new-password"
-                  type="password"
-                  value={newConfirmPassword}
-                  onChange={(e) => setNewConfirmPassword(e.target.value)}
-                  disabled={isLoading}
-                />
-                {errors.confirmPassword && (
-                  <p className="text-sm text-destructive">{errors.confirmPassword}</p>
-                )}
+                <Input id="confirm-new-password" type="password" value={newConfirmPassword} onChange={(e) => setNewConfirmPassword(e.target.value)} disabled={isLoading} />
+                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
               </div>
-
               <Button type="submit" className="w-full" disabled={isLoading}>
                 <KeyRound className="mr-2 h-4 w-4" />
                 {isLoading ? 'Updating...' : 'Update Password'}
@@ -285,48 +228,26 @@ export default function Auth() {
     );
   }
 
-  // Show forgot password form
   if (showForgotPassword) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl">Reset Password</CardTitle>
-            <CardDescription>
-              Enter your email address and we'll send you a reset link
-            </CardDescription>
+            <CardDescription>Enter your email address and we'll send you a reset link</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="reset-email">Email</Label>
-                <Input
-                  id="reset-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                />
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
+                <Input id="reset-email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
               </div>
-
               <Button type="submit" className="w-full" disabled={isLoading}>
                 <KeyRound className="mr-2 h-4 w-4" />
                 {isLoading ? 'Sending...' : 'Send Reset Link'}
               </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => {
-                  setShowForgotPassword(false);
-                  setErrors({});
-                }}
-              >
+              <Button type="button" variant="ghost" className="w-full" onClick={() => { setShowForgotPassword(false); setErrors({}); }}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Login
               </Button>
@@ -341,16 +262,11 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Football Stats</CardTitle>
-          <CardDescription>
-            Login or create an account to access the stats portal
-          </CardDescription>
+          <CardTitle className="text-2xl">{orgName}</CardTitle>
+          <CardDescription>Login or create an account to access the stats portal</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(v) => {
-            setIsLogin(v === 'login');
-            setErrors({});
-          }}>
+          <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(v) => { setIsLogin(v === 'login'); setErrors({}); }}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -360,61 +276,23 @@ export default function Auth() {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
-                  )}
+                  <Input id="login-email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input
-                    id="login-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {errors.password && (
-                    <p className="text-sm text-destructive">{errors.password}</p>
-                  )}
+                  <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
+                  {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
-
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember-me"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  />
-                  <Label 
-                    htmlFor="remember-me" 
-                    className="text-sm text-muted-foreground cursor-pointer"
-                  >
-                    Stay signed in for 30 days
-                  </Label>
+                  <Checkbox id="remember-me" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked === true)} />
+                  <Label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer">Stay signed in for 30 days</Label>
                 </div>
-
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   <LogIn className="mr-2 h-4 w-4" />
                   {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
-
-                <Button
-                  type="button"
-                  variant="link"
-                  className="w-full text-sm text-muted-foreground"
-                  onClick={() => {
-                    setShowForgotPassword(true);
-                    setErrors({});
-                  }}
-                >
+                <Button type="button" variant="link" className="w-full text-sm text-muted-foreground" onClick={() => { setShowForgotPassword(true); setErrors({}); }}>
                   Forgot your password?
                 </Button>
               </form>
@@ -424,62 +302,24 @@ export default function Auth() {
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-username">Username</Label>
-                  <Input
-                    id="signup-username"
-                    type="text"
-                    placeholder="johndoe"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {errors.username && (
-                    <p className="text-sm text-destructive">{errors.username}</p>
-                  )}
+                  <Input id="signup-username" type="text" placeholder="johndoe" value={username} onChange={(e) => setUsername(e.target.value)} disabled={isLoading} />
+                  {errors.username && <p className="text-sm text-destructive">{errors.username}</p>}
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-destructive">{errors.email}</p>
-                  )}
+                  <Input id="signup-email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
+                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {errors.password && (
-                    <p className="text-sm text-destructive">{errors.password}</p>
-                  )}
+                  <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
+                  {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {errors.confirmPassword && (
-                    <p className="text-sm text-destructive">{errors.confirmPassword}</p>
-                  )}
+                  <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={isLoading} />
+                  {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
                 </div>
-
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   {isLoading ? 'Creating account...' : 'Create Account'}

@@ -6,9 +6,13 @@ import { useMatches } from "@/hooks/usePlayerStats";
 import { MatchCard } from "@/components/MatchCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { useOrgPath } from "@/hooks/useOrgPath";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { currentOrg } = useOrganization();
+  const orgPath = useOrgPath();
   const { data: matches, isLoading } = useMatches();
   const { t } = useTranslation();
 
@@ -19,7 +23,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-12 flex-1">
         <div className="max-w-4xl mx-auto text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            {t("home.title")}
+            {currentOrg?.name || t("home.title")}
           </h1>
           <p className="text-lg text-muted-foreground">
             {t("home.subtitle")}
@@ -29,7 +33,7 @@ export default function Home() {
         <div className="mb-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-foreground">{t("home.recentMatches")}</h2>
-            <Button variant="outline" onClick={() => navigate('/matches')}>
+            <Button variant="outline" onClick={() => navigate(orgPath('matches'))}>
               {t("home.viewAllMatches")}
             </Button>
           </div>
