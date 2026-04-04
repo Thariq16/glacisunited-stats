@@ -1422,7 +1422,7 @@ function AdminMatchEventsContent() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate(orgPath(`admin/squad-selection/${matchId}`)}
+              onClick={() => navigate(orgPath(`admin/squad-selection/${matchId}`))}
             >
               Select Squad
             </Button>
