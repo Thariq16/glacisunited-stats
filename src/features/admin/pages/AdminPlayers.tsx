@@ -27,6 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useOrgPath } from '@/hooks/useOrgPath';
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 function AdminPlayersContent() {
   const { primaryTeam, currentOrg } = useOrganization();
