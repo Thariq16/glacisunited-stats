@@ -63,7 +63,7 @@ function AdminMatchSelectContent() {
               <Card
                 key={match.id}
                 className="cursor-pointer hover:border-primary transition-colors"
-                onClick={() => navigate(`/admin/match-events/${match.id}`)}
+                onClick={() => navigate(orgPath(`admin/match-events/${match.id}`)}
               >
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">

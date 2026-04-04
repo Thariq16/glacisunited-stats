@@ -97,7 +97,7 @@ function AdminNewMatchContent() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['matches'] });
       toast.success('Match created successfully');
-      navigate(`/admin/squad-selection/${data.id}`);
+      navigate(orgPath(`admin/squad-selection/${data.id}`);
     },
     onError: (error) => {
       console.error('Error creating match:', error);
