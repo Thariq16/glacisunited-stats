@@ -5,28 +5,38 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTheme } from "next-themes";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { useOrgPath } from "@/hooks/useOrgPath";
 
 export function Navbar() {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
+  const { currentOrg } = useOrganization();
+  const orgPath = useOrgPath();
 
   const links = [
-    { to: "/", label: t("nav.home") },
-    { to: "/matches", label: t("nav.matches") },
-    { to: "/players", label: t("nav.players") },
-    { to: "/squad-analysis", label: t("nav.squadAnalysis") },
-    { to: "/compare", label: t("nav.compare") },
+    { to: orgPath(""), label: t("nav.home") },
+    { to: orgPath("matches"), label: t("nav.matches") },
+    { to: orgPath("players"), label: t("nav.players") },
+    { to: orgPath("squad-analysis"), label: t("nav.squadAnalysis") },
+    { to: orgPath("compare"), label: t("nav.compare") },
   ];
+
+  const displayName = currentOrg?.name || "Football Stats";
 
   return (
     <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <NavLink to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">⚽</span>
-            </div>
-            <span className="font-bold text-xl text-foreground">Glacis United Stats</span>
+          <NavLink to={orgPath("")} className="flex items-center gap-2">
+            {currentOrg?.logo_url ? (
+              <img src={currentOrg.logo_url} alt={displayName} className="h-8 w-8 rounded-full object-cover" />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">⚽</span>
+              </div>
+            )}
+            <span className="font-bold text-xl text-foreground">{displayName}</span>
           </NavLink>
 
           {/* Desktop Navigation */}
@@ -35,6 +45,7 @@ export function Navbar() {
               <NavLink
                 key={link.to}
                 to={link.to}
+                end={link.to === orgPath("")}
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 activeClassName="text-foreground"
               >
