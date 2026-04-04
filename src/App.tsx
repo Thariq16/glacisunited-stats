@@ -38,6 +38,7 @@ const AdminSquadSelection = lazy(() => import("@/features/admin/pages/AdminSquad
 const AdminMatches = lazy(() => import("@/features/admin/pages/AdminMatches"));
 const AdminDataEntryStats = lazy(() => import("@/features/admin/pages/AdminDataEntryStats"));
 const AdminSeasons = lazy(() => import("@/features/admin/pages/AdminSeasons"));
+const AdminSettings = lazy(() => import("@/features/admin/pages/AdminSettings"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ const App = () => (
                 <Route path="admin/match-events/:matchId" element={<Suspense fallback={<PageLoader />}><AdminMatchEvents /></Suspense>} />
                 <Route path="admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
                 <Route path="admin/seasons" element={<Suspense fallback={<PageLoader />}><AdminSeasons /></Suspense>} />
+                <Route path="admin/settings" element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
               </Route>
 
               {/* Legacy redirects - redirect old routes to org selector */}

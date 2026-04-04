@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Users, Home, Calendar, Shield, UserCog, Upload, FileUp, LogOut, LogIn, Trophy } from "lucide-react";
+import { Users, Home, Calendar, Shield, UserCog, LogOut, LogIn, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useOrgPath } from "@/hooks/useOrgPath";
@@ -28,8 +28,6 @@ export function Footer() {
   const adminLinks = [
     { to: orgPath('admin'), label: 'Admin Dashboard', icon: Shield },
     { to: orgPath('admin/players'), label: 'Player Management', icon: UserCog },
-    { to: orgPath('admin/upload'), label: 'Data Import', icon: Upload },
-    { to: orgPath('admin/match-upload'), label: 'Match Upload', icon: FileUp },
   ];
 
   return (

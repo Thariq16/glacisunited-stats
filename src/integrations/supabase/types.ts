@@ -366,29 +366,35 @@ export type Database = {
       }
       organizations: {
         Row: {
+          accent_color: string | null
           created_at: string
           id: string
           logo_url: string | null
           name: string
           owner_id: string
+          primary_color: string | null
           slug: string
           updated_at: string
         }
         Insert: {
+          accent_color?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
           name: string
           owner_id: string
+          primary_color?: string | null
           slug: string
           updated_at?: string
         }
         Update: {
+          accent_color?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
           name?: string
           owner_id?: string
+          primary_color?: string | null
           slug?: string
           updated_at?: string
         }

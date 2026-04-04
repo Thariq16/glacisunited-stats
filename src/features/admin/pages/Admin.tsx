@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer, Trophy } from "lucide-react";
+import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer, Trophy, Settings } from "lucide-react";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useOrgPath } from "@/hooks/useOrgPath";
 
@@ -147,6 +147,21 @@ function AdminContent() {
               </CardHeader>
               <CardContent>
                 <Button variant="secondary" className="w-full">View Seasons</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {isOrgAdmin && (
+            <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate(orgPath('admin/settings'))}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Settings
+                </CardTitle>
+                <CardDescription>Club logo, theme colors, dark mode, and language preferences</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">Open Settings</Button>
               </CardContent>
             </Card>
           )}
