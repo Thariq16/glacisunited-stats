@@ -33,8 +33,8 @@ export const matchService = {
     /**
      * Get all matches ordered by date (descending)
      */
-    getAll: async () => {
-        return supabase
+    getAll: async (orgTeamIds?: string[]) => {
+        let query = supabase
             .from('matches')
             .select(`
         id,
@@ -48,6 +48,14 @@ export const matchService = {
         away_team:teams!matches_away_team_id_fkey(id, name, slug)
       `)
             .order('match_date', { ascending: false });
+        
+        if (orgTeamIds && orgTeamIds.length > 0) {
+            query = query.or(
+                orgTeamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',')
+            );
+        }
+        
+        return query;
     },
 
     /**
