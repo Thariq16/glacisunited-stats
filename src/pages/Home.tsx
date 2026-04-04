@@ -8,12 +8,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "react-i18next";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useOrgPath } from "@/hooks/useOrgPath";
+import { useMemo } from "react";
 
 export default function Home() {
   const navigate = useNavigate();
-  const { currentOrg } = useOrganization();
+  const { currentOrg, orgTeams } = useOrganization();
   const orgPath = useOrgPath();
-  const { data: matches, isLoading } = useMatches();
+  const orgTeamIds = useMemo(() => orgTeams.map(t => t.id), [orgTeams]);
+  const { data: matches, isLoading } = useMatches(undefined, orgTeamIds);
   const { t } = useTranslation();
 
   return (

@@ -8,10 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AllMatchComments } from "@/components/AllMatchComments";
 import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 
 export default function Matches() {
-  const { data: matches, isLoading } = useMatches();
-  const { isOrgAdmin, orgRole } = useOrganization();
+  const { isOrgAdmin, orgRole, orgTeams } = useOrganization();
+  const orgTeamIds = useMemo(() => orgTeams.map(t => t.id), [orgTeams]);
+  const { data: matches, isLoading } = useMatches(undefined, orgTeamIds);
   const { t } = useTranslation();
   const showComments = isOrgAdmin || orgRole === 'coach' || orgRole === 'analyst';
 

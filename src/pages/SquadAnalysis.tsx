@@ -8,35 +8,39 @@ import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SquadAnalysisView } from "@/components/views/SquadAnalysisView";
 import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { LaneStats } from "@/components/views/AttackingThreatMap";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
 
-// ── Overall Squad Analysis (multi-match, Glacis only) ──────────────────────
+// ── Overall Squad Analysis (multi-match, primary team) ──────────────────────
 function OverallSquadAnalysis() {
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
+  const { primaryTeam } = useOrganization();
+  const teamSlug = primaryTeam?.slug || '';
 
-  const { data: glacisTeam } = useQuery({
-    queryKey: ['glacis-team-id'],
+  const { data: teamData } = useQuery({
+    queryKey: ['primary-team-id', teamSlug],
     queryFn: async () => {
+      if (!teamSlug) return null;
       const { data } = await supabase
         .from('teams')
         .select('id, name')
-        .eq('slug', 'glacis-united-fc')
+        .eq('slug', teamSlug)
         .single();
       return data;
-    }
+    },
+    enabled: !!teamSlug,
   });
 
   const { data: filteredMatches } = useQuery({
-    queryKey: ['filtered-matches-glacis', matchFilter, glacisTeam?.id],
+    queryKey: ['filtered-matches-primary', matchFilter, teamData?.id],
     queryFn: async () => {
-      if (!glacisTeam?.id) return [];
+      if (!teamData?.id) return [];
       const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
 
       if (isSpecificMatch) {
@@ -55,7 +59,7 @@ function OverallSquadAnalysis() {
         .select(`id, match_date, home_team_id, away_team_id,
           home_team:teams!matches_home_team_id_fkey(name),
           away_team:teams!matches_away_team_id_fkey(name)`)
-        .or(`home_team_id.eq.${glacisTeam.id},away_team_id.eq.${glacisTeam.id}`)
+        .or(`home_team_id.eq.${teamData.id},away_team_id.eq.${teamData.id}`)
         .in('status', ['completed', 'in_progress'])
         .order('match_date', { ascending: false });
 
@@ -65,14 +69,14 @@ function OverallSquadAnalysis() {
       const { data } = await query;
       return data || [];
     },
-    enabled: !!glacisTeam?.id
+    enabled: !!teamData?.id
   });
 
   const latestMatch = filteredMatches?.[0] || null;
   const allMatchIds = (filteredMatches || []).map((m: any) => m.id);
 
   const { data: players, isLoading: isPlayersLoading } = usePlayerStats(
-    'glacis-united-fc',
+    teamSlug,
     (matchFilter === 'last1' && latestMatch?.id) ? latestMatch.id : matchFilter
   );
 
@@ -86,24 +90,24 @@ function OverallSquadAnalysis() {
 
   const isLoading = isPlayersLoading || isVisLoading;
 
-  const isGlacisHome = (latestMatch as any)?.home_team?.name?.toLowerCase()?.includes('glacis');
-  const focusTeamId = isGlacisHome
+  const isPrimaryHome = (latestMatch as any)?.home_team_id === teamData?.id;
+  const focusTeamId = isPrimaryHome
     ? (latestMatch as any)?.home_team_id
     : (latestMatch as any)?.away_team_id;
-  const opponentTeamId = isGlacisHome
+  const opponentTeamId = isPrimaryHome
     ? (latestMatch as any)?.away_team_id
     : (latestMatch as any)?.home_team_id;
 
-  const glacisSetPieceData = isGlacisHome
+  const primarySetPieceData = isPrimaryHome
     ? (visualizationData as any)?.setPieceData
     : (visualizationData as any)?.opponentSetPieceData;
-  const opponentSetPieceData = isGlacisHome
+  const opponentSetPieceData = isPrimaryHome
     ? (visualizationData as any)?.opponentSetPieceData
     : (visualizationData as any)?.setPieceData;
-  const glacisName = isGlacisHome
+  const primaryName = isPrimaryHome
     ? (latestMatch as any)?.home_team?.name
     : (latestMatch as any)?.away_team?.name;
-  const opponentName = isGlacisHome
+  const opponentName = isPrimaryHome
     ? (latestMatch as any)?.away_team?.name
     : (latestMatch as any)?.home_team?.name;
 
@@ -113,7 +117,7 @@ function OverallSquadAnalysis() {
         <MatchFilterSelect
           value={matchFilter}
           onValueChange={setMatchFilter}
-          teamSlug="glacis-united-fc"
+          teamSlug={teamSlug}
         />
       </div>
 
@@ -132,13 +136,13 @@ function OverallSquadAnalysis() {
           history={[]}
           setPieceStats={(visualizationData as any)?.setPieceStats || []}
           playerSetPieceStats={visualizationData?.playerSetPieceStats || []}
-          setPieceData={glacisSetPieceData}
+          setPieceData={primarySetPieceData}
           opponentSetPieceData={opponentSetPieceData}
           defensiveEvents={visualizationData?.defensiveEvents || []}
           attackingThreat={visualizationData?.attackingThreat as any}
           opponentAttackingThreat={visualizationData?.opponentAttackingThreat as any}
           possessionLossEvents={visualizationData?.possessionLossEvents || []}
-          teamName={glacisName || 'Glacis United'}
+          teamName={primaryName || primaryTeam?.name || 'Team'}
           opponentName={opponentName || 'Opposition'}
           focusTeamId={focusTeamId}
           matchCount={allMatchIds.length || 1}
@@ -158,7 +162,9 @@ function OverallSquadAnalysis() {
 
 // ── Per Match Team Analysis (single match, both teams) ─────────────────────
 function PerMatchTeamAnalysis() {
-  const { data: allMatches, isLoading: matchesLoading } = useAllMatches();
+  const { orgTeams } = useOrganization();
+  const orgTeamIds = useMemo(() => orgTeams.map(t => t.id), [orgTeams]);
+  const { data: allMatches, isLoading: matchesLoading } = useAllMatches(orgTeamIds);
   const [selectedMatchId, setSelectedMatchId] = useState<string>('');
 
   // Auto-select latest match
@@ -184,13 +190,11 @@ function PerMatchTeamAnalysis() {
     awayTeamName
   );
 
-  // Home team players
   const { data: homePlayers, isLoading: isHomeLoading } = usePlayerStats(
     homeTeamSlug,
     effectiveMatchId || 'last1'
   );
 
-  // Away team players
   const { data: awayPlayers, isLoading: isAwayLoading } = usePlayerStats(
     awayTeamSlug,
     effectiveMatchId || 'last1'
@@ -210,7 +214,6 @@ function PerMatchTeamAnalysis() {
 
   return (
     <>
-      {/* Match Selector */}
       <div className="mb-6">
         <Select value={effectiveMatchId} onValueChange={setSelectedMatchId}>
           <SelectTrigger className="w-full max-w-md">
@@ -238,7 +241,6 @@ function PerMatchTeamAnalysis() {
         </Select>
       </div>
 
-      {/* Match Header */}
       {selectedMatch && (
         <div className="mb-6 p-4 rounded-lg border bg-card">
           <div className="flex items-center justify-between">
@@ -348,7 +350,6 @@ export default function SquadAnalysis() {
           </div>
           <p className="text-muted-foreground mb-6">{t('squad.subtitle')}</p>
 
-          {/* Mode Toggle */}
           <div className="flex items-center gap-2 mb-6">
             <button
               onClick={() => setMode('overall')}
