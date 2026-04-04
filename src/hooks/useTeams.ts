@@ -341,73 +341,66 @@ export function useOppositionTeams(excludeSlug: string = '', matchFilter: MatchF
   return useQuery({
     queryKey: ['opposition-teams', excludeSlug, matchFilter, orgTeamIds],
     queryFn: async () => {
-      // Get all teams except the org's own teams
-      let query = supabase
+      if (orgTeamIds.length === 0) return [];
+
+      // Step 1: Fetch matches involving the org's teams to find opposition teams
+      const orgFilter = orgTeamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',');
+      
+      let orgMatchesQuery = supabase
+        .from('matches')
+        .select('id, home_team_id, away_team_id')
+        .or(orgFilter)
+        .in('status', ['completed', 'in_progress'])
+        .order('match_date', { ascending: false });
+
+      const { data: orgMatches } = await orgMatchesQuery;
+      if (!orgMatches || orgMatches.length === 0) return [];
+
+      // Step 2: Build a map of opposition team ID -> match IDs they played against org teams
+      const orgTeamIdSet = new Set(orgTeamIds);
+      const oppositionMatchMap: Record<string, string[]> = {};
+
+      orgMatches.forEach(m => {
+        const homeIsOrg = orgTeamIdSet.has(m.home_team_id);
+        const awayIsOrg = orgTeamIdSet.has(m.away_team_id);
+        
+        if (homeIsOrg && !awayIsOrg) {
+          if (!oppositionMatchMap[m.away_team_id]) oppositionMatchMap[m.away_team_id] = [];
+          oppositionMatchMap[m.away_team_id].push(m.id);
+        }
+        if (awayIsOrg && !homeIsOrg) {
+          if (!oppositionMatchMap[m.home_team_id]) oppositionMatchMap[m.home_team_id] = [];
+          oppositionMatchMap[m.home_team_id].push(m.id);
+        }
+      });
+
+      const oppositionTeamIds = Object.keys(oppositionMatchMap);
+      if (oppositionTeamIds.length === 0) return [];
+
+      // Step 3: Fetch the actual team records for opposition teams
+      const { data: teams, error: teamsError } = await supabase
         .from('teams')
         .select('id, name, slug')
+        .in('id', oppositionTeamIds)
         .order('name');
-      
-      if (orgTeamIds.length > 0) {
-        // Exclude all teams belonging to the current org
-        query = query.not('id', 'in', `(${orgTeamIds.join(',')})`);
-      } else if (excludeSlug) {
-        query = query.neq('slug', excludeSlug);
-      }
-
-      const { data: teams, error: teamsError } = await query;
 
       if (teamsError) throw teamsError;
       if (!teams || teams.length === 0) return [];
 
-      // Build org team filter for scoping matches to those involving the current org
-      const orgTeamFilter = orgTeamIds.length > 0
-        ? orgTeamIds.map(id => `home_team_id.eq.${id},away_team_id.eq.${id}`).join(',')
-        : '';
-
-      // Get players with stats for each team
+      // Step 4: Get players with stats for each opposition team, scoped to their matches against org
       const teamsWithPlayers = await Promise.all(
         teams.map(async (team) => {
-          // Determine which match IDs to filter by for this team
-          // IMPORTANT: Only include matches where this opposition team played AGAINST the current org's teams
           let matchIds: string[] = [];
+          const allMatchIdsForTeam = oppositionMatchMap[team.id] || [];
 
           if (isSpecificMatch) {
-            matchIds = [matchFilter];
-          } else if (matchFilter === 'last1' || matchFilter === 'last3') {
-            let matchesQuery = supabase
-              .from('matches')
-              .select('id')
-              .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-              .in('status', ['completed', 'in_progress'])
-              .order('match_date', { ascending: false });
-
-            // Scope to matches involving org teams
-            if (orgTeamFilter) {
-              matchesQuery = matchesQuery.or(orgTeamFilter);
-            }
-
-            if (matchFilter === 'last1') {
-              matchesQuery.limit(1);
-            } else if (matchFilter === 'last3') {
-              matchesQuery.limit(3);
-            }
-
-            const { data: matches } = await matchesQuery;
-            matchIds = matches?.map(m => m.id) || [];
+            matchIds = allMatchIdsForTeam.includes(matchFilter) ? [matchFilter] : [];
+          } else if (matchFilter === 'last1') {
+            matchIds = allMatchIdsForTeam.slice(0, 1);
+          } else if (matchFilter === 'last3') {
+            matchIds = allMatchIdsForTeam.slice(0, 3);
           } else {
-            // For 'all' filter: get matches where this team played against an org team
-            let allQuery = supabase
-              .from('matches')
-              .select('id')
-              .or(`home_team_id.eq.${team.id},away_team_id.eq.${team.id}`)
-              .in('status', ['completed', 'in_progress']);
-            
-            if (orgTeamFilter) {
-              allQuery = allQuery.or(orgTeamFilter);
-            }
-
-            const { data: matches } = await allQuery;
-            matchIds = matches?.map(m => m.id) || [];
+            matchIds = allMatchIdsForTeam;
           }
 
           // Fetch substitution events for these matches
