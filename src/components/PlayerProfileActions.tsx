@@ -17,6 +17,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Edit, Trash2 } from 'lucide-react';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 interface PlayerProfile {
   id: string;
@@ -46,6 +47,7 @@ export function PlayerProfileActions({ playerName, teamSlug }: PlayerProfileActi
   const { isAdmin, isCoach } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const queryClient = useQueryClient();
   const [playerData, setPlayerData] = useState<PlayerProfile | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -115,7 +117,7 @@ export function PlayerProfileActions({ playerName, teamSlug }: PlayerProfileActi
       queryClient.invalidateQueries({ queryKey: ['team-with-players'] });
       // If name changed, navigate to new URL
       if (form.name && form.name !== playerName) {
-        navigate(`/team/${teamSlug}/player/${encodeURIComponent(form.name)}`, { replace: true });
+        navigate(orgPath(`team/${teamSlug}/player/${encodeURIComponent(form.name)}`, { replace: true });
       }
     }
   };
@@ -137,7 +139,7 @@ export function PlayerProfileActions({ playerName, teamSlug }: PlayerProfileActi
       toast({ title: 'Success', description: `${playerData.name} has been removed` });
       setIsDeleteOpen(false);
       queryClient.invalidateQueries({ queryKey: ['player-stats'] });
-      navigate(`/team/${teamSlug}`, { replace: true });
+      navigate(orgPath(`team/${teamSlug}`, { replace: true });
     }
   };
 

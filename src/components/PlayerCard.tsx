@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { PlayerStats } from "@/utils/parseCSV";
 import { useNavigate } from "react-router-dom";
 import { Target, TrendingUp, Shield, Clock } from "lucide-react";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 interface PlayerCardProps {
   player: PlayerStats;
@@ -11,9 +12,10 @@ interface PlayerCardProps {
 
 export function PlayerCard({ player, teamId }: PlayerCardProps) {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
 
   const handleClick = () => {
-    navigate(`/team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
+    navigate(orgPath(`team/${teamId}/player/${encodeURIComponent(player.playerName)}`);
   };
 
   return (
