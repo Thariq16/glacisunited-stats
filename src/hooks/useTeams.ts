@@ -335,18 +335,26 @@ export function useTeamWithPlayers(teamSlug: string | undefined, matchFilter: Ma
   });
 }
 
-export function useOppositionTeams(excludeSlug: string = 'glacis-united-fc', matchFilter: MatchFilter = 'all') {
+export function useOppositionTeams(excludeSlug: string = '', matchFilter: MatchFilter = 'all', orgTeamIds: string[] = []) {
   const isSpecificMatch = matchFilter && !['all', 'last1', 'last3'].includes(matchFilter);
 
   return useQuery({
-    queryKey: ['opposition-teams', excludeSlug, matchFilter],
+    queryKey: ['opposition-teams', excludeSlug, matchFilter, orgTeamIds],
     queryFn: async () => {
-      // Get all teams except the excluded one
-      const { data: teams, error: teamsError } = await supabase
+      // Get all teams except the org's own teams
+      let query = supabase
         .from('teams')
         .select('id, name, slug')
-        .neq('slug', excludeSlug)
         .order('name');
+      
+      if (orgTeamIds.length > 0) {
+        // Exclude all teams belonging to the current org
+        query = query.not('id', 'in', `(${orgTeamIds.join(',')})`);
+      } else if (excludeSlug) {
+        query = query.neq('slug', excludeSlug);
+      }
+
+      const { data: teams, error: teamsError } = await query;
 
       if (teamsError) throw teamsError;
       if (!teams || teams.length === 0) return [];

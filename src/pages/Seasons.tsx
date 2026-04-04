@@ -27,8 +27,7 @@ import {
 } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useOrgPath } from '@/hooks/useOrgPath';
-
-const GLACIS_TEAM_ID = "807c025b-5d48-4738-88f7-0de0229cf1c6";
+import { useOrganization } from '@/contexts/OrganizationContext';
 
 interface MatchResult {
   id: string;
@@ -41,10 +40,10 @@ interface MatchResult {
   away_team: { name: string } | null;
 }
 
-function useSeasonAnalytics(seasonId: string | undefined) {
+function useSeasonAnalytics(seasonId: string | undefined, primaryTeamId: string | undefined) {
   return useQuery({
-    queryKey: ["season-analytics", seasonId],
-    enabled: !!seasonId,
+    queryKey: ["season-analytics", seasonId, primaryTeamId],
+    enabled: !!seasonId && !!primaryTeamId,
     queryFn: async () => {
       // Fetch matches
       const { data: matches, error: mErr } = await supabase
@@ -53,6 +52,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
           "id, home_score, away_score, home_team_id, away_team_id, match_date, home_team:teams!matches_home_team_id_fkey(name), away_team:teams!matches_away_team_id_fkey(name)"
         )
         .eq("season_id", seasonId!)
+        .or(`home_team_id.eq.${primaryTeamId},away_team_id.eq.${primaryTeamId}`)
         .order("match_date", { ascending: true });
       if (mErr) throw mErr;
       if (!matches || matches.length === 0) return null;
@@ -75,7 +75,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
       }[] = [];
 
       typedMatches.forEach((m) => {
-        const isHome = m.home_team_id === GLACIS_TEAM_ID;
+        const isHome = m.home_team_id === primaryTeamId;
         const gf = isHome ? m.home_score : m.away_score;
         const ga = isHome ? m.away_score : m.home_score;
         const opponent = isHome
@@ -124,7 +124,7 @@ function useSeasonAnalytics(seasonId: string | undefined) {
 
       (playerStats || []).forEach((ps: any) => {
         const p = ps.player;
-        if (!p || p.team_id !== GLACIS_TEAM_ID) return;
+        if (!p || p.team_id !== primaryTeamId) return;
         const key = ps.player_id;
         if (!playerAgg[key]) {
           playerAgg[key] = {
@@ -187,7 +187,8 @@ function useSeasonAnalytics(seasonId: string | undefined) {
 }
 
 function SeasonAnalytics({ season }: { season: Season }) {
-  const { data: stats, isLoading } = useSeasonAnalytics(season.id);
+  const { primaryTeam } = useOrganization();
+  const { data: stats, isLoading } = useSeasonAnalytics(season.id, primaryTeam?.id);
   const navigate = useNavigate();
   const orgPath = useOrgPath();
   const { t } = useTranslation();
