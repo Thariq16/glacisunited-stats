@@ -155,6 +155,7 @@ export default function MatchDetail() {
           xgStats={xgStats}
           onViewHomePlayers={() => setSelectedTeam('home')}
           onViewAwayPlayers={() => setSelectedTeam('away')}
+          primaryTeamSlug={primaryTeam?.slug}
         />
 
         {/* Quick Stats Summary */}
