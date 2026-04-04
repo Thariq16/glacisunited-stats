@@ -327,6 +327,7 @@ function PerMatchTeamAnalysis() {
                   .filter((p: any) => p.teamId === awayTeamId)
               }
               matchFilter={effectiveMatchId}
+              teamSlug={awayTeamSlug}
             />
           </TabsContent>
         </Tabs>
