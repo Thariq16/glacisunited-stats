@@ -11,6 +11,7 @@ import { ArrowLeft, Upload, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 // Validation schema
 const matchFormSchema = z.object({
@@ -27,6 +28,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 function AdminMatchUploadContent() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -135,7 +137,7 @@ function AdminMatchUploadContent() {
           title: "Session Expired",
           description: "Please log in again to continue.",
         });
-        navigate('/auth');
+        navigate(orgPath('auth'));
         return;
       }
 
@@ -205,7 +207,7 @@ function AdminMatchUploadContent() {
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 flex-1">
-        <Button variant="ghost" onClick={() => navigate('/admin')} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate(orgPath('admin'))} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Admin
         </Button>

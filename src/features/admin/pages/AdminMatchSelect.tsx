@@ -8,9 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, MapPin, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 function AdminMatchSelectContent() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
 
   const { data: matches = [], isLoading } = useQuery({
     queryKey: ['matches-for-event-logging'],
@@ -34,7 +36,7 @@ function AdminMatchSelectContent() {
 
       <main className="container mx-auto px-4 py-8 flex-1">
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(orgPath('admin'))}>
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Admin
           </Button>

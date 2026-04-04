@@ -27,9 +27,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useCommentMutations, parseCSV, type NoteType, type ParsedComment } from "../hooks";
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 function AdminCommentsContent() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: matches, isLoading: matchesLoading } = useMatches();
   const [selectedMatchId, setSelectedMatchId] = useState<string>("");
@@ -161,7 +163,7 @@ function AdminCommentsContent() {
       <main className="container mx-auto px-4 py-8 flex-1">
         <Button
           variant="ghost"
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate(orgPath('admin'))}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />

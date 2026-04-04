@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ArrowLeft, Plus, Users, UserPlus, Check, Loader2, Shirt } from 'lucide-react';
 import { toast } from 'sonner';
 import { useSquadSelectionQueries, useSquadSelectionMutations, Player, SquadPlayer } from '../hooks';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 interface Team {
   id: string;
@@ -25,6 +26,7 @@ interface Team {
 function AdminSquadSelectionContent() {
   const { matchId } = useParams();
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const queryClient = useQueryClient();
 
   // Use extracted hooks
@@ -301,7 +303,7 @@ function AdminSquadSelectionContent() {
       <main className="container mx-auto px-4 py-8 flex-1">
         <Button
           variant="ghost"
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate(orgPath('admin'))}
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

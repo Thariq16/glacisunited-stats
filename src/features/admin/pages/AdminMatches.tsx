@@ -39,6 +39,7 @@ import {
 import { Plus, Edit, Trash2, Calendar, ArrowLeft, Play, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { useOrgPath } from '@/hooks/useOrgPath';
 
 interface Match {
   id: string;
@@ -56,6 +57,7 @@ interface Match {
 
 function AdminMatchesContent() {
   const navigate = useNavigate();
+  const orgPath = useOrgPath();
   const queryClient = useQueryClient();
   const [editMatch, setEditMatch] = useState<Match | null>(null);
   const [deleteMatch, setDeleteMatch] = useState<Match | null>(null);
@@ -271,7 +273,7 @@ function AdminMatchesContent() {
       <main className="container mx-auto px-4 py-8 flex-1">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate(orgPath('admin'))}>
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -283,7 +285,7 @@ function AdminMatchesContent() {
               <p className="text-muted-foreground text-sm">View, edit, and delete matches</p>
             </div>
           </div>
-          <Button onClick={() => navigate('/admin/new-match')}>
+          <Button onClick={() => navigate(orgPath('admin/new-match'))}>
             <Plus className="h-4 w-4 mr-2" />
             New Match
           </Button>
