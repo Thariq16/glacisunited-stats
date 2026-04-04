@@ -124,7 +124,7 @@ function useSeasonAnalytics(seasonId: string | undefined, primaryTeamId: string 
 
       (playerStats || []).forEach((ps: any) => {
         const p = ps.player;
-        if (!p || p.team_id !== GLACIS_TEAM_ID) return;
+        if (!p || p.team_id !== primaryTeamId) return;
         const key = ps.player_id;
         if (!playerAgg[key]) {
           playerAgg[key] = {
