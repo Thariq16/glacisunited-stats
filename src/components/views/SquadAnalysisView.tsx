@@ -53,6 +53,7 @@ interface SquadAnalysisViewProps {
     opponentTeamId?: string;
     teamPassEvents?: PassEvent[];
     matchFilter?: string;
+    teamSlug?: string;
 }
 
 export function SquadAnalysisView({
