@@ -5,8 +5,6 @@ import { useSeasons } from '@/hooks/useSeasons';
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
-import { format } from 'date-fns';
-import { Calendar } from 'lucide-react';
 
 interface MatchFilterSelectProps {
   value: string;
