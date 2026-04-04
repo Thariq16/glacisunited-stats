@@ -1,11 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Users, Home, Calendar, Shield, UserCog, Upload, FileUp, LogOut, LogIn, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { useOrgPath } from "@/hooks/useOrgPath";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 
 export function Footer() {
-  const { isAdmin, user, signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { isOrgAdmin } = useOrganization();
+  const orgPath = useOrgPath();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -15,17 +19,17 @@ export function Footer() {
   };
 
   const navLinks = [
-    { to: '/', label: t('nav.home'), icon: Home },
-    { to: '/matches', label: t('nav.matches'), icon: Calendar },
-    { to: '/seasons', label: t('nav.seasons'), icon: Trophy },
-    { to: '/opposition-players', label: t('nav.oppositionPlayers'), icon: Users },
+    { to: orgPath(''), label: t('nav.home'), icon: Home },
+    { to: orgPath('matches'), label: t('nav.matches'), icon: Calendar },
+    { to: orgPath('seasons'), label: t('nav.seasons'), icon: Trophy },
+    { to: orgPath('opposition-players'), label: t('nav.oppositionPlayers'), icon: Users },
   ];
 
   const adminLinks = [
-    { to: '/admin', label: 'Admin Dashboard', icon: Shield },
-    { to: '/admin/players', label: 'Player Management', icon: UserCog },
-    { to: '/admin/upload', label: 'Data Import', icon: Upload },
-    { to: '/admin/match-upload', label: 'Match Upload', icon: FileUp },
+    { to: orgPath('admin'), label: 'Admin Dashboard', icon: Shield },
+    { to: orgPath('admin/players'), label: 'Player Management', icon: UserCog },
+    { to: orgPath('admin/upload'), label: 'Data Import', icon: Upload },
+    { to: orgPath('admin/match-upload'), label: 'Match Upload', icon: FileUp },
   ];
 
   return (
@@ -46,7 +50,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {isAdmin && (
+          {isOrgAdmin && (
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">{t('footer.admin')}</h4>
               <ul className="space-y-2">
@@ -62,7 +66,7 @@ export function Footer() {
             </div>
           )}
 
-          <div className={isAdmin ? '' : 'md:col-start-3'}>
+          <div className={isOrgAdmin ? '' : 'md:col-start-3'}>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">{t('footer.account')}</h4>
             {user ? (
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground px-0">
@@ -70,7 +74,7 @@ export function Footer() {
                 {t('footer.logOut')}
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={() => navigate('/auth')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground px-0">
+              <Button variant="ghost" size="sm" onClick={() => navigate(orgPath('auth'))} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground px-0">
                 <LogIn className="h-3.5 w-3.5" />
                 {t('footer.logIn')}
               </Button>
