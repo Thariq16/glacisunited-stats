@@ -171,7 +171,7 @@ function AdminMatchesContent() {
   };
 
   const handleContinueCapture = (matchId: string) => {
-    navigate(orgPath(`admin/match-events/${matchId}`);
+    navigate(orgPath(`admin/match-events/${matchId}`));
   };
 
   const getStatusBadge = (status: string) => {
