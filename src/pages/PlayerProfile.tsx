@@ -35,6 +35,8 @@ import { calculateAdvancedMetrics, calculateTacticalProfile, analyzePositioning 
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from 'date-fns';
 import { PlayerProfileView } from "@/components/views/PlayerProfileView";
+import { PlayerSummaryView } from "@/components/views/PlayerSummaryView";
+import { usePlayerTouches } from "@/hooks/usePlayerTouches";
 
 export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
@@ -100,6 +102,12 @@ export default function PlayerProfile() {
   );
 
   const { data: defensiveEvents } = usePlayerDefensiveEvents(
+    teamId,
+    playerName ? decodeURIComponent(playerName) : undefined,
+    matchIdsForXG
+  );
+
+  const { data: touches } = usePlayerTouches(
     teamId,
     playerName ? decodeURIComponent(playerName) : undefined,
     matchIdsForXG
@@ -277,12 +285,21 @@ export default function PlayerProfile() {
             </CardContent>
           </Card>
         ) : (
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+          <Tabs defaultValue="summary" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
+              <TabsTrigger value="summary">Summary</TabsTrigger>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="trends">Trends</TabsTrigger>
               <TabsTrigger value="analysis">Tactical & Advanced</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="summary" className="space-y-6">
+              <PlayerSummaryView
+                player={player}
+                touches={touches || []}
+                matchesCount={matchIdsForXG?.length || 1}
+              />
+            </TabsContent>
 
             <TabsContent value="overview" className="space-y-6">
               {/* Hero Stats Banner */}
