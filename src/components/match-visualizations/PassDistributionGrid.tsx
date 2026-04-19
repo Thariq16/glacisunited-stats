@@ -5,16 +5,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePassDistribution } from "@/hooks/usePassDistribution";
 
 interface PassDistributionGridProps {
-  matchId: string;
+  matchId?: string;
+  matchIds?: string[];
   teamId: string | undefined;
   teamName: string;
 }
 
 type HalfFilter = "all" | "first" | "second";
 
-export function PassDistributionGrid({ matchId, teamId, teamName }: PassDistributionGridProps) {
+export function PassDistributionGrid({ matchId, matchIds, teamId, teamName }: PassDistributionGridProps) {
   const [half, setHalf] = useState<HalfFilter>("all");
-  const { data, isLoading } = usePassDistribution(matchId, teamId);
+  const idsArg = matchIds && matchIds.length > 0 ? matchIds : matchId;
+  const { data, isLoading } = usePassDistribution(idsArg, teamId);
+  const isAggregated = !!matchIds && matchIds.length > 1;
 
   const view = useMemo(() => {
     if (!data) return null;
@@ -64,8 +67,11 @@ export function PassDistributionGrid({ matchId, teamId, teamName }: PassDistribu
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <CardTitle>Possession – Passes Distribution</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">{teamName} · {grandTotal} successful passes</p>
+            <CardTitle>Possession – Passes Distribution{isAggregated ? ' (Aggregated)' : ''}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              {teamName} · {grandTotal} successful passes
+              {isAggregated ? ` · ${matchIds!.length} matches combined` : ''}
+            </p>
           </div>
           <Tabs value={half} onValueChange={(v) => setHalf(v as HalfFilter)}>
             <TabsList>
