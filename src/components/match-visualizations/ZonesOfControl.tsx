@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ZonesOfControlData, ZoneCell } from "@/hooks/useMatchVisualizationData";
 
 interface ZonesOfControlProps {
@@ -62,16 +62,13 @@ export function ZonesOfControl({ zones, homeTeamName, awayTeamName }: ZonesOfCon
               A team owns a zone when they have more than {Math.round(threshold * 100)}% of touches in it.
             </p>
           </div>
-          <ToggleGroup
-            type="single"
-            value={halfFilter}
-            onValueChange={(v) => v && setHalfFilter(v as HalfFilter)}
-            size="sm"
-          >
-            <ToggleGroupItem value="all" className="text-xs px-3">Full Match</ToggleGroupItem>
-            <ToggleGroupItem value="first" className="text-xs px-3">1st Half</ToggleGroupItem>
-            <ToggleGroupItem value="second" className="text-xs px-3">2nd Half</ToggleGroupItem>
-          </ToggleGroup>
+          <Tabs value={halfFilter} onValueChange={(v) => setHalfFilter(v as HalfFilter)}>
+            <TabsList>
+              <TabsTrigger value="all">Full Match</TabsTrigger>
+              <TabsTrigger value="first">1st Half</TabsTrigger>
+              <TabsTrigger value="second">2nd Half</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </CardHeader>
       <CardContent>
