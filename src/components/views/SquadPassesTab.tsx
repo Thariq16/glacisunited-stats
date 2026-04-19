@@ -438,7 +438,7 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug }: SquadPass
         <PassDistributionGrid
           matchIds={data.sortedMatches.map((m: any) => m.id)}
           teamId={data.teamId}
-          teamName={`${data.teamName || 'Team'} · ${data.sortedMatches.length} matches`}
+          teamName={`Aggregated · ${data.sortedMatches.length} matches`}
         />
       ) : (
         data.sortedMatches.map((m: any) => {
