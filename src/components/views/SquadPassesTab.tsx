@@ -433,19 +433,27 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug }: SquadPass
         </div>
       </div>
 
-      {/* Pass Distribution Grid(s) — per match */}
-      {data.sortedMatches.map((m: any) => {
-        const info = data.matchMap.get(m.id);
-        const label = info?.label || 'Match';
-        return (
-          <PassDistributionGrid
-            key={m.id}
-            matchId={m.id}
-            teamId={data.teamId}
-            teamName={label}
-          />
-        );
-      })}
+      {/* Pass Distribution Grid: aggregated for multi-match, per-match for single */}
+      {data.sortedMatches.length > 1 ? (
+        <PassDistributionGrid
+          matchIds={data.sortedMatches.map((m: any) => m.id)}
+          teamId={data.teamId}
+          teamName={`Aggregated · ${data.sortedMatches.length} matches`}
+        />
+      ) : (
+        data.sortedMatches.map((m: any) => {
+          const info = data.matchMap.get(m.id);
+          const label = info?.label || 'Match';
+          return (
+            <PassDistributionGrid
+              key={m.id}
+              matchId={m.id}
+              teamId={data.teamId}
+              teamName={label}
+            />
+          );
+        })
+      )}
 
 
       <Card>

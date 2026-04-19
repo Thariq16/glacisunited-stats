@@ -24,37 +24,52 @@ export interface PassDistributionData {
 
 const PASS_EVENTS = ['pass', 'penalty_area_pass', 'cross', 'throw_in', 'cut_back', 'long_ball', 'through_ball', 'key_pass', 'assist'];
 
+/**
+ * Fetch pass distribution for one or more matches.
+ * Pass `matchIds` for aggregated mode (all matches combined into one grid),
+ * or pass a single `matchId` for per-match mode.
+ */
 export function usePassDistribution(
-  matchId: string | undefined,
+  matchIdOrIds: string | string[] | undefined,
   teamId: string | undefined,
 ) {
+  const ids = Array.isArray(matchIdOrIds)
+    ? matchIdOrIds
+    : matchIdOrIds
+      ? [matchIdOrIds]
+      : [];
+  const key = ids.join(',');
+
   return useQuery<PassDistributionData>({
-    queryKey: ['pass-distribution', matchId, teamId],
-    enabled: !!matchId && !!teamId,
+    queryKey: ['pass-distribution', key, teamId],
+    enabled: ids.length > 0 && !!teamId,
     queryFn: async () => {
-      // Fetch all team players (squad-aware: include any player who logged an event for this team)
       const PAGE = 1000;
-      let offset = 0;
       let all: any[] = [];
-      while (true) {
-        const { data, error } = await supabase
-          .from('match_events')
-          .select(`
-            id, event_type, half, successful, x, y, end_x, end_y,
-            player_id, target_player_id,
-            player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id),
-            target:players!match_events_target_player_id_fkey(id, name, jersey_number, role, team_id)
-          `)
-          .eq('match_id', matchId!)
-          .range(offset, offset + PAGE - 1);
-        if (error) throw error;
-        if (!data || data.length === 0) break;
-        all = all.concat(data);
-        if (data.length < PAGE) break;
-        offset += PAGE;
+
+      // Fetch events for each match (paginated)
+      for (const mid of ids) {
+        let offset = 0;
+        while (true) {
+          const { data, error } = await supabase
+            .from('match_events')
+            .select(`
+              id, event_type, half, successful, x, y, end_x, end_y,
+              player_id, target_player_id,
+              player:players!match_events_player_id_fkey(id, name, jersey_number, role, team_id),
+              target:players!match_events_target_player_id_fkey(id, name, jersey_number, role, team_id)
+            `)
+            .eq('match_id', mid)
+            .range(offset, offset + PAGE - 1);
+          if (error) throw error;
+          if (!data || data.length === 0) break;
+          all = all.concat(data);
+          if (data.length < PAGE) break;
+          offset += PAGE;
+        }
       }
 
-      // Collect roster from team
+      // Collect roster from team across all matches
       const roster = new Map<string, PassGridPlayer>();
       all.forEach((e) => {
         if (e.player && e.player.team_id === teamId) {
@@ -67,7 +82,6 @@ export function usePassDistribution(
         }
       });
 
-      // Order players by role (GK, defenders, midfielders, forwards) then jersey
       const roleOrder = (r: string | null) => {
         const x = (r || '').toUpperCase();
         if (x.includes('GK')) return 0;
@@ -101,7 +115,6 @@ export function usePassDistribution(
           if (!filter(e)) return;
           const fromIdx = idxMap.get(e.player_id);
           if (fromIdx == null) return;
-          // Track avg position
           if (e.x != null && e.y != null) {
             posSums[fromIdx].sx += Number(e.x);
             posSums[fromIdx].sy += Number(e.y);
