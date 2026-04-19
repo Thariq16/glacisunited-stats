@@ -52,6 +52,23 @@ export interface TeamEventStats {
   incompletePass: number;
 }
 
+export interface ZoneCell {
+  home: number;
+  away: number;
+  total: number;
+  homeShare: number;
+  awayShare: number;
+}
+
+export interface ZonesOfControlData {
+  rows: number;
+  cols: number;
+  threshold: number;
+  all: ZoneCell[][];
+  firstHalf: ZoneCell[][];
+  secondHalf: ZoneCell[][];
+}
+
 const createEmptyTeamEventStats = (): TeamEventStats => ({
   cornerSuccess: 0,
   cornerFailed: 0,
