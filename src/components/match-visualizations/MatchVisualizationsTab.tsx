@@ -4,6 +4,7 @@ import { AttackingPhasesSection } from "./AttackingPhasesSection";
 import { TeamPassesByThirdChart } from "./TeamPassesByThirdChart";
 import { MatchEventStatsChart } from "./MatchEventStatsChart";
 import { TeamGoalMouthMap } from "./TeamGoalMouthMap";
+import { ZonesOfControl } from "./ZonesOfControl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MatchVisualizationsTabProps {
@@ -65,6 +66,15 @@ export function MatchVisualizationsTab({
         awayTeamName={awayTeamName}
         home={data.matchEventStats.home}
         away={data.matchEventStats.away}
+      />
+
+      {/* Zones of Control */}
+      <ZonesOfControl
+        matchId={matchId}
+        homeTeamId={homeTeamId}
+        awayTeamId={awayTeamId}
+        homeTeamName={homeTeamName}
+        awayTeamName={awayTeamName}
       />
 
       {/* Goal Mouth Maps */}
