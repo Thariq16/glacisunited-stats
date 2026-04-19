@@ -66,11 +66,11 @@ export function PlayerSummaryView({
     : 0;
 
   const radarData = [
-    { category: "SCORING", value: profile.attacking },
-    { category: "CREATIVITY", value: profile.passing },
-    { category: "PASSING", value: profile.workRate },
-    { category: "DEFENDING", value: profile.defending },
-    { category: "PHYSICAL", value: profile.discipline },
+    { category: "SCORING", value: profile.attackingThreat },
+    { category: "CREATIVITY", value: profile.setpieceAbility },
+    { category: "PASSING", value: profile.passingQuality },
+    { category: "DEFENDING", value: profile.defensiveStrength },
+    { category: "PHYSICAL", value: profile.workRate },
   ];
 
   return (
