@@ -433,7 +433,21 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug }: SquadPass
         </div>
       </div>
 
-      {/* Summary Table */}
+      {/* Pass Distribution Grid(s) — per match */}
+      {data.sortedMatches.map((m: any) => {
+        const info = data.matchMap.get(m.id);
+        const label = info?.label || 'Match';
+        return (
+          <PassDistributionGrid
+            key={m.id}
+            matchId={m.id}
+            teamId={data.teamId}
+            teamName={label}
+          />
+        );
+      })}
+
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
