@@ -81,6 +81,7 @@ export function generateMatchReport(data: MatchReportData) {
     competition, venue, homePlayers, awayPlayers, xgStats,
     setPieceData, opponentSetPieceData, matchEventStats,
     homePassesByThird, awayPassesByThird, shots, homeTeamId, awayTeamId,
+    zonesOfControl,
   } = data;
 
   const home = aggregateTeam(homePlayers);
