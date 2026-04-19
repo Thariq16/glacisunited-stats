@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface ZonesOfControlProps {
   matchId: string;
@@ -10,7 +11,6 @@ interface ZonesOfControlProps {
   awayTeamId: string | undefined;
   homeTeamName: string;
   awayTeamName: string;
-  homeAttacksLeft?: boolean;
 }
 
 const COLS = 6;
@@ -25,6 +25,15 @@ interface ZoneData {
   awayShare: number;
 }
 
+type HalfFilter = "all" | "1" | "2";
+
+function getInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
 export function ZonesOfControl({
   matchId,
   homeTeamId,
@@ -32,6 +41,8 @@ export function ZonesOfControl({
   homeTeamName,
   awayTeamName,
 }: ZonesOfControlProps) {
+  const [halfFilter, setHalfFilter] = useState<HalfFilter>("all");
+
   const { data: touches, isLoading } = useQuery({
     queryKey: ["zones-of-control", matchId],
     queryFn: async () => {
@@ -42,7 +53,7 @@ export function ZonesOfControl({
       while (hasMore) {
         const { data, error } = await supabase
           .from("match_events")
-          .select("x, y, player:players!match_events_player_id_fkey(team_id)")
+          .select("x, y, half, player:players!match_events_player_id_fkey(team_id)")
           .eq("match_id", matchId)
           .range(offset, offset + PAGE_SIZE - 1);
         if (error) throw error;
@@ -65,6 +76,7 @@ export function ZonesOfControl({
 
     touches.forEach((t: any) => {
       if (t.x == null || t.y == null) return;
+      if (halfFilter !== "all" && String(t.half) !== halfFilter) return;
       const teamId = t.player?.team_id;
       const col = Math.min(COLS - 1, Math.floor((t.x / 100) * COLS));
       const row = Math.min(ROWS - 1, Math.floor((t.y / 100) * ROWS));
@@ -81,7 +93,7 @@ export function ZonesOfControl({
       })
     );
     return grid;
-  }, [touches, homeTeamId, awayTeamId]);
+  }, [touches, homeTeamId, awayTeamId, halfFilter]);
 
   const width = 600;
   const height = 400;
@@ -89,12 +101,14 @@ export function ZonesOfControl({
   const cellH = height / ROWS;
 
   const homeColor = "hsl(var(--primary))";
-  const awayColor = "hsl(0 75% 65%)";
+  const awayColor = "hsl(0 75% 60%)";
 
-  const getCellFill = (cell: ZoneData) => {
+  const homeInitials = getInitials(homeTeamName);
+  const awayInitials = getInitials(awayTeamName);
+
+  const getCellInfo = (cell: ZoneData) => {
     if (cell.total === 0) return { fill: "hsl(var(--muted))", opacity: 0.15, owner: "none" as const };
     if (cell.homeShare >= THRESHOLD) {
-      // intensity scales from threshold to 1
       const intensity = 0.4 + ((cell.homeShare - THRESHOLD) / (1 - THRESHOLD)) * 0.55;
       return { fill: homeColor, opacity: intensity, owner: "home" as const };
     }
@@ -121,10 +135,24 @@ export function ZonesOfControl({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Zones of Control</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          A team owns a zone when they have more than {Math.round(THRESHOLD * 100)}% of touches in it.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardTitle>Zones of Control</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              A team owns a zone when they have more than {Math.round(THRESHOLD * 100)}% of touches in it.
+            </p>
+          </div>
+          <ToggleGroup
+            type="single"
+            value={halfFilter}
+            onValueChange={(v) => v && setHalfFilter(v as HalfFilter)}
+            size="sm"
+          >
+            <ToggleGroupItem value="all" className="text-xs px-3">Full Match</ToggleGroupItem>
+            <ToggleGroupItem value="1" className="text-xs px-3">1st Half</ToggleGroupItem>
+            <ToggleGroupItem value="2" className="text-xs px-3">2nd Half</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="w-full overflow-x-auto flex justify-center">
@@ -137,7 +165,9 @@ export function ZonesOfControl({
               {/* Grid cells */}
               {zones.map((row, r) =>
                 row.map((cell, c) => {
-                  const { fill, opacity, owner } = getCellFill(cell);
+                  const { fill, opacity, owner } = getCellInfo(cell);
+                  const cx = c * cellW + cellW / 2;
+                  const cy = r * cellH + cellH / 2;
                   return (
                     <g key={`${r}-${c}`}>
                       <rect
@@ -151,21 +181,54 @@ export function ZonesOfControl({
                         strokeWidth="1"
                         strokeDasharray="3,3"
                       />
-                      {cell.total > 0 && (
+                      {/* Team logo badge for owned zones */}
+                      {(owner === "home" || owner === "away") && (
+                        <g>
+                          <circle
+                            cx={cx}
+                            cy={cy - 6}
+                            r="14"
+                            fill="hsl(var(--card))"
+                            stroke={owner === "home" ? homeColor : awayColor}
+                            strokeWidth="2"
+                          />
+                          <text
+                            x={cx}
+                            y={cy - 6}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fontSize="10"
+                            fontWeight="700"
+                            fill={owner === "home" ? homeColor : awayColor}
+                          >
+                            {owner === "home" ? homeInitials : awayInitials}
+                          </text>
+                          <text
+                            x={cx}
+                            y={cy + 16}
+                            textAnchor="middle"
+                            fontSize="10"
+                            fontWeight="600"
+                            fill="hsl(var(--foreground))"
+                            opacity={0.85}
+                          >
+                            {owner === "home"
+                              ? `${Math.round(cell.homeShare * 100)}%`
+                              : `${Math.round(cell.awayShare * 100)}%`}
+                          </text>
+                        </g>
+                      )}
+                      {/* Contested / empty: show touch count only */}
+                      {(owner === "contested" || owner === "none") && cell.total > 0 && (
                         <text
-                          x={c * cellW + cellW / 2}
-                          y={r * cellH + cellH / 2 + 4}
+                          x={cx}
+                          y={cy + 4}
                           textAnchor="middle"
                           fontSize="11"
                           fontWeight="600"
-                          fill={owner === "none" ? "hsl(var(--muted-foreground))" : "hsl(var(--foreground))"}
-                          opacity={0.85}
+                          fill="hsl(var(--muted-foreground))"
                         >
-                          {owner === "home"
-                            ? `${Math.round(cell.homeShare * 100)}%`
-                            : owner === "away"
-                            ? `${Math.round(cell.awayShare * 100)}%`
-                            : `${cell.total}`}
+                          {cell.total}
                         </text>
                       )}
                     </g>
@@ -173,7 +236,7 @@ export function ZonesOfControl({
                 })
               )}
 
-              {/* Pitch overlay: outline, halfway, center circle, penalty areas */}
+              {/* Pitch overlay */}
               <rect x="0" y="0" width={width} height={height} fill="none" stroke="hsl(var(--foreground))" strokeWidth="2" opacity="0.4" />
               <line x1={width / 2} y1="0" x2={width / 2} y2={height} stroke="hsl(var(--foreground))" strokeWidth="1.5" opacity="0.4" />
               <circle cx={width / 2} cy={height / 2} r="50" fill="none" stroke="hsl(var(--foreground))" strokeWidth="1.5" opacity="0.4" />
