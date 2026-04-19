@@ -4,6 +4,7 @@ import { AttackingPhasesSection } from "./AttackingPhasesSection";
 import { TeamPassesByThirdChart } from "./TeamPassesByThirdChart";
 import { MatchEventStatsChart } from "./MatchEventStatsChart";
 import { TeamGoalMouthMap } from "./TeamGoalMouthMap";
+import { ZonesOfControl } from "./ZonesOfControl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MatchVisualizationsTabProps {
