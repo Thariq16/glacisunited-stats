@@ -129,6 +129,35 @@ export function generateMatchReport(data: MatchReportData) {
     sections.push({ heading: 'Match Event Comparison', html });
   }
 
+  // 2b. Zones of Control
+  if (zonesOfControl) {
+    const allHtml = buildZonesOfControlSvg(
+      zonesOfControl.all,
+      homeTeamName,
+      awayTeamName,
+      zonesOfControl.threshold,
+      'Full Match'
+    );
+    const firstHtml = buildZonesOfControlSvg(
+      zonesOfControl.firstHalf,
+      homeTeamName,
+      awayTeamName,
+      zonesOfControl.threshold,
+      '1st Half'
+    );
+    const secondHtml = buildZonesOfControlSvg(
+      zonesOfControl.secondHalf,
+      homeTeamName,
+      awayTeamName,
+      zonesOfControl.threshold,
+      '2nd Half'
+    );
+    sections.push({
+      heading: 'Zones of Control',
+      html: `${allHtml}<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px;">${firstHtml}${secondHtml}</div>`,
+    });
+  }
+
   // 3. Goal Mouth Maps
   if (shots && shots.length > 0) {
     const buildShotSection = (teamId: string | undefined, teamName: string) => {

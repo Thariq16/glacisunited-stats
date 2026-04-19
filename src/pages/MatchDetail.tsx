@@ -139,6 +139,7 @@ export default function MatchDetail() {
                 shots: vizData?.shots || null,
                 homeTeamId: homeTeam?.id,
                 awayTeamId: awayTeam?.id,
+                zonesOfControl: vizData?.zonesOfControl || null,
               })
             }
           />
