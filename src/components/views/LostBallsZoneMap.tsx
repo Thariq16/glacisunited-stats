@@ -11,8 +11,8 @@ interface LostBallsZoneMapProps {
   accent?: string;
 }
 
-const COLS = 6;   // along pitch length (x: 0-100)
-const ROWS = 3;   // across pitch width (y: 0-100)
+const COLS = 5;   // across pitch width (y: 0-100)
+const ROWS = 6;   // along pitch length (x: 0-100)
 
 /**
  * Vertical-pitch (W x H = 100 x 150) zone grid that renders:
