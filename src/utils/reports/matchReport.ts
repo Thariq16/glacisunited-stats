@@ -7,9 +7,10 @@ import {
   buildPassesByThirdSvg,
   buildHorizontalBarChart,
   buildStatGrid,
+  buildZonesOfControlSvg,
 } from './chartBuilders';
 import type { SetPieceAnalyticsData } from '@/hooks/useSetPieceAnalytics';
-import type { TeamEventStats, TeamPassesByThird } from '@/hooks/useMatchVisualizationData';
+import type { TeamEventStats, TeamPassesByThird, ZonesOfControlData } from '@/hooks/useMatchVisualizationData';
 
 interface MatchReportData {
   homeTeamName: string;
@@ -43,6 +44,7 @@ interface MatchReportData {
   }> | null;
   homeTeamId?: string;
   awayTeamId?: string;
+  zonesOfControl?: ZonesOfControlData | null;
 }
 
 function buildTeamStatsRow(label: string, home: string | number, away: string | number): string {
