@@ -37,6 +37,8 @@ import { format } from 'date-fns';
 import { PlayerProfileView } from "@/components/views/PlayerProfileView";
 import { PlayerSummaryView } from "@/components/views/PlayerSummaryView";
 import { usePlayerTouches } from "@/hooks/usePlayerTouches";
+import { usePlayerLostBalls } from "@/hooks/usePlayerLostBalls";
+import { LostBallsZoneMap } from "@/components/views/LostBallsZoneMap";
 
 export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
@@ -108,6 +110,12 @@ export default function PlayerProfile() {
   );
 
   const { data: touches } = usePlayerTouches(
+    teamId,
+    playerName ? decodeURIComponent(playerName) : undefined,
+    matchIdsForXG
+  );
+
+  const { data: lostBalls } = usePlayerLostBalls(
     teamId,
     playerName ? decodeURIComponent(playerName) : undefined,
     matchIdsForXG
@@ -501,6 +509,23 @@ export default function PlayerProfile() {
                   <DefensiveHeatmap events={defensiveEvents} />
                 )}
               </div>
+
+              {lostBalls && (lostBalls.from.length > 0 || lostBalls.to.length > 0) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <LostBallsZoneMap
+                    title="Lost Balls After Passes From"
+                    events={lostBalls.from}
+                    anchor="origin"
+                    accent="hsl(var(--foreground))"
+                  />
+                  <LostBallsZoneMap
+                    title="Lost Balls After Passes To"
+                    events={lostBalls.to}
+                    anchor="end"
+                    accent="hsl(var(--foreground))"
+                  />
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         )}
