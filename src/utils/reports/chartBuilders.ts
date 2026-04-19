@@ -447,3 +447,109 @@ export function buildStatGrid(
     .join('');
   return `<div class="stat-grid">${boxes}</div>`;
 }
+
+// ─── Zones of Control ────────────────────────────────────────────────────────
+
+interface ZocCell {
+  home: number;
+  away: number;
+  total: number;
+  homeShare: number;
+  awayShare: number;
+}
+
+function getZocInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+export function buildZonesOfControlSvg(
+  grid: ZocCell[][],
+  homeTeamName: string,
+  awayTeamName: string,
+  threshold = 0.55,
+  title?: string
+): string {
+  const rows = grid.length;
+  const cols = grid[0]?.length || 6;
+  const width = 600;
+  const height = 380;
+  const cellW = width / cols;
+  const cellH = height / rows;
+  const homeColor = '#3b82f6';
+  const awayColor = '#ef4444';
+  const homeInit = getZocInitials(homeTeamName);
+  const awayInit = getZocInitials(awayTeamName);
+
+  const cellsSvg = grid
+    .map((row, r) =>
+      row
+        .map((cell, c) => {
+          let fill = '#e5e7eb';
+          let opacity = 0.4;
+          let owner: 'home' | 'away' | 'contested' | 'none' = 'none';
+          if (cell.total === 0) {
+            owner = 'none';
+          } else if (cell.homeShare >= threshold) {
+            owner = 'home';
+            fill = homeColor;
+            opacity = 0.4 + ((cell.homeShare - threshold) / (1 - threshold)) * 0.55;
+          } else if (cell.awayShare >= threshold) {
+            owner = 'away';
+            fill = awayColor;
+            opacity = 0.4 + ((cell.awayShare - threshold) / (1 - threshold)) * 0.55;
+          } else {
+            owner = 'contested';
+            fill = '#94a3b8';
+            opacity = 0.3;
+          }
+          const cx = c * cellW + cellW / 2;
+          const cy = r * cellH + cellH / 2;
+          const rect = `<rect x="${c * cellW}" y="${r * cellH}" width="${cellW}" height="${cellH}" fill="${fill}" opacity="${opacity.toFixed(2)}" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>`;
+          let badge = '';
+          if (owner === 'home' || owner === 'away') {
+            const color = owner === 'home' ? homeColor : awayColor;
+            const init = owner === 'home' ? homeInit : awayInit;
+            const sharePct = Math.round((owner === 'home' ? cell.homeShare : cell.awayShare) * 100);
+            badge = `
+              <circle cx="${cx}" cy="${cy - 6}" r="14" fill="white" stroke="${color}" stroke-width="2"/>
+              <text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="10" font-weight="700" fill="${color}">${init}</text>
+              <text x="${cx}" y="${cy + 18}" text-anchor="middle" font-size="10" font-weight="600" fill="#1f2937">${sharePct}%</text>
+            `;
+          } else if (cell.total > 0) {
+            badge = `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="11" font-weight="600" fill="#475569">${cell.total}</text>`;
+          }
+          return rect + badge;
+        })
+        .join('')
+    )
+    .join('');
+
+  const pitch = `
+    <rect x="0" y="0" width="${width}" height="${height}" fill="none" stroke="#1f2937" stroke-width="2" opacity="0.4"/>
+    <line x1="${width / 2}" y1="0" x2="${width / 2}" y2="${height}" stroke="#1f2937" stroke-width="1.5" opacity="0.4"/>
+    <circle cx="${width / 2}" cy="${height / 2}" r="48" fill="none" stroke="#1f2937" stroke-width="1.5" opacity="0.4"/>
+    <rect x="0" y="${height * 0.2}" width="${width * 0.16}" height="${height * 0.6}" fill="none" stroke="#1f2937" stroke-width="1.5" opacity="0.4"/>
+    <rect x="${width * 0.84}" y="${height * 0.2}" width="${width * 0.16}" height="${height * 0.6}" fill="none" stroke="#1f2937" stroke-width="1.5" opacity="0.4"/>
+  `;
+
+  const legend = `
+    <div style="display:flex;gap:18px;justify-content:center;margin-top:10px;font-size:12px;">
+      <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;background:${homeColor};opacity:0.7;border-radius:3px;"></span>${homeTeamName}</div>
+      <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:14px;height:14px;background:${awayColor};opacity:0.7;border-radius:3px;"></span>${awayTeamName}</div>
+      <div style="display:flex;align-items:center;gap:6px;color:#64748b;"><span style="display:inline-block;width:14px;height:14px;background:#94a3b8;opacity:0.4;border-radius:3px;"></span>Contested</div>
+    </div>
+  `;
+
+  return `
+    ${title ? `<p style="font-weight:700;font-size:13px;margin-bottom:8px;">${title}</p>` : ''}
+    <p style="font-size:11px;color:#64748b;margin:0 0 8px 0;">A team owns a zone when they have more than ${Math.round(threshold * 100)}% of touches in it.</p>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" style="max-width:${width}px;background:#f8fafc;border-radius:6px;">
+      ${cellsSvg}
+      ${pitch}
+    </svg>
+    ${legend}
+  `;
+}

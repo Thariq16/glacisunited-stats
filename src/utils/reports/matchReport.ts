@@ -7,9 +7,10 @@ import {
   buildPassesByThirdSvg,
   buildHorizontalBarChart,
   buildStatGrid,
+  buildZonesOfControlSvg,
 } from './chartBuilders';
 import type { SetPieceAnalyticsData } from '@/hooks/useSetPieceAnalytics';
-import type { TeamEventStats, TeamPassesByThird } from '@/hooks/useMatchVisualizationData';
+import type { TeamEventStats, TeamPassesByThird, ZonesOfControlData } from '@/hooks/useMatchVisualizationData';
 
 interface MatchReportData {
   homeTeamName: string;
@@ -43,6 +44,7 @@ interface MatchReportData {
   }> | null;
   homeTeamId?: string;
   awayTeamId?: string;
+  zonesOfControl?: ZonesOfControlData | null;
 }
 
 function buildTeamStatsRow(label: string, home: string | number, away: string | number): string {
@@ -79,6 +81,7 @@ export function generateMatchReport(data: MatchReportData) {
     competition, venue, homePlayers, awayPlayers, xgStats,
     setPieceData, opponentSetPieceData, matchEventStats,
     homePassesByThird, awayPassesByThird, shots, homeTeamId, awayTeamId,
+    zonesOfControl,
   } = data;
 
   const home = aggregateTeam(homePlayers);
@@ -124,6 +127,35 @@ export function generateMatchReport(data: MatchReportData) {
       awayTeamName
     );
     sections.push({ heading: 'Match Event Comparison', html });
+  }
+
+  // 2b. Zones of Control
+  if (zonesOfControl) {
+    const allHtml = buildZonesOfControlSvg(
+      zonesOfControl.all,
+      homeTeamName,
+      awayTeamName,
+      zonesOfControl.threshold,
+      'Full Match'
+    );
+    const firstHtml = buildZonesOfControlSvg(
+      zonesOfControl.firstHalf,
+      homeTeamName,
+      awayTeamName,
+      zonesOfControl.threshold,
+      '1st Half'
+    );
+    const secondHtml = buildZonesOfControlSvg(
+      zonesOfControl.secondHalf,
+      homeTeamName,
+      awayTeamName,
+      zonesOfControl.threshold,
+      '2nd Half'
+    );
+    sections.push({
+      heading: 'Zones of Control',
+      html: `${allHtml}<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px;">${firstHtml}${secondHtml}</div>`,
+    });
   }
 
   // 3. Goal Mouth Maps
