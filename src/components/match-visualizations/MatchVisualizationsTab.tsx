@@ -5,6 +5,7 @@ import { TeamPassesByThirdChart } from "./TeamPassesByThirdChart";
 import { MatchEventStatsChart } from "./MatchEventStatsChart";
 import { TeamGoalMouthMap } from "./TeamGoalMouthMap";
 import { ZonesOfControl } from "./ZonesOfControl";
+import { PassDistributionGrid } from "./PassDistributionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MatchVisualizationsTabProps {
@@ -86,6 +87,10 @@ export function MatchVisualizationsTab({
         homeTeam={data.homePassesByThird}
         awayTeam={data.awayPassesByThird}
       />
+
+      {/* Pass Distribution Grids (per team) */}
+      <PassDistributionGrid matchId={matchId} teamId={homeTeamId} teamName={homeTeamName} />
+      <PassDistributionGrid matchId={matchId} teamId={awayTeamId} teamName={awayTeamName} />
 
       {/* Home Team Attacking Phases */}
       <AttackingPhasesSection
