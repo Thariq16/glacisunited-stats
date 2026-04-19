@@ -69,13 +69,13 @@ export function MatchVisualizationsTab({
       />
 
       {/* Zones of Control */}
-      <ZonesOfControl
-        matchId={matchId}
-        homeTeamId={homeTeamId}
-        awayTeamId={awayTeamId}
-        homeTeamName={homeTeamName}
-        awayTeamName={awayTeamName}
-      />
+      {data.zonesOfControl && (
+        <ZonesOfControl
+          zones={data.zonesOfControl}
+          homeTeamName={homeTeamName}
+          awayTeamName={awayTeamName}
+        />
+      )}
 
       {/* Goal Mouth Maps */}
       <TeamGoalMouthMap shots={homeShots} teamName={homeTeamName} />
