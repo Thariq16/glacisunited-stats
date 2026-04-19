@@ -461,8 +461,54 @@ export function useMatchVisualizationData(
         secondHalf: formatLaneStats(awayLaneStats.secondHalf),
       };
 
+      // Compute Zones of Control (6 cols x 5 rows)
+      const ZOC_COLS = 6;
+      const ZOC_ROWS = 5;
+      const ZOC_THRESHOLD = 0.55;
+      const makeZoneGrid = (): ZoneCell[][] =>
+        Array.from({ length: ZOC_ROWS }, () =>
+          Array.from({ length: ZOC_COLS }, () => ({ home: 0, away: 0, total: 0, homeShare: 0, awayShare: 0 }))
+        );
+      const zonesAll = makeZoneGrid();
+      const zonesFirst = makeZoneGrid();
+      const zonesSecond = makeZoneGrid();
+      allEvents.forEach((event: any) => {
+        if (event.x == null || event.y == null) return;
+        const teamId = event.player?.team_id;
+        if (teamId !== homeTeamId && teamId !== awayTeamId) return;
+        const col = Math.min(ZOC_COLS - 1, Math.floor((Number(event.x) / 100) * ZOC_COLS));
+        const row = Math.min(ZOC_ROWS - 1, Math.floor((Number(event.y) / 100) * ZOC_ROWS));
+        const isHomeT = teamId === homeTeamId;
+        const targets = [zonesAll];
+        if (event.half === 1) targets.push(zonesFirst);
+        else if (event.half === 2) targets.push(zonesSecond);
+        targets.forEach((g) => {
+          const c = g[row][col];
+          if (isHomeT) c.home++;
+          else c.away++;
+        });
+      });
+      [zonesAll, zonesFirst, zonesSecond].forEach((g) =>
+        g.forEach((r) =>
+          r.forEach((c) => {
+            c.total = c.home + c.away;
+            c.homeShare = c.total ? c.home / c.total : 0;
+            c.awayShare = c.total ? c.away / c.total : 0;
+          })
+        )
+      );
+      const zonesOfControl: ZonesOfControlData = {
+        rows: ZOC_ROWS,
+        cols: ZOC_COLS,
+        threshold: ZOC_THRESHOLD,
+        all: zonesAll,
+        firstHalf: zonesFirst,
+        secondHalf: zonesSecond,
+      };
+
       return {
         homePhases,
+        zonesOfControl,
         awayPhases,
         homePassesByThird: {
           teamName: homeTeamName,
