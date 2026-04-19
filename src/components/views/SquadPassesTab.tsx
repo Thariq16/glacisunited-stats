@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PassDistributionGrid } from "@/components/match-visualizations/PassDistributionGrid";
 
 const PASS_EVENT_TYPES = ['pass', 'key_pass', 'assist', 'cross', 'cutback', 'penalty_area_pass', 'throw_in', 'corner', 'free_kick', 'goal_kick', 'kick_off', 'goal_restart'];
 
@@ -432,7 +433,21 @@ export function SquadPassesTab({ focusTeamId, matchFilter, teamSlug }: SquadPass
         </div>
       </div>
 
-      {/* Summary Table */}
+      {/* Pass Distribution Grid(s) — per match */}
+      {data.sortedMatches.map((m: any) => {
+        const info = data.matchMap.get(m.id);
+        const label = info?.label || 'Match';
+        return (
+          <PassDistributionGrid
+            key={m.id}
+            matchId={m.id}
+            teamId={data.teamId}
+            teamName={label}
+          />
+        );
+      })}
+
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
