@@ -11,8 +11,8 @@ interface LostBallsZoneMapProps {
   accent?: string;
 }
 
-const COLS = 6;   // along pitch length (x: 0-100)
-const ROWS = 3;   // across pitch width (y: 0-100)
+const COLS = 5;   // across pitch width (y: 0-100)
+const ROWS = 6;   // along pitch length (x: 0-100)
 
 /**
  * Vertical-pitch (W x H = 100 x 150) zone grid that renders:
@@ -37,8 +37,8 @@ export function LostBallsZoneMap({ title, events, anchor, accent = 'hsl(var(--fo
     events.forEach((e) => {
       const ax = anchor === 'origin' ? e.x : e.endX;
       const ay = anchor === 'origin' ? e.y : e.endY;
-      const col = Math.min(COLS - 1, Math.max(0, Math.floor((ax / 100) * COLS)));
-      const row = Math.min(ROWS - 1, Math.max(0, Math.floor((ay / 100) * ROWS)));
+      const col = Math.min(COLS - 1, Math.max(0, Math.floor((ay / 100) * COLS)));
+      const row = Math.min(ROWS - 1, Math.max(0, Math.floor((ax / 100) * ROWS)));
       g[row][col] += 1;
     });
     let p = 0;
