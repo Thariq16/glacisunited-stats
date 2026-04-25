@@ -40,6 +40,7 @@ const AdminDataEntryStats = lazy(() => import("@/features/admin/pages/AdminDataE
 const AdminSeasons = lazy(() => import("@/features/admin/pages/AdminSeasons"));
 const AdminSettings = lazy(() => import("@/features/admin/pages/AdminSettings"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
+const Pricing = lazy(() => import("@/pages/Pricing"));
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
               {/* Root - org selector */}
               <Route path="/" element={<OrgSelector />} />
               <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
+              <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><Pricing /></Suspense>} />
 
               {/* Org-scoped routes */}
               <Route path="/org/:orgSlug" element={<OrgLayout />}>
