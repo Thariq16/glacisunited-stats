@@ -1,12 +1,13 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import { Footer } from "@/components/Footer";
 import { SquadAnalysisView } from "@/components/views/SquadAnalysisView";
 import { PlayerProfileView } from "@/components/views/PlayerProfileView";
 import { DEMO_SQUAD, DEMO_ATTACKING_PHASES, DEMO_PASS_DATA, DEMO_EVENTS, DEMO_MATCH_HISTORY, DEMO_SET_PIECE_DATA, DEMO_DEFENSIVE_EVENTS, DEMO_PLAYER_CORNER_STATS, DEMO_ATTACKING_THREAT, DEMO_LOST_POSSESSION, DEMO_OPPONENT_ATTACKING_THREAT } from "@/data/demo/mockData";
 import { Button } from "@/components/ui/button";
-import { Info, User, Users } from "lucide-react";
+import { Info, User, Users, ArrowRight } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -98,7 +99,21 @@ export default function DemoLanding() {
                     )}
                 </div>
 
-            </main>
+                {/* Pricing CTA */}
+                <Card className="mt-12 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
+                    <CardContent className="py-8 text-center">
+                        <h2 className="text-2xl font-bold mb-2">Ready to bring this to your team?</h2>
+                        <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
+                            Pick a package and start with a free month — 3 matches fully analyzed, no credit card required.
+                        </p>
+                        <Link to="/pricing">
+                            <Button size="lg" className="gap-2">
+                                See packages & pricing
+                                <ArrowRight className="h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </CardContent>
+                </Card>
             <Footer />
         </div>
     );
