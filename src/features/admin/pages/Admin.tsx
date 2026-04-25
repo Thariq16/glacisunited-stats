@@ -152,6 +152,21 @@ function AdminContent() {
           )}
 
           {isOrgAdmin && (
+            <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate(orgPath('admin/signups'))}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Inbox className="h-5 w-5" />
+                  Service Sign-ups
+                </CardTitle>
+                <CardDescription>View leads from the public pricing page and update their status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button variant="secondary" className="w-full">View Sign-ups</Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {isOrgAdmin && (
             <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate(orgPath('admin/settings'))}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
