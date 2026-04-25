@@ -4,7 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer, Trophy, Settings } from "lucide-react";
+import { Shield, Upload, Users, MessageSquare, MousePointer2, Calendar, Timer, Trophy, Settings, Inbox } from "lucide-react";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useOrgPath } from "@/hooks/useOrgPath";
 
