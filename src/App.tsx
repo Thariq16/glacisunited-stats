@@ -88,6 +88,7 @@ const App = () => (
                 <Route path="admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
                 <Route path="admin/seasons" element={<Suspense fallback={<PageLoader />}><AdminSeasons /></Suspense>} />
                 <Route path="admin/settings" element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
+                <Route path="admin/signups" element={<Suspense fallback={<PageLoader />}><AdminSignups /></Suspense>} />
               </Route>
 
               {/* Legacy redirects - redirect old routes to org selector */}
