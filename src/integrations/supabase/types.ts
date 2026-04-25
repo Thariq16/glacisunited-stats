@@ -702,6 +702,48 @@ export type Database = {
         }
         Relationships: []
       }
+      service_signups: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          message: string | null
+          package: string
+          phone: string | null
+          role: string | null
+          status: string
+          team_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          message?: string | null
+          package: string
+          phone?: string | null
+          role?: string | null
+          status?: string
+          team_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          message?: string | null
+          package?: string
+          phone?: string | null
+          role?: string | null
+          status?: string
+          team_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       teams: {
         Row: {
           created_at: string | null
