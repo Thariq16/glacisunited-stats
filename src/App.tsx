@@ -39,6 +39,7 @@ const AdminMatches = lazy(() => import("@/features/admin/pages/AdminMatches"));
 const AdminDataEntryStats = lazy(() => import("@/features/admin/pages/AdminDataEntryStats"));
 const AdminSeasons = lazy(() => import("@/features/admin/pages/AdminSeasons"));
 const AdminSettings = lazy(() => import("@/features/admin/pages/AdminSettings"));
+const AdminSignups = lazy(() => import("@/features/admin/pages/AdminSignups"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 
@@ -87,6 +88,7 @@ const App = () => (
                 <Route path="admin/data-entry-stats" element={<Suspense fallback={<PageLoader />}><AdminDataEntryStats /></Suspense>} />
                 <Route path="admin/seasons" element={<Suspense fallback={<PageLoader />}><AdminSeasons /></Suspense>} />
                 <Route path="admin/settings" element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
+                <Route path="admin/signups" element={<Suspense fallback={<PageLoader />}><AdminSignups /></Suspense>} />
               </Route>
 
               {/* Legacy redirects - redirect old routes to org selector */}
