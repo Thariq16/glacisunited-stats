@@ -114,6 +114,7 @@ export default function DemoLanding() {
                         </Link>
                     </CardContent>
                 </Card>
+            </main>
             <Footer />
         </div>
     );
