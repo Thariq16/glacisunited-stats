@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
+import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { PlayerProfileActions } from "@/components/PlayerProfileActions";
 import { supabase } from "@/integrations/supabase/client";
@@ -191,6 +192,7 @@ export default function PlayerProfile() {
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
@@ -584,5 +586,6 @@ export default function PlayerProfile() {
       </main >
       <Footer />
     </div >
+    </PageTransition>
   );
 }
