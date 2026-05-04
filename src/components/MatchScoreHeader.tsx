@@ -97,7 +97,7 @@ export function MatchScoreHeader({
     const awayXGPercent = totalXG > 0 ? (xgStats!.away.totalXG / totalXG) * 100 : 50;
 
     return (
-        <Card className="mb-8 overflow-hidden relative">
+        <Card className="mb-8 overflow-hidden relative animate-scale-up">
             {/* Gradient overlay based on result */}
             <div className={`absolute inset-0 bg-gradient-to-r ${getResultGradient(result)} pointer-events-none`} />
 
