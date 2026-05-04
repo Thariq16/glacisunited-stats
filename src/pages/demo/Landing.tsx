@@ -25,7 +25,7 @@ export default function DemoLanding() {
 
             <main className="container mx-auto px-4 py-8 flex-1">
                 {/* Demo Context Banner */}
-                <div className="mb-8">
+                <div className="mb-8 animate-fade-up">
                     <Alert className="bg-primary/10 border-primary/20">
                         <Info className="h-4 w-4 text-primary" />
                         <AlertTitle className="text-primary font-semibold">Demo Mode Active</AlertTitle>
@@ -37,7 +37,7 @@ export default function DemoLanding() {
                 </div>
 
                 {/* View Mode Toggle */}
-                <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 animate-fade-up-delay-1">
                     <div>
                         <h1 className="text-4xl font-bold text-foreground mb-2">Platform Interactive Demo</h1>
                         <p className="text-muted-foreground">Experience the detailed analytics provided to our partner clubs.</p>
