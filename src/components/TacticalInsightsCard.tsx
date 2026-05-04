@@ -20,7 +20,7 @@ function MiniStatCard({ icon: Icon, title, children, className = "" }: {
   className?: string;
 }) {
   return (
-    <Card className={`border bg-card/50 ${className}`}>
+    <Card className={`border bg-card/50 card-hover ${className}`}>
       <CardHeader className="pb-2 pt-4 px-4">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <Icon className="h-4 w-4 text-primary" />
