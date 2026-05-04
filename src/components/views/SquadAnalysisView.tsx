@@ -361,7 +361,7 @@ export function SquadAnalysisView({
                     </Card>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <Card>
+                        <Card className="chart-animate">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Target className="h-5 w-5 text-primary" />
