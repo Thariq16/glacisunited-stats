@@ -309,7 +309,7 @@ export function SquadAnalysisView({
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 stagger-children">
                             <div>
                                 <p className="text-sm text-muted-foreground mb-1">Active Players</p>
                                 <p className="text-2xl md:text-3xl font-bold">{squadStats.totalPlayers}</p>
