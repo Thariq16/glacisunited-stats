@@ -38,8 +38,8 @@ export function MatchQuickStats({
     const hasXG = xgStats && (xgStats.home.shotCount > 0 || xgStats.away.shotCount > 0);
 
     return (
-        <div className="mb-6">
-            <div className="flex flex-wrap items-center justify-center gap-3">
+        <div className="mb-6 animate-fade-up-delay-1">
+            <div className="flex flex-wrap items-center justify-center gap-3 stagger-children">
                 {/* Possession */}
                 <Badge variant="secondary" className="gap-2 py-2 px-4 text-sm">
                     <Users className="h-4 w-4" />
