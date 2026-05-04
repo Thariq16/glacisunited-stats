@@ -38,7 +38,7 @@ function StatRow({ label, homeValue, awayValue, maxValue, homeColor, awayColor }
                     <div className="w-8 text-xs text-right font-medium">{awayValue}</div>
                     <div className="flex-1 h-5 bg-muted rounded-sm overflow-hidden">
                         <div
-                            className="h-full rounded-sm transition-all duration-500"
+                            className="h-full rounded-sm transition-all duration-700 animate-progress-fill"
                             style={{ width: getWidth(awayValue), backgroundColor: awayColor }}
                         />
                     </div>
