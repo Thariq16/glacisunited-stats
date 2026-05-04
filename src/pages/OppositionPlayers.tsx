@@ -19,6 +19,7 @@ export default function OppositionPlayers() {
   const { data: oppositionTeams, isLoading } = useOppositionTeams(teamSlug, matchFilter, scopedTeamIds);
   
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
@@ -107,5 +108,6 @@ export default function OppositionPlayers() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

@@ -343,6 +343,7 @@ export default function SquadAnalysis() {
   const { t } = useTranslation();
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
@@ -384,5 +385,6 @@ export default function SquadAnalysis() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

@@ -69,6 +69,7 @@ export default function PlayerComparison() {
   );
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
@@ -288,5 +289,6 @@ export default function PlayerComparison() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }
