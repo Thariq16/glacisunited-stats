@@ -136,7 +136,7 @@ interface StatsCardProps {
 
 function StatsCard({ title, icon, homeTeam, awayTeam, children }: StatsCardProps) {
     return (
-        <Card>
+        <Card className="card-hover">
             <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-lg">
                     {icon}

@@ -76,7 +76,7 @@ export default function Players() {
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 flex-1">
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-up">
           <div className="flex items-center gap-3 mb-2">
             <Users className="h-8 w-8 text-primary" />
             <h1 className="text-4xl font-bold text-foreground">{pageTitle}</h1>
@@ -110,7 +110,7 @@ export default function Players() {
         ) : activePlayers.length > 0 ? (
           <>
             {viewMode === 'cards' ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
                 {activePlayers.map(player => (
                   <EnhancedPlayerCard 
                     key={`${player.jerseyNumber}-${player.playerName}`}

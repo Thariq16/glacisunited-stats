@@ -23,7 +23,7 @@ export function MatchCard({ match }: MatchCardProps) {
 
   return (
     <Card 
-      className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary"
+      className="cursor-pointer card-hover hover:border-primary hover-glow"
       onClick={() => navigate(orgPath(`match/${match.id}`))}
     >
       <CardContent className="p-6">

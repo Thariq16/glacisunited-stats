@@ -25,7 +25,7 @@ export function Navbar() {
   const displayName = currentOrg?.name || "Football Stats";
 
   return (
-    <nav className="border-b bg-card">
+    <nav className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <NavLink to={orgPath("")} className="flex items-center gap-2">

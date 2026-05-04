@@ -24,7 +24,7 @@ export default function Matches() {
       ))}
     </div>
   ) : (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-2 stagger-children">
       {matches?.map((match) => (
         <MatchCard key={match.id} match={match} />
       ))}
@@ -35,7 +35,7 @@ export default function Matches() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1">
-        <div className="mb-8">
+        <div className="mb-8 animate-fade-up">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-8 w-8 text-primary" />
             <h1 className="text-4xl font-bold text-foreground">{t("matches.title")}</h1>

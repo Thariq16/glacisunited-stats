@@ -20,7 +20,7 @@ export function PlayerCard({ player, teamId }: PlayerCardProps) {
 
   return (
     <Card 
-      className="hover:shadow-lg transition-all cursor-pointer hover:border-primary"
+      className="cursor-pointer card-hover hover:border-primary hover-glow"
       onClick={handleClick}
     >
       <CardHeader>

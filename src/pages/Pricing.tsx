@@ -84,14 +84,14 @@ export default function Pricing() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 pt-16 pb-12 text-center">
-        <Badge variant="secondary" className="mb-4">
+        <Badge variant="secondary" className="mb-4 animate-fade-up">
           <Sparkles className="mr-1.5 h-3 w-3" />
           1 month free · No credit card required
         </Badge>
-        <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight md:text-5xl">
+        <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight md:text-5xl animate-fade-up-delay-1">
           Professional video analysis for your team
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground animate-fade-up-delay-2">
           Manual match tagging by an experienced analyst, delivered as coach-ready dashboards
           and player profiles. Pick the level of depth your team needs.
         </p>
@@ -99,7 +99,7 @@ export default function Pricing() {
 
       {/* Packages */}
       <section className="container mx-auto px-4 pb-16">
-        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 stagger-children">
           {packages.map((pkg) => (
             <Card
               key={pkg.id}
