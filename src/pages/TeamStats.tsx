@@ -87,6 +87,7 @@ export default function TeamStats() {
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
@@ -187,5 +188,6 @@ export default function TeamStats() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

@@ -573,6 +573,7 @@ export default function Seasons() {
   const currentExpanded = expandedId ?? activeSeasonId;
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1">
@@ -639,5 +640,6 @@ export default function Seasons() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }
