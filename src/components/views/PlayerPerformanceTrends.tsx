@@ -138,6 +138,7 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
             </CardContent>
           </Card>
         </div>
+        </ScrollReveal>
       )}
 
       {category === 'passing' && (
