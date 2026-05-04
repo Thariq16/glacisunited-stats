@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Navbar } from "@/components/Navbar";
+import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { PlayerCard } from "@/components/PlayerCard";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";
@@ -18,6 +19,7 @@ export default function OppositionPlayers() {
   const { data: oppositionTeams, isLoading } = useOppositionTeams(teamSlug, matchFilter, scopedTeamIds);
   
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
@@ -106,5 +108,6 @@ export default function OppositionPlayers() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

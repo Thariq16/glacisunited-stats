@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { useSeasons, useSeasonMatches, Season } from "@/hooks/useSeasons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -572,6 +573,7 @@ export default function Seasons() {
   const currentExpanded = expandedId ?? activeSeasonId;
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1">
@@ -638,5 +640,6 @@ export default function Seasons() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

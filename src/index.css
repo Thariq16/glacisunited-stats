@@ -248,3 +248,72 @@ All colors MUST be HSL.
   40% { transform: translateY(-3px); }
   60% { transform: translateY(-1px); }
 }
+
+/* SVG / Chart animations */
+@keyframes drawLine {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes dotPop {
+  0% { r: 0; opacity: 0; }
+  60% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+@keyframes barGrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes fillReveal {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.chart-animate .recharts-line-curve {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawLine 1.5s ease-out forwards;
+}
+
+.chart-animate .recharts-bar-rectangle {
+  transform-origin: bottom;
+  animation: barGrow 0.6s ease-out both;
+}
+
+.chart-animate .recharts-bar-rectangle:nth-child(1) { animation-delay: 0.05s; }
+.chart-animate .recharts-bar-rectangle:nth-child(2) { animation-delay: 0.1s; }
+.chart-animate .recharts-bar-rectangle:nth-child(3) { animation-delay: 0.15s; }
+.chart-animate .recharts-bar-rectangle:nth-child(4) { animation-delay: 0.2s; }
+.chart-animate .recharts-bar-rectangle:nth-child(5) { animation-delay: 0.25s; }
+.chart-animate .recharts-bar-rectangle:nth-child(6) { animation-delay: 0.3s; }
+.chart-animate .recharts-bar-rectangle:nth-child(7) { animation-delay: 0.35s; }
+.chart-animate .recharts-bar-rectangle:nth-child(8) { animation-delay: 0.4s; }
+
+.chart-animate .recharts-radar-polygon {
+  animation: fillReveal 0.8s ease-out both 0.2s;
+}
+
+.chart-animate .recharts-dot {
+  animation: dotPop 0.4s ease-out both;
+}
+
+.svg-animate circle[data-dot] {
+  animation: dotPop 0.3s ease-out both;
+}
+
+.svg-animate line[data-edge] {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawLine 0.8s ease-out forwards;
+}
+
+/* Progress bar fill animation */
+.animate-progress-fill {
+  animation: progressFill 1s ease-out both;
+}
+
+@keyframes progressFill {
+  from { width: 0; }
+}

@@ -9,6 +9,7 @@ import {
 import { TrendingUp, Target, Shield, Activity } from "lucide-react";
 import { PlayerMatchTrendPoint } from "@/hooks/usePlayerMatchTrends";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 interface PlayerPerformanceTrendsProps {
   data: PlayerMatchTrendPoint[];
@@ -97,7 +98,8 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
       </Tabs>
 
       {category === 'attacking' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ScrollReveal animation="fade-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 chart-animate">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Goals & xG per Match</CardTitle>
@@ -136,10 +138,12 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
             </CardContent>
           </Card>
         </div>
+        </ScrollReveal>
       )}
 
       {category === 'passing' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ScrollReveal animation="fade-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 chart-animate">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Pass Accuracy Trend</CardTitle>
@@ -178,10 +182,12 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
             </CardContent>
           </Card>
         </div>
+        </ScrollReveal>
       )}
 
       {category === 'defensive' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ScrollReveal animation="fade-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 chart-animate">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Tackles & Clearances</CardTitle>
@@ -221,6 +227,7 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
             </CardContent>
           </Card>
         </div>
+        </ScrollReveal>
       )}
     </div>
   );

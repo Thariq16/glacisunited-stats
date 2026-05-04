@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
+import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { PlayerProfileActions } from "@/components/PlayerProfileActions";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +40,7 @@ import { PlayerSummaryView } from "@/components/views/PlayerSummaryView";
 import { usePlayerTouches } from "@/hooks/usePlayerTouches";
 import { usePlayerLostBalls } from "@/hooks/usePlayerLostBalls";
 import { LostBallsZoneMap } from "@/components/views/LostBallsZoneMap";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
@@ -191,6 +193,7 @@ export default function PlayerProfile() {
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
 
@@ -311,7 +314,8 @@ export default function PlayerProfile() {
 
             <TabsContent value="overview" className="space-y-6">
               {/* Hero Stats Banner */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              <ScrollReveal animation="fade-up">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 stagger-children">
                 {[
                   { label: 'Minutes', value: player.minutesPlayed, accent: false },
                   { label: 'Goals', value: player.goals, accent: true },
@@ -330,6 +334,7 @@ export default function PlayerProfile() {
                   </div>
                 ))}
               </div>
+              </ScrollReveal>
 
               {/* Secondary quick stats */}
               <div className="flex flex-wrap gap-3 justify-center">
@@ -471,6 +476,7 @@ export default function PlayerProfile() {
               </Card>
 
               {/* Efficiency Metrics & Shot Map side by side */}
+              <ScrollReveal animation="fade-up">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {advancedMetrics && (
                   <PlayerEfficiencyMetrics metrics={advancedMetrics} />
@@ -479,6 +485,7 @@ export default function PlayerProfile() {
                   <PlayerShotMap shots={playerShots} />
                 )}
               </div>
+              </ScrollReveal>
             </TabsContent>
 
 
@@ -495,12 +502,15 @@ export default function PlayerProfile() {
               )}
 
               {advancedStats && (
+              <ScrollReveal animation="fade-up">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <AttackingThreatMap stats={advancedStats.attackingThreat.all} />
                   {passData && <PlayerPassThirdMap passData={passData} />}
                 </div>
+              </ScrollReveal>
               )}
 
+              <ScrollReveal animation="scale">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {advancedStats && (
                   <LostPossessionHeatmap events={advancedStats.possessionLossEvents} />
@@ -509,6 +519,7 @@ export default function PlayerProfile() {
                   <DefensiveHeatmap events={defensiveEvents} />
                 )}
               </div>
+              </ScrollReveal>
 
               {lostBalls && (lostBalls.from.length > 0 || lostBalls.to.length > 0) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -584,5 +595,6 @@ export default function PlayerProfile() {
       </main >
       <Footer />
     </div >
+    </PageTransition>
   );
 }

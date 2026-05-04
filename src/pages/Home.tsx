@@ -1,3 +1,4 @@
+import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export default function Home() {
   const { t } = useTranslation();
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
@@ -56,5 +58,6 @@ export default function Home() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

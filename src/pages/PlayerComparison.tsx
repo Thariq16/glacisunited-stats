@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Navbar } from "@/components/Navbar";
+import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -68,6 +69,7 @@ export default function PlayerComparison() {
   );
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
@@ -287,5 +289,6 @@ export default function PlayerComparison() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

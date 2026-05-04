@@ -1,3 +1,4 @@
+import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { MatchCard } from "@/components/MatchCard";
@@ -32,6 +33,7 @@ export default function Matches() {
   );
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <main className="container mx-auto px-4 py-8 flex-1">
@@ -62,5 +64,6 @@ export default function Matches() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

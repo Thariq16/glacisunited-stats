@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { EnhancedPlayerCard } from "@/components/EnhancedPlayerCard";
@@ -72,6 +73,7 @@ export default function Players() {
   }
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
@@ -173,5 +175,6 @@ export default function Players() {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 }

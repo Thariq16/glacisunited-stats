@@ -7,6 +7,7 @@ import { TeamGoalMouthMap } from "./TeamGoalMouthMap";
 import { ZonesOfControl } from "./ZonesOfControl";
 import { PassDistributionGrid } from "./PassDistributionGrid";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 interface MatchVisualizationsTabProps {
   matchId: string;
@@ -61,50 +62,61 @@ export function MatchVisualizationsTab({
 
   return (
     <div className="space-y-6">
-      {/* Match Event Stats Chart */}
-      <MatchEventStatsChart
-        homeTeamName={homeTeamName}
-        awayTeamName={awayTeamName}
-        home={data.matchEventStats.home}
-        away={data.matchEventStats.away}
-      />
-
-      {/* Zones of Control */}
-      {data.zonesOfControl && (
-        <ZonesOfControl
-          zones={data.zonesOfControl}
+      <ScrollReveal animation="fade-up">
+        <MatchEventStatsChart
           homeTeamName={homeTeamName}
           awayTeamName={awayTeamName}
+          home={data.matchEventStats.home}
+          away={data.matchEventStats.away}
         />
+      </ScrollReveal>
+
+      {data.zonesOfControl && (
+        <ScrollReveal animation="scale">
+          <ZonesOfControl
+            zones={data.zonesOfControl}
+            homeTeamName={homeTeamName}
+            awayTeamName={awayTeamName}
+          />
+        </ScrollReveal>
       )}
 
-      {/* Goal Mouth Maps */}
-      <TeamGoalMouthMap shots={homeShots} teamName={homeTeamName} />
-      <TeamGoalMouthMap shots={awayShots} teamName={awayTeamName} />
+      <ScrollReveal animation="fade-left">
+        <TeamGoalMouthMap shots={homeShots} teamName={homeTeamName} />
+      </ScrollReveal>
+      <ScrollReveal animation="fade-right">
+        <TeamGoalMouthMap shots={awayShots} teamName={awayTeamName} />
+      </ScrollReveal>
 
-      {/* Passes by Third Chart */}
-      <TeamPassesByThirdChart
-        homeTeam={data.homePassesByThird}
-        awayTeam={data.awayPassesByThird}
-      />
+      <ScrollReveal animation="fade-up">
+        <TeamPassesByThirdChart
+          homeTeam={data.homePassesByThird}
+          awayTeam={data.awayPassesByThird}
+        />
+      </ScrollReveal>
 
-      {/* Pass Distribution Grids (per team) */}
-      <PassDistributionGrid matchId={matchId} teamId={homeTeamId} teamName={homeTeamName} />
-      <PassDistributionGrid matchId={matchId} teamId={awayTeamId} teamName={awayTeamName} />
+      <ScrollReveal animation="fade-up" delay={100}>
+        <PassDistributionGrid matchId={matchId} teamId={homeTeamId} teamName={homeTeamName} />
+      </ScrollReveal>
+      <ScrollReveal animation="fade-up" delay={100}>
+        <PassDistributionGrid matchId={matchId} teamId={awayTeamId} teamName={awayTeamName} />
+      </ScrollReveal>
 
-      {/* Home Team Attacking Phases */}
-      <AttackingPhasesSection
-        teamName={homeTeamName}
-        phases={data.homePhases}
-        isHomeTeam={true}
-      />
+      <ScrollReveal animation="fade-up">
+        <AttackingPhasesSection
+          teamName={homeTeamName}
+          phases={data.homePhases}
+          isHomeTeam={true}
+        />
+      </ScrollReveal>
 
-      {/* Away Team Attacking Phases */}
-      <AttackingPhasesSection
-        teamName={awayTeamName}
-        phases={data.awayPhases}
-        isHomeTeam={false}
-      />
+      <ScrollReveal animation="fade-up">
+        <AttackingPhasesSection
+          teamName={awayTeamName}
+          phases={data.awayPhases}
+          isHomeTeam={false}
+        />
+      </ScrollReveal>
     </div>
   );
 }

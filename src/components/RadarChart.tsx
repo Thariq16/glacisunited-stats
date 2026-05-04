@@ -55,7 +55,7 @@ const CustomDot = (props: any) => {
 
 export function RadarChart({ data, title }: RadarChartProps) {
   return (
-    <div className="w-full">
+    <div className="w-full chart-animate">
       {title && <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>}
       <ResponsiveContainer width="100%" height={320}>
         <RechartsRadar data={data}>

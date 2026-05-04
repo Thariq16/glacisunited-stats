@@ -309,7 +309,7 @@ export function SquadAnalysisView({
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 stagger-children">
                             <div>
                                 <p className="text-sm text-muted-foreground mb-1">Active Players</p>
                                 <p className="text-2xl md:text-3xl font-bold">{squadStats.totalPlayers}</p>
@@ -361,7 +361,7 @@ export function SquadAnalysisView({
                     </Card>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <Card>
+                        <Card className="chart-animate">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
                                     <Target className="h-5 w-5 text-primary" />

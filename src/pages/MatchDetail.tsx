@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -105,6 +106,7 @@ export default function MatchDetail() {
 
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background">
       <Navbar />
 
@@ -279,5 +281,6 @@ export default function MatchDetail() {
         </Dialog>
       </main>
     </div>
+    </PageTransition>
   );
 }
