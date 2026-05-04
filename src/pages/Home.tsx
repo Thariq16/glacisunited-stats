@@ -24,15 +24,15 @@ export default function Home() {
       
       <main className="container mx-auto px-4 py-12 flex-1">
         <div className="max-w-4xl mx-auto text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 animate-fade-up">
             {currentOrg?.name || t("home.title")}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground animate-fade-up-delay-1">
             {t("home.subtitle")}
           </p>
         </div>
 
-        <div className="mb-12">
+        <div className="mb-12 animate-fade-up-delay-2">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-foreground">{t("home.recentMatches")}</h2>
             <Button variant="outline" onClick={() => navigate(orgPath('matches'))}>
@@ -46,7 +46,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-4 stagger-children">
               {matches?.slice(0, 2).map(match => (
                 <MatchCard key={match.id} match={match} />
               ))}
