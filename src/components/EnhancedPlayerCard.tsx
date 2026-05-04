@@ -55,7 +55,7 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <Card className="hover:shadow-lg transition-all cursor-pointer hover:border-primary group overflow-hidden">
+        <Card className="card-hover cursor-pointer hover:border-primary hover-glow group overflow-hidden">
           {/* Header: Jersey + Name + Role */}
           <div className="flex items-center gap-3 px-4 pt-4 pb-2">
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm">
