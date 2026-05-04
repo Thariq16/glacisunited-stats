@@ -334,6 +334,7 @@ export default function PlayerProfile() {
                   </div>
                 ))}
               </div>
+              </ScrollReveal>
 
               {/* Secondary quick stats */}
               <div className="flex flex-wrap gap-3 justify-center">
