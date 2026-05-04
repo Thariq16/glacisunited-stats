@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { useSeasons, useSeasonMatches, Season } from "@/hooks/useSeasons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

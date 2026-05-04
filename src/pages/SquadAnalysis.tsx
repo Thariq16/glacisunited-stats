@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Navbar } from "@/components/Navbar";
+import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { usePlayerStats, MatchFilter, useAllMatches } from "@/hooks/usePlayerStats";
 import { MatchFilterSelect } from "@/components/MatchFilterSelect";

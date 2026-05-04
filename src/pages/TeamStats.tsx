@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import { PageTransition } from "@/components/PageTransition";
 import { Footer } from "@/components/Footer";
 import { StatCard } from "@/components/StatCard";
 import { PlayerCard } from "@/components/PlayerCard";
