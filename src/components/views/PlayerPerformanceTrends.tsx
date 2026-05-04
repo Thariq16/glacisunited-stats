@@ -142,7 +142,8 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
       )}
 
       {category === 'passing' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ScrollReveal animation="fade-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 chart-animate">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Pass Accuracy Trend</CardTitle>
@@ -181,10 +182,12 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
             </CardContent>
           </Card>
         </div>
+        </ScrollReveal>
       )}
 
       {category === 'defensive' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ScrollReveal animation="fade-up">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 chart-animate">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Tackles & Clearances</CardTitle>
@@ -224,6 +227,7 @@ export function PlayerPerformanceTrends({ data, isLoading }: PlayerPerformanceTr
             </CardContent>
           </Card>
         </div>
+        </ScrollReveal>
       )}
     </div>
   );
