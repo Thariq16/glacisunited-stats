@@ -1,0 +1,15 @@
+# FootyMetrics
+
+> Football match analysis platform: manual event tagging by experienced analysts delivered as coach-ready dashboards, player profiles and squad analytics for clubs and academies.
+
+FootyMetrics turns match video into structured insight. Each match is tagged event-by-event (passes, shots with xG, defensive actions, set pieces, attacking phases) and presented through dashboards built for two audiences: coaches who need tactical breakdowns, and players who want to track their own development.
+
+## Pages
+
+- [Home](/): Organization selector and entry point for client clubs.
+- [Demo](/demo): Interactive demo with simulated data showing the Coach View (squad analysis, attacking phases, set pieces) and Player View (player profile with shot maps, pass maps, performance trends).
+- [Pricing](/pricing): Two packages — Team Essentials ($25/match) for core stats and reports, and Pro Analytics ($100/match) for full event tagging, xG, attacking phases, season dashboards and player comparison. Both include a 1-month free trial (3 matches).
+
+## Optional
+
+- Per-club workspaces live under `/org/:orgSlug` and are private to authenticated members of each organization.

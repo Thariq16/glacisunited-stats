@@ -82,6 +82,7 @@ export default function Pricing() {
         </div>
       </header>
 
+      <main>
       {/* Hero */}
       <section className="container mx-auto px-4 pt-16 pb-12 text-center">
         <Badge variant="secondary" className="mb-4 animate-fade-up">
@@ -153,6 +154,7 @@ export default function Pricing() {
           </p>
         </div>
       </section>
+      </main>
 
       <SignupDialog
         open={selected !== null}
