@@ -154,6 +154,7 @@ export default function Pricing() {
           </p>
         </div>
       </section>
+      </main>
 
       <SignupDialog
         open={selected !== null}
