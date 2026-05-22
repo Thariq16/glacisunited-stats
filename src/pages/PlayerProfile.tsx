@@ -506,7 +506,7 @@ export default function PlayerProfile() {
             </TabsContent>
 
 
-            <TabsContent value="trends" className="space-y-6">
+            <TabsContent value="trends" className="space-y-6" forceMount>
               <div data-shareable data-share-title="Performance Trends">
                 <PlayerPerformanceTrends
                   data={trendData || []}
