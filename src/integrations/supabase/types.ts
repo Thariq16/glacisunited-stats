@@ -902,6 +902,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_org_owner_membership: {
+        Args: { _organization_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          organization_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "organization_members"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       get_org_role: {
         Args: { _org_id: string; _user_id: string }
         Returns: string
