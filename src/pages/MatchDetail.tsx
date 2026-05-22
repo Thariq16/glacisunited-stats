@@ -280,19 +280,7 @@ export default function MatchDetail() {
             </TabsContent>
           )}
 
-          <TabsContent value="visualizations">
-            <div className="flex justify-end mb-4">
-              <BulkShareDialog
-                containerRef={vizContainerRef}
-                subject={`${homeTeam?.name || 'Home'} vs ${awayTeam?.name || 'Away'}`}
-                subtitle={[
-                  match.competition,
-                  formatDate(new Date(match.match_date), 'd MMM yyyy'),
-                ].filter(Boolean).join(' · ')}
-                fileNamePrefix={`match-${match.match_date}`}
-                buttonLabel="Share visualizations"
-              />
-            </div>
+          <TabsContent value="visualizations" forceMount>
             <div ref={vizContainerRef}>
               <MatchVisualizationsTab
                 matchId={matchId!}
