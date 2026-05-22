@@ -272,6 +272,13 @@ export default function PlayerProfile() {
                   })
                 }
               />
+              <BulkShareDialog
+                containerRef={shareRef}
+                subject={`${player.playerName} — ${team.name}`}
+                subtitle={`${team.name} · #${player.jerseyNumber}${player.role ? ` · ${player.role}` : ''}`}
+                fileNamePrefix={`player-${player.playerName.toLowerCase().replace(/\s+/g, '-')}`}
+                buttonLabel="Share"
+              />
               {teamId && playerName && (
                 <PlayerProfileActions
                   playerName={decodeURIComponent(playerName)}
