@@ -39,7 +39,7 @@ export function useMatchStory(matchId: string | undefined, audience: StoryAudien
     mutationFn: async () => {
       if (!matchId) throw new Error('No match');
       const { data, error } = await supabase.functions.invoke('draft-story', {
-        body: { matchId, audience },
+        body: { matchId, audience, primaryTeamId },
       });
       if (error) throw error;
       return data as { content: StoryContent };
