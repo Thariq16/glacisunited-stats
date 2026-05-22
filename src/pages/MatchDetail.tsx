@@ -214,6 +214,7 @@ export default function MatchDetail() {
         />
 
         {/* Tabs for match detail views */}
+        <div ref={vizContainerRef}>
         <Tabs defaultValue="stats" className="space-y-6">
           <TabsList className={`grid w-full ${canViewNotes ? 'grid-cols-5' : 'grid-cols-4'} lg:w-auto lg:inline-flex`}>
             <TabsTrigger value="stats" className="gap-2">
