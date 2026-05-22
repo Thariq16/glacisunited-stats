@@ -281,13 +281,27 @@ export default function MatchDetail() {
           )}
 
           <TabsContent value="visualizations">
-            <MatchVisualizationsTab
-              matchId={matchId!}
-              homeTeamId={homeTeam?.id}
-              awayTeamId={awayTeam?.id}
-              homeTeamName={homeTeam?.name || 'Home Team'}
-              awayTeamName={awayTeam?.name || 'Away Team'}
-            />
+            <div className="flex justify-end mb-4">
+              <BulkShareDialog
+                containerRef={vizContainerRef}
+                subject={`${homeTeam?.name || 'Home'} vs ${awayTeam?.name || 'Away'}`}
+                subtitle={[
+                  match.competition,
+                  formatDate(new Date(match.match_date), 'd MMM yyyy'),
+                ].filter(Boolean).join(' · ')}
+                fileNamePrefix={`match-${match.match_date}`}
+                buttonLabel="Share visualizations"
+              />
+            </div>
+            <div ref={vizContainerRef}>
+              <MatchVisualizationsTab
+                matchId={matchId!}
+                homeTeamId={homeTeam?.id}
+                awayTeamId={awayTeam?.id}
+                homeTeamName={homeTeam?.name || 'Home Team'}
+                awayTeamName={awayTeam?.name || 'Away Team'}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="story">
