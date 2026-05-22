@@ -315,12 +315,14 @@ export default function PlayerProfile() {
               <TabsTrigger value="analysis">Tactical & Advanced</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="summary" className="space-y-6">
-              <PlayerSummaryView
-                player={player}
-                touches={touches || []}
-                matchesCount={matchIdsForXG?.length || 1}
-              />
+            <TabsContent value="summary" className="space-y-6" forceMount>
+              <div data-shareable data-share-title="Player Summary">
+                <PlayerSummaryView
+                  player={player}
+                  touches={touches || []}
+                  matchesCount={matchIdsForXG?.length || 1}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="overview" className="space-y-6">
