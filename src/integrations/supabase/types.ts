@@ -744,6 +744,106 @@ export type Database = {
         }
         Relationships: []
       }
+      stories: {
+        Row: {
+          audience: string
+          created_at: string
+          created_by: string
+          current_version_id: string | null
+          id: string
+          kind: string
+          organization_id: string
+          published_at: string | null
+          share_caption: string | null
+          stats_hash: string | null
+          status: string
+          subject_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          created_by: string
+          current_version_id?: string | null
+          id?: string
+          kind: string
+          organization_id: string
+          published_at?: string | null
+          share_caption?: string | null
+          stats_hash?: string | null
+          status?: string
+          subject_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          created_by?: string
+          current_version_id?: string | null
+          id?: string
+          kind?: string
+          organization_id?: string
+          published_at?: string | null
+          share_caption?: string | null
+          stats_hash?: string | null
+          status?: string
+          subject_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stories_current_version_fk"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "story_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      story_versions: {
+        Row: {
+          content: Json
+          created_at: string
+          edited_by: string
+          id: string
+          note: string | null
+          source: string
+          story_id: string
+          version_number: number
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          edited_by: string
+          id?: string
+          note?: string | null
+          source?: string
+          story_id: string
+          version_number: number
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          edited_by?: string
+          id?: string
+          note?: string | null
+          source?: string
+          story_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_versions_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string | null
@@ -817,6 +917,10 @@ export type Database = {
       is_coach: { Args: { _user_id: string }; Returns: boolean }
       is_glacis_coach: { Args: { _user_id: string }; Returns: boolean }
       is_org_admin: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_org_editor: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }

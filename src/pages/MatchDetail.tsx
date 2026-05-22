@@ -28,6 +28,9 @@ import { SetPieceAnalyticsTab } from "@/components/set-piece-analytics";
 import { useSetPieceAnalytics } from "@/hooks/useSetPieceAnalytics";
 import { useMatchVisualizationData } from "@/hooks/useMatchVisualizationData";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { ShareDialog } from "@/components/sharing/ShareDialog";
+import { MatchSummaryShareContent } from "@/components/sharing/MatchSummaryShareContent";
+import { format as formatDate } from "date-fns";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -145,6 +148,33 @@ export default function MatchDetail() {
               })
             }
           />
+          {(isAdmin || isCoach) && (
+            <ShareDialog
+              title={`${homeTeam?.name || 'Home'} ${match.home_score}–${match.away_score} ${awayTeam?.name || 'Away'}`}
+              subtitle={[
+                match.competition,
+                formatDate(new Date(match.match_date), 'd MMM yyyy'),
+                match.venue,
+              ].filter(Boolean).join(' · ')}
+              defaultCaption={
+                match.home_score > match.away_score
+                  ? `${homeTeam?.name} take the points at ${match.venue || 'home'}.`
+                  : match.home_score < match.away_score
+                  ? `${awayTeam?.name} win it on the road.`
+                  : `Honours even between ${homeTeam?.name} and ${awayTeam?.name}.`
+              }
+              fileNameBase={`match-${match.match_date}`}
+            >
+              <MatchSummaryShareContent
+                homeTeam={homeTeam?.name || 'Home'}
+                awayTeam={awayTeam?.name || 'Away'}
+                homeScore={match.home_score}
+                awayScore={match.away_score}
+                homeXG={xgStats?.home?.totalXG}
+                awayXG={xgStats?.away?.totalXG}
+              />
+            </ShareDialog>
+          )}
         </div>
 
         {/* Match Header */}
