@@ -91,11 +91,18 @@ export async function captureShareable(
   { title, subtitle, orgName, orgLogoUrl, accent = "#3b82f6" }: ExportOptions
 ): Promise<string> {
   // Force a light backdrop for the captured viz so dark + light mode both export legibly
-  const dataUrl = await toPng(node, {
-    cacheBust: true,
-    pixelRatio: 2,
-    backgroundColor: getComputedStyle(document.body).backgroundColor || "#ffffff",
-  });
+  // Pre-rasterize SVGs so arrowhead markers survive the snapshot
+  const restoreSvgs = await rasterizeSvgs(node);
+  let dataUrl: string;
+  try {
+    dataUrl = await toPng(node, {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: getComputedStyle(document.body).backgroundColor || "#ffffff",
+    });
+  } finally {
+    restoreSvgs();
+  }
   const viz = await loadImage(dataUrl);
 
   const PADDING = 56;
