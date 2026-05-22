@@ -490,10 +490,14 @@ export default function PlayerProfile() {
               <ScrollReveal animation="fade-up">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {advancedMetrics && (
-                  <PlayerEfficiencyMetrics metrics={advancedMetrics} />
+                  <div data-shareable data-share-title="Efficiency Metrics">
+                    <PlayerEfficiencyMetrics metrics={advancedMetrics} />
+                  </div>
                 )}
                 {playerShots && playerShots.length > 0 && (
-                  <PlayerShotMap shots={playerShots} />
+                  <div data-shareable data-share-title="Shot Map">
+                    <PlayerShotMap shots={playerShots} />
+                  </div>
                 )}
               </div>
               </ScrollReveal>
@@ -501,22 +505,32 @@ export default function PlayerProfile() {
 
 
             <TabsContent value="trends" className="space-y-6">
-              <PlayerPerformanceTrends
-                data={trendData || []}
-                isLoading={trendLoading}
-              />
+              <div data-shareable data-share-title="Performance Trends">
+                <PlayerPerformanceTrends
+                  data={trendData || []}
+                  isLoading={trendLoading}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="analysis" className="space-y-6">
               {passData && passData.passes.length > 0 && (
-                <DirectionalPassMap passes={passData.passes} title="Forward & Backward Pass Map" />
+                <div data-shareable data-share-title="Forward & Backward Pass Map">
+                  <DirectionalPassMap passes={passData.passes} title="Forward & Backward Pass Map" />
+                </div>
               )}
 
               {advancedStats && (
               <ScrollReveal animation="fade-up">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <AttackingThreatMap stats={advancedStats.attackingThreat.all} />
-                  {passData && <PlayerPassThirdMap passData={passData} />}
+                  <div data-shareable data-share-title="Attacking Threat Map">
+                    <AttackingThreatMap stats={advancedStats.attackingThreat.all} />
+                  </div>
+                  {passData && (
+                    <div data-shareable data-share-title="Passes by Third">
+                      <PlayerPassThirdMap passData={passData} />
+                    </div>
+                  )}
                 </div>
               </ScrollReveal>
               )}
@@ -524,28 +538,36 @@ export default function PlayerProfile() {
               <ScrollReveal animation="scale">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {advancedStats && (
-                  <LostPossessionHeatmap events={advancedStats.possessionLossEvents} />
+                  <div data-shareable data-share-title="Lost Possession Heatmap">
+                    <LostPossessionHeatmap events={advancedStats.possessionLossEvents} />
+                  </div>
                 )}
                 {defensiveEvents && defensiveEvents.length > 0 && (
-                  <DefensiveHeatmap events={defensiveEvents} />
+                  <div data-shareable data-share-title="Defensive Heatmap">
+                    <DefensiveHeatmap events={defensiveEvents} />
+                  </div>
                 )}
               </div>
               </ScrollReveal>
 
               {lostBalls && (lostBalls.from.length > 0 || lostBalls.to.length > 0) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <LostBallsZoneMap
-                    title="Lost Balls After Passes From"
-                    events={lostBalls.from}
-                    anchor="origin"
-                    accent="hsl(var(--foreground))"
-                  />
-                  <LostBallsZoneMap
-                    title="Lost Balls After Passes To"
-                    events={lostBalls.to}
-                    anchor="end"
-                    accent="hsl(var(--foreground))"
-                  />
+                  <div data-shareable data-share-title="Lost Balls After Passes From">
+                    <LostBallsZoneMap
+                      title="Lost Balls After Passes From"
+                      events={lostBalls.from}
+                      anchor="origin"
+                      accent="hsl(var(--foreground))"
+                    />
+                  </div>
+                  <div data-shareable data-share-title="Lost Balls After Passes To">
+                    <LostBallsZoneMap
+                      title="Lost Balls After Passes To"
+                      events={lostBalls.to}
+                      anchor="end"
+                      accent="hsl(var(--foreground))"
+                    />
+                  </div>
                 </div>
               )}
             </TabsContent>
