@@ -170,8 +170,8 @@ export default function MatchDetail() {
                 awayTeam={awayTeam?.name || 'Away'}
                 homeScore={match.home_score}
                 awayScore={match.away_score}
-                homeXG={xgStats?.home?.xg}
-                awayXG={xgStats?.away?.xg}
+                homeXG={xgStats?.home?.totalXG}
+                awayXG={xgStats?.away?.totalXG}
               />
             </ShareDialog>
           )}
