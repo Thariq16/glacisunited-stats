@@ -177,6 +177,16 @@ export default function MatchDetail() {
               awayXG={xgStats?.away?.totalXG}
             />
           </ShareDialog>
+          <BulkShareDialog
+            containerRef={vizContainerRef}
+            subject={`${homeTeam?.name || 'Home'} vs ${awayTeam?.name || 'Away'}`}
+            subtitle={[
+              match.competition,
+              formatDate(new Date(match.match_date), 'd MMM yyyy'),
+            ].filter(Boolean).join(' · ')}
+            fileNamePrefix={`match-${match.match_date}`}
+            buttonLabel="Share charts"
+          />
         </div>
 
         {/* Match Header */}
@@ -204,6 +214,7 @@ export default function MatchDetail() {
         />
 
         {/* Tabs for match detail views */}
+        <div ref={vizContainerRef}>
         <Tabs defaultValue="stats" className="space-y-6">
           <TabsList className={`grid w-full ${canViewNotes ? 'grid-cols-5' : 'grid-cols-4'} lg:w-auto lg:inline-flex`}>
             <TabsTrigger value="stats" className="gap-2">
@@ -280,19 +291,7 @@ export default function MatchDetail() {
             </TabsContent>
           )}
 
-          <TabsContent value="visualizations">
-            <div className="flex justify-end mb-4">
-              <BulkShareDialog
-                containerRef={vizContainerRef}
-                subject={`${homeTeam?.name || 'Home'} vs ${awayTeam?.name || 'Away'}`}
-                subtitle={[
-                  match.competition,
-                  formatDate(new Date(match.match_date), 'd MMM yyyy'),
-                ].filter(Boolean).join(' · ')}
-                fileNamePrefix={`match-${match.match_date}`}
-                buttonLabel="Share visualizations"
-              />
-            </div>
+          <TabsContent value="visualizations" forceMount>
             <div ref={vizContainerRef}>
               <MatchVisualizationsTab
                 matchId={matchId!}
@@ -316,6 +315,7 @@ export default function MatchDetail() {
             />
           </TabsContent>
         </Tabs>
+        </div>
 
         {/* Player Performance Modal */}
         <Dialog open={!!selectedTeam} onOpenChange={() => setSelectedTeam(null)}>

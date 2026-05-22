@@ -315,15 +315,17 @@ export default function PlayerProfile() {
               <TabsTrigger value="analysis">Tactical & Advanced</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="summary" className="space-y-6">
-              <PlayerSummaryView
-                player={player}
-                touches={touches || []}
-                matchesCount={matchIdsForXG?.length || 1}
-              />
+            <TabsContent value="summary" className="space-y-6" forceMount>
+              <div data-shareable data-share-title="Player Summary">
+                <PlayerSummaryView
+                  player={player}
+                  touches={touches || []}
+                  matchesCount={matchIdsForXG?.length || 1}
+                />
+              </div>
             </TabsContent>
 
-            <TabsContent value="overview" className="space-y-6">
+            <TabsContent value="overview" className="space-y-6" forceMount>
               {/* Hero Stats Banner */}
               <ScrollReveal animation="fade-up">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 stagger-children">
@@ -504,7 +506,7 @@ export default function PlayerProfile() {
             </TabsContent>
 
 
-            <TabsContent value="trends" className="space-y-6">
+            <TabsContent value="trends" className="space-y-6" forceMount>
               <div data-shareable data-share-title="Performance Trends">
                 <PlayerPerformanceTrends
                   data={trendData || []}
@@ -513,7 +515,7 @@ export default function PlayerProfile() {
               </div>
             </TabsContent>
 
-            <TabsContent value="analysis" className="space-y-6">
+            <TabsContent value="analysis" className="space-y-6" forceMount>
               {passData && passData.passes.length > 0 && (
                 <div data-shareable data-share-title="Forward & Backward Pass Map">
                   <DirectionalPassMap passes={passData.passes} title="Forward & Backward Pass Map" />

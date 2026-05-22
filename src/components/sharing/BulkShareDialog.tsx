@@ -57,20 +57,33 @@ export function BulkShareDialog({
     enabled: !!currentOrg?.id,
   });
 
-  // Scan for shareable elements whenever the dialog opens
+  // Scan for shareable elements whenever the dialog opens.
+  // We also flip a data attribute on the container so CSS un-hides
+  // inactive Radix tab panels (kept in DOM via forceMount) so they
+  // can be captured by html-to-image.
   useEffect(() => {
-    if (!open) return;
     const root = containerRef.current;
     if (!root) return;
-    const nodes = Array.from(root.querySelectorAll<HTMLElement>("[data-shareable]"));
-    const found: DiscoveredItem[] = nodes
-      .map((node, i) => {
-        const title = node.getAttribute("data-share-title") || `Visualization ${i + 1}`;
-        const id = node.getAttribute("data-share-id") || `viz-${i}-${slugify(title)}`;
-        return { id, title, node };
-      });
-    setItems(found);
-    setSelected(new Set(found.map((f) => f.id)));
+    if (open) {
+      root.setAttribute("data-share-mount", "");
+      root.setAttribute("data-share-active", "true");
+      // Allow a tick for layout to settle before scanning
+      const t = setTimeout(() => {
+        const nodes = Array.from(root.querySelectorAll<HTMLElement>("[data-shareable]"));
+        const found: DiscoveredItem[] = nodes.map((node, i) => {
+          const title = node.getAttribute("data-share-title") || `Visualization ${i + 1}`;
+          const id = node.getAttribute("data-share-id") || `viz-${i}-${slugify(title)}`;
+          return { id, title, node };
+        });
+        setItems(found);
+        setSelected(new Set(found.map((f) => f.id)));
+      }, 60);
+      return () => {
+        clearTimeout(t);
+      };
+    } else {
+      root.removeAttribute("data-share-active");
+    }
   }, [open, containerRef]);
 
   const orgName = currentOrg?.name || "FootyMetrics";
