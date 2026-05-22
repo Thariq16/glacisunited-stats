@@ -515,7 +515,7 @@ export default function PlayerProfile() {
               </div>
             </TabsContent>
 
-            <TabsContent value="analysis" className="space-y-6">
+            <TabsContent value="analysis" className="space-y-6" forceMount>
               {passData && passData.passes.length > 0 && (
                 <div data-shareable data-share-title="Forward & Backward Pass Map">
                   <DirectionalPassMap passes={passData.passes} title="Forward & Backward Pass Map" />
