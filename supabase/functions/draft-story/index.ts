@@ -7,6 +7,7 @@ import { createOpenAICompatible } from 'npm:@ai-sdk/openai-compatible@1';
 const BodySchema = z.object({
   matchId: z.string().uuid(),
   audience: z.enum(['coach', 'player', 'analyst']),
+  primaryTeamId: z.string().uuid().optional(),
 });
 
 const StorySchema = z.object({
