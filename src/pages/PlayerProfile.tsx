@@ -306,6 +306,7 @@ export default function PlayerProfile() {
             </CardContent>
           </Card>
         ) : (
+          <div ref={shareRef}>
           <Tabs defaultValue="summary" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="summary">Summary</TabsTrigger>
