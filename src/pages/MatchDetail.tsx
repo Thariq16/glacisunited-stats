@@ -315,6 +315,7 @@ export default function MatchDetail() {
             />
           </TabsContent>
         </Tabs>
+        </div>
 
         {/* Player Performance Modal */}
         <Dialog open={!!selectedTeam} onOpenChange={() => setSelectedTeam(null)}>
