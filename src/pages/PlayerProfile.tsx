@@ -325,7 +325,7 @@ export default function PlayerProfile() {
               </div>
             </TabsContent>
 
-            <TabsContent value="overview" className="space-y-6">
+            <TabsContent value="overview" className="space-y-6" forceMount>
               {/* Hero Stats Banner */}
               <ScrollReveal animation="fade-up">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 stagger-children">
