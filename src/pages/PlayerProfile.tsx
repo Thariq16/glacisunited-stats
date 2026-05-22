@@ -49,6 +49,7 @@ export default function PlayerProfile() {
   const navigate = useNavigate();
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('last1');
   const [playerProfile, setPlayerProfile] = useState<any>(null);
+  const shareRef = useRef<HTMLDivElement>(null);
 
   // Fetch extended player profile data
   useEffect(() => {
