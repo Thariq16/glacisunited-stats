@@ -550,6 +550,7 @@ export default function PlayerProfile() {
               )}
             </TabsContent>
           </Tabs>
+          </div>
         )}
 
         {/* Match-by-Match Performance Timeline */}
