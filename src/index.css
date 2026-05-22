@@ -317,3 +317,16 @@ All colors MUST be HSL.
 @keyframes progressFill {
   from { width: 0; }
 }
+
+/* Share-mode: when a share container is being scanned, keep inactive
+   Radix tab panels in the layout (off-screen) so they can be captured. */
+[data-share-mount][data-share-active="true"] [role="tabpanel"][hidden],
+[data-share-mount][data-share-active="true"] [role="tabpanel"][data-state="inactive"] {
+  display: block !important;
+  position: absolute !important;
+  left: -10000px !important;
+  top: 0 !important;
+  width: 1100px !important;
+  pointer-events: none !important;
+  opacity: 1 !important;
+}
