@@ -5,8 +5,9 @@ import { toast } from 'sonner';
 import { StoryAudience, StoryContent, StoryRow, StoryVersionRow } from './types';
 
 export function useMatchStory(matchId: string | undefined, audience: StoryAudience) {
-  const { currentOrg } = useOrganization();
+  const { currentOrg, primaryTeam } = useOrganization();
   const orgId = currentOrg?.id;
+  const primaryTeamId = primaryTeam?.id;
   const qc = useQueryClient();
 
   const storyQuery = useQuery({
