@@ -651,9 +651,15 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('Error importing match data:', error);
+    // Preserve Zod validation messages for the client; mask everything else
+    // (e.g. raw Postgres errors) behind a generic message to avoid leaking
+    // schema details, constraint names, or internal paths.
+    const isZod = error && typeof error === 'object' && (error as any).name === 'ZodError';
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'An error occurred'
+      JSON.stringify({
+        error: isZod
+          ? (error as any).message
+          : 'Import failed. Please check the uploaded files and try again.',
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
