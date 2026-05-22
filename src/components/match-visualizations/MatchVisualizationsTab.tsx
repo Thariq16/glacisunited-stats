@@ -63,59 +63,77 @@ export function MatchVisualizationsTab({
   return (
     <div className="space-y-6">
       <ScrollReveal animation="fade-up">
-        <MatchEventStatsChart
-          homeTeamName={homeTeamName}
-          awayTeamName={awayTeamName}
-          home={data.matchEventStats.home}
-          away={data.matchEventStats.away}
-        />
+        <div data-shareable data-share-title="Match Event Statistics">
+          <MatchEventStatsChart
+            homeTeamName={homeTeamName}
+            awayTeamName={awayTeamName}
+            home={data.matchEventStats.home}
+            away={data.matchEventStats.away}
+          />
+        </div>
       </ScrollReveal>
 
       {data.zonesOfControl && (
         <ScrollReveal animation="scale">
-          <ZonesOfControl
-            zones={data.zonesOfControl}
-            homeTeamName={homeTeamName}
-            awayTeamName={awayTeamName}
-          />
+          <div data-shareable data-share-title="Zones of Control">
+            <ZonesOfControl
+              zones={data.zonesOfControl}
+              homeTeamName={homeTeamName}
+              awayTeamName={awayTeamName}
+            />
+          </div>
         </ScrollReveal>
       )}
 
       <ScrollReveal animation="fade-left">
-        <TeamGoalMouthMap shots={homeShots} teamName={homeTeamName} />
+        <div data-shareable data-share-title={`Goal Mouth Map — ${homeTeamName}`}>
+          <TeamGoalMouthMap shots={homeShots} teamName={homeTeamName} />
+        </div>
       </ScrollReveal>
       <ScrollReveal animation="fade-right">
-        <TeamGoalMouthMap shots={awayShots} teamName={awayTeamName} />
+        <div data-shareable data-share-title={`Goal Mouth Map — ${awayTeamName}`}>
+          <TeamGoalMouthMap shots={awayShots} teamName={awayTeamName} />
+        </div>
       </ScrollReveal>
 
       <ScrollReveal animation="fade-up">
-        <TeamPassesByThirdChart
-          homeTeam={data.homePassesByThird}
-          awayTeam={data.awayPassesByThird}
-        />
+        <div data-shareable data-share-title="Passes by Third">
+          <TeamPassesByThirdChart
+            homeTeam={data.homePassesByThird}
+            awayTeam={data.awayPassesByThird}
+          />
+        </div>
       </ScrollReveal>
 
       <ScrollReveal animation="fade-up" delay={100}>
-        <PassDistributionGrid matchId={matchId} teamId={homeTeamId} teamName={homeTeamName} />
+        <div data-shareable data-share-title={`Pass Distribution — ${homeTeamName}`}>
+          <PassDistributionGrid matchId={matchId} teamId={homeTeamId} teamName={homeTeamName} />
+        </div>
       </ScrollReveal>
       <ScrollReveal animation="fade-up" delay={100}>
-        <PassDistributionGrid matchId={matchId} teamId={awayTeamId} teamName={awayTeamName} />
+        <div data-shareable data-share-title={`Pass Distribution — ${awayTeamName}`}>
+          <PassDistributionGrid matchId={matchId} teamId={awayTeamId} teamName={awayTeamName} />
+        </div>
       </ScrollReveal>
 
       <ScrollReveal animation="fade-up">
-        <AttackingPhasesSection
-          teamName={homeTeamName}
-          phases={data.homePhases}
-          isHomeTeam={true}
-        />
+        <div data-shareable data-share-title={`Attacking Phases — ${homeTeamName}`}>
+          <AttackingPhasesSection
+            teamName={homeTeamName}
+            phases={data.homePhases}
+            isHomeTeam={true}
+          />
+        </div>
       </ScrollReveal>
 
       <ScrollReveal animation="fade-up">
-        <AttackingPhasesSection
-          teamName={awayTeamName}
-          phases={data.awayPhases}
-          isHomeTeam={false}
-        />
+        <div data-shareable data-share-title={`Attacking Phases — ${awayTeamName}`}>
+          <AttackingPhasesSection
+            teamName={awayTeamName}
+            phases={data.awayPhases}
+            isHomeTeam={false}
+          />
+        </div>
       </ScrollReveal>
     </div>
   );
