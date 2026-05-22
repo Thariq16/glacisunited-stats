@@ -23,6 +23,66 @@ async function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 /**
+ * html-to-image (and html2canvas) frequently drops SVG <marker> elements
+ * (the arrowheads on pass / shot lines). To work around that we serialize
+ * every <svg> inside the node into a standalone data-URL image — the browser
+ * renders markers natively when an SVG is loaded as an <img>. After capture
+ * we restore the original SVGs.
+ */
+async function rasterizeSvgs(root: HTMLElement): Promise<() => void> {
+  const svgs = Array.from(root.querySelectorAll("svg"));
+  const restores: Array<() => void> = [];
+
+  await Promise.all(
+    svgs.map(async (svg) => {
+      const rect = svg.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+
+      const clone = svg.cloneNode(true) as SVGSVGElement;
+      if (!clone.getAttribute("xmlns")) {
+        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      }
+      if (!clone.getAttribute("xmlns:xlink")) {
+        clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+      }
+      clone.setAttribute("width", String(rect.width));
+      clone.setAttribute("height", String(rect.height));
+
+      const xml = new XMLSerializer().serializeToString(clone);
+      const dataUrl =
+        "data:image/svg+xml;charset=utf-8," + encodeURIComponent(xml);
+
+      const img = document.createElement("img");
+      img.src = dataUrl;
+      img.width = rect.width;
+      img.height = rect.height;
+      img.style.width = `${rect.width}px`;
+      img.style.height = `${rect.height}px`;
+      img.style.display = "block";
+      const origClass = svg.getAttribute("class");
+      if (origClass) img.className = origClass;
+      const origStyle = svg.getAttribute("style");
+      if (origStyle) img.setAttribute("style", img.getAttribute("style") + ";" + origStyle);
+
+      await new Promise<void>((res) => {
+        if (img.complete && img.naturalWidth > 0) return res();
+        img.onload = () => res();
+        img.onerror = () => res();
+      });
+
+      const parent = svg.parentNode;
+      if (!parent) return;
+      parent.replaceChild(img, svg);
+      restores.push(() => {
+        if (img.parentNode === parent) parent.replaceChild(svg, img);
+      });
+    })
+  );
+
+  return () => restores.forEach((r) => r());
+}
+
+/**
  * Capture a DOM node and composite it onto a branded canvas with footer credits.
  * Returns a PNG data URL.
  */
@@ -31,11 +91,18 @@ export async function captureShareable(
   { title, subtitle, orgName, orgLogoUrl, accent = "#3b82f6" }: ExportOptions
 ): Promise<string> {
   // Force a light backdrop for the captured viz so dark + light mode both export legibly
-  const dataUrl = await toPng(node, {
-    cacheBust: true,
-    pixelRatio: 2,
-    backgroundColor: getComputedStyle(document.body).backgroundColor || "#ffffff",
-  });
+  // Pre-rasterize SVGs so arrowhead markers survive the snapshot
+  const restoreSvgs = await rasterizeSvgs(node);
+  let dataUrl: string;
+  try {
+    dataUrl = await toPng(node, {
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: getComputedStyle(document.body).backgroundColor || "#ffffff",
+    });
+  } finally {
+    restoreSvgs();
+  }
   const viz = await loadImage(dataUrl);
 
   const PADDING = 56;
