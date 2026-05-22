@@ -29,7 +29,7 @@ export function useMatchStory(matchId: string | undefined, audience: StoryAudien
         .order('version_number', { ascending: false });
       return {
         story: story as StoryRow,
-        versions: (versions ?? []) as StoryVersionRow[],
+        versions: (versions ?? []) as unknown as StoryVersionRow[],
       };
     },
   });
@@ -94,7 +94,7 @@ export function useMatchStory(matchId: string | undefined, audience: StoryAudien
         .eq('id', storyId);
       if (ue) throw ue;
 
-      return version as StoryVersionRow;
+      return version as unknown as StoryVersionRow;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['story', 'match', matchId, audience, orgId] });
