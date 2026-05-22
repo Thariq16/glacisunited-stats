@@ -41,6 +41,8 @@ import { usePlayerTouches } from "@/hooks/usePlayerTouches";
 import { usePlayerLostBalls } from "@/hooks/usePlayerLostBalls";
 import { LostBallsZoneMap } from "@/components/views/LostBallsZoneMap";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { useRef } from "react";
+import { BulkShareDialog } from "@/components/sharing/BulkShareDialog";
 
 export default function PlayerProfile() {
   const { teamId, playerName } = useParams<{ teamId: string; playerName: string }>();
