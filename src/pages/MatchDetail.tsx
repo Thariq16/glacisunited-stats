@@ -32,6 +32,8 @@ import { ShareDialog } from "@/components/sharing/ShareDialog";
 import { MatchSummaryShareContent } from "@/components/sharing/MatchSummaryShareContent";
 import { format as formatDate } from "date-fns";
 import { MatchStoryTab } from "@/features/stories/MatchStoryTab";
+import { BulkShareDialog } from "@/components/sharing/BulkShareDialog";
+import { useRef } from "react";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -40,6 +42,7 @@ export default function MatchDetail() {
   const { isAdmin, isCoach } = useAuth();
   const { primaryTeam } = useOrganization();
   const [selectedTeam, setSelectedTeam] = useState<'home' | 'away' | null>(null);
+  const vizContainerRef = useRef<HTMLDivElement>(null);
 
   // Extract team info for xG query
   const homeTeam = match?.home_team as { id: string; name: string; slug: string } | null;
