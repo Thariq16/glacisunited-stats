@@ -3,7 +3,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, BarChart3, MessageSquare, TrendingUp, Flag } from "lucide-react";
+import { ArrowLeft, BarChart3, MessageSquare, TrendingUp, Flag, BookOpen } from "lucide-react";
 import { DownloadReportButton } from "@/components/DownloadReportButton";
 import { generateMatchReport } from "@/utils/reports/matchReport";
 import { useState, useMemo } from "react";
@@ -31,6 +31,7 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 import { ShareDialog } from "@/components/sharing/ShareDialog";
 import { MatchSummaryShareContent } from "@/components/sharing/MatchSummaryShareContent";
 import { format as formatDate } from "date-fns";
+import { MatchStoryTab } from "@/features/stories/MatchStoryTab";
 
 export default function MatchDetail() {
   const { matchId } = useParams<{ matchId: string }>();
@@ -201,7 +202,7 @@ export default function MatchDetail() {
 
         {/* Tabs for match detail views */}
         <Tabs defaultValue="stats" className="space-y-6">
-          <TabsList className={`grid w-full ${canViewNotes ? 'grid-cols-4' : 'grid-cols-3'} lg:w-auto lg:inline-flex`}>
+          <TabsList className={`grid w-full ${canViewNotes ? 'grid-cols-5' : 'grid-cols-4'} lg:w-auto lg:inline-flex`}>
             <TabsTrigger value="stats" className="gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Overall</span> Statistics
@@ -219,6 +220,10 @@ export default function MatchDetail() {
             <TabsTrigger value="visualizations" className="gap-2">
               <TrendingUp className="h-4 w-4" />
               Visualizations
+            </TabsTrigger>
+            <TabsTrigger value="story" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              Story
             </TabsTrigger>
           </TabsList>
 
@@ -279,6 +284,18 @@ export default function MatchDetail() {
               awayTeamId={awayTeam?.id}
               homeTeamName={homeTeam?.name || 'Home Team'}
               awayTeamName={awayTeam?.name || 'Away Team'}
+            />
+          </TabsContent>
+
+          <TabsContent value="story">
+            <MatchStoryTab
+              matchId={matchId!}
+              matchTitle={`${homeTeam?.name || 'Home'} ${match.home_score}–${match.away_score} ${awayTeam?.name || 'Away'}`}
+              matchSubtitle={[
+                match.competition,
+                formatDate(new Date(match.match_date), 'd MMM yyyy'),
+                match.venue,
+              ].filter(Boolean).join(' · ')}
             />
           </TabsContent>
         </Tabs>
