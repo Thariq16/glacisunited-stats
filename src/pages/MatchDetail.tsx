@@ -177,6 +177,16 @@ export default function MatchDetail() {
               awayXG={xgStats?.away?.totalXG}
             />
           </ShareDialog>
+          <BulkShareDialog
+            containerRef={vizContainerRef}
+            subject={`${homeTeam?.name || 'Home'} vs ${awayTeam?.name || 'Away'}`}
+            subtitle={[
+              match.competition,
+              formatDate(new Date(match.match_date), 'd MMM yyyy'),
+            ].filter(Boolean).join(' · ')}
+            fileNamePrefix={`match-${match.match_date}`}
+            buttonLabel="Share charts"
+          />
         </div>
 
         {/* Match Header */}
