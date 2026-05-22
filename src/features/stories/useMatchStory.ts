@@ -5,8 +5,9 @@ import { toast } from 'sonner';
 import { StoryAudience, StoryContent, StoryRow, StoryVersionRow } from './types';
 
 export function useMatchStory(matchId: string | undefined, audience: StoryAudience) {
-  const { currentOrg } = useOrganization();
+  const { currentOrg, primaryTeam } = useOrganization();
   const orgId = currentOrg?.id;
+  const primaryTeamId = primaryTeam?.id;
   const qc = useQueryClient();
 
   const storyQuery = useQuery({
@@ -38,7 +39,7 @@ export function useMatchStory(matchId: string | undefined, audience: StoryAudien
     mutationFn: async () => {
       if (!matchId) throw new Error('No match');
       const { data, error } = await supabase.functions.invoke('draft-story', {
-        body: { matchId, audience },
+        body: { matchId, audience, primaryTeamId },
       });
       if (error) throw error;
       return data as { content: StoryContent };

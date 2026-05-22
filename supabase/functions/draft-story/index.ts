@@ -7,6 +7,7 @@ import { createOpenAICompatible } from 'npm:@ai-sdk/openai-compatible@1';
 const BodySchema = z.object({
   matchId: z.string().uuid(),
   audience: z.enum(['coach', 'player', 'analyst']),
+  primaryTeamId: z.string().uuid().optional(),
 });
 
 const StorySchema = z.object({
@@ -43,7 +44,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const { matchId, audience } = parsed.data;
+    const { matchId, audience, primaryTeamId } = parsed.data;
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -128,10 +129,25 @@ Deno.serve(async (req) => {
       };
     };
 
+    // Resolve us vs them framing
+    const ourTeamId =
+      primaryTeamId && (primaryTeamId === match.home_team_id || primaryTeamId === match.away_team_id)
+        ? primaryTeamId
+        : match.home_team_id; // fallback only
+    const oppTeamId = ourTeamId === match.home_team_id ? match.away_team_id : match.home_team_id;
+    const ourTeam = teams?.find((t) => t.id === ourTeamId);
+    const oppTeam = teams?.find((t) => t.id === oppTeamId);
+    const ourIsHome = ourTeamId === match.home_team_id;
+    const ourScore = ourIsHome ? match.home_score : match.away_score;
+    const oppScore = ourIsHome ? match.away_score : match.home_score;
+    const result = ourScore > oppScore ? 'Win' : ourScore < oppScore ? 'Loss' : 'Draw';
+
     const stats = {
-      home: { name: homeTeam?.name, ...teamAgg(match.home_team_id) },
-      away: { name: awayTeam?.name, ...teamAgg(match.away_team_id) },
-      score: `${match.home_score}-${match.away_score}`,
+      us: { name: ourTeam?.name, ...teamAgg(ourTeamId) },
+      opposition: { name: oppTeam?.name, ...teamAgg(oppTeamId) },
+      score: `${ourScore}-${oppScore}`,
+      result,
+      venue_for_us: ourIsHome ? 'home' : 'away',
       date: match.match_date,
       competition: match.competition,
       venue: match.venue,
@@ -153,12 +169,13 @@ Deno.serve(async (req) => {
     const model = gateway('google/gemini-2.5-flash');
 
     const audiencePrompt = {
-      coach: 'a head coach who needs tactical insight and concrete fixes',
-      player: 'players reading on their phone — short, motivational, specific to behaviours',
-      analyst: 'a fellow analyst — data-driven observations and patterns to investigate next',
+      coach: `the head coach of ${ourTeam?.name ?? 'our team'} who needs tactical insight and concrete fixes`,
+      player: `players of ${ourTeam?.name ?? 'our team'} reading on their phone — short, motivational, specific to behaviours`,
+      analyst: `a fellow analyst working for ${ourTeam?.name ?? 'our team'} — data-driven observations and patterns to investigate next`,
     }[audience];
 
     const system = `You are a football analyst writing a short narrative report for ${audiencePrompt}.
+CRITICAL: The report is ALWAYS about "${ourTeam?.name ?? 'our team'}" (referred to as "us"/"we"/"our team"). "${oppTeam?.name ?? 'the opposition'}" is the OPPOSITION — never frame the story from their perspective. Tactical advice, "fix it" notes, and praise must target our team only. Mention opposition only to contextualise what we faced.
 Write in plain English, no jargon walls. Tell a story: what happened, why, what to do.
 Return STRICT JSON only — no markdown fences — matching this shape:
 {
@@ -166,12 +183,14 @@ Return STRICT JSON only — no markdown fences — matching this shape:
   "summary": string (1-2 sentences, the headline takeaway),
   "chapters": [ { "title": string, "body": string (2-4 sentences), "fixIt"?: string (1 sentence, only for coach audience) } ]
 }
-Produce 3-4 chapters: one on the attacking story, one on defensive shape, one on a key pattern, optionally one on individual standout.`;
+Produce 3-4 chapters: one on our attacking story, one on our defensive shape, one on a key pattern from our play, optionally one on an individual standout of ours.`;
 
-    const user = `Match: ${stats.home.name} ${stats.score} ${stats.away.name}
+    const user = `Our team: ${ourTeam?.name}
+Opposition: ${oppTeam?.name}
+Result for us: ${result} (${ourScore}-${oppScore}, ${ourIsHome ? 'home' : 'away'})
 Competition: ${stats.competition ?? 'Unknown'} · ${stats.date} · ${stats.venue ?? ''}
 
-Stats:
+Stats (us vs opposition):
 ${JSON.stringify(stats, null, 2)}`;
 
     const { text } = await generateText({
