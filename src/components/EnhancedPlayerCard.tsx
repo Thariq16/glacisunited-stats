@@ -156,15 +156,15 @@ export function EnhancedPlayerCard({ player, teamId, passData }: EnhancedPlayerC
                   <h4 className="text-sm font-medium">Passes by Zone</h4>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Defensive Third</span>
-                    <span className="font-semibold">{player.fwDefensiveThird}</span>
+                    <span className="font-semibold">{player.passesDefensiveThird}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Middle Third</span>
-                    <span className="font-semibold">{player.fwMiddleThird}</span>
+                    <span className="font-semibold">{player.passesMiddleThird}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Final Third</span>
-                    <span className="font-semibold">{player.fwFinalThird}</span>
+                    <span className="font-semibold">{player.passesFinalThird}</span>
                   </div>
                 </div>
               </Card>
