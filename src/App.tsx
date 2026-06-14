@@ -42,6 +42,7 @@ const AdminSettings = lazy(() => import("@/features/admin/pages/AdminSettings"))
 const AdminSignups = lazy(() => import("@/features/admin/pages/AdminSignups"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
+const Submit = lazy(() => import("@/marketing/pages/Submit"));
 
 const queryClient = new QueryClient();
 
