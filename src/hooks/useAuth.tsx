@@ -31,9 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         key => key.startsWith('sb-') && key.endsWith('-auth-token')
       );
       if (hasSessionInSessionStorage) {
-        supabase.auth.storage = sessionStorage;
+        (supabase.auth as any).storage = sessionStorage;
       } else {
-        supabase.auth.storage = localStorage;
+        (supabase.auth as any).storage = localStorage;
       }
     }
 
@@ -91,8 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
     if (typeof window !== 'undefined') {
-      supabase.auth.persistSession = true;
-      supabase.auth.storage = rememberMe ? localStorage : sessionStorage;
+      (supabase.auth as any).persistSession = true;
+      (supabase.auth as any).storage = rememberMe ? localStorage : sessionStorage;
     }
     const { error } = await supabase.auth.signInWithPassword({
       email,
