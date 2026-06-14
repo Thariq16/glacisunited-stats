@@ -96,28 +96,25 @@ export function StatsCounter() {
   const { data: clubsCount, isLoading: loadingClubs } = useQuery({
     queryKey: ["stats-clubs-count"],
     queryFn: async () => {
-      // Robust querying with graceful fallback in case public_profile is not present yet
+      // By casting the entire supabase instance to any, we completely bypass strict typing checks
+      // and prevent TS2589 "Type instantiation is excessively deep and possibly infinite" errors
+      const client = supabase as any;
       try {
-        const { count, error } = await supabase
+        const { count, error } = await client
           .from("organizations")
           .select("*", { count: "exact", head: true })
-          .eq("public_profile" as any, true);
+          .eq("public_profile", true);
         
         if (error) {
-          // If public_profile column doesn't exist, count all organizations
-          if (error.code === "PGRST204" || error.message.includes("column") || error.message.includes("does not exist")) {
-            const { count: fallbackCount, error: fallbackError } = await supabase
-              .from("organizations")
-              .select("*", { count: "exact", head: true });
-            if (fallbackError) throw fallbackError;
-            return fallbackCount ?? 0;
-          }
-          throw error;
+          const { count: fallbackCount, error: fallbackError } = await client
+            .from("organizations")
+            .select("*", { count: "exact", head: true });
+          if (fallbackError) throw fallbackError;
+          return fallbackCount ?? 0;
         }
         return count ?? 0;
       } catch (err) {
-        // Safe global fallback
-        const { count: fallbackCount } = await supabase
+        const { count: fallbackCount } = await client
           .from("organizations")
           .select("*", { count: "exact", head: true });
         return fallbackCount ?? 0;
