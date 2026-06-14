@@ -74,7 +74,7 @@ export default function Auth() {
       loginSchema.parse({ email, password });
       setIsLoading(true);
       
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email, password, rememberMe);
       
       if (error) {
         toast({
