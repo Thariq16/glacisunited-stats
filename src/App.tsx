@@ -44,6 +44,7 @@ const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const Submit = lazy(() => import("@/marketing/pages/Submit"));
 const Landing = lazy(() => import("@/marketing/pages/Landing"));
+const About = lazy(() => import("@/marketing/pages/About"));
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
               <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><Pricing /></Suspense>} />
               <Route path="/submit" element={<Suspense fallback={<PageLoader />}><Submit /></Suspense>} />
+              <Route path="/about" element={<Suspense fallback={<PageLoader />}><About /></Suspense>} />
 
               {/* Org-scoped routes */}
               <Route path="/org/:orgSlug" element={<OrgLayout />}>

@@ -23,6 +23,7 @@ export function MarketingNav() {
     { to: "/demo", label: "Demo" },
     { to: "/clubs", label: "Clubs" },
     { to: "/pricing", label: "Pricing" },
+    { to: "/about", label: "About" },
   ];
 
   const handleLinkClick = () => {
