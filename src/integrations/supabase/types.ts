@@ -250,6 +250,57 @@ export type Database = {
           },
         ]
       }
+      match_submissions: {
+        Row: {
+          analyst_notes: string | null
+          club_name: string
+          competition: string | null
+          id: string
+          invoice_amount: number | null
+          match_date: string | null
+          notes: string | null
+          opponent: string | null
+          package: string
+          status: string
+          submitted_at: string
+          submitter_email: string
+          submitter_name: string
+          video_url: string
+        }
+        Insert: {
+          analyst_notes?: string | null
+          club_name: string
+          competition?: string | null
+          id?: string
+          invoice_amount?: number | null
+          match_date?: string | null
+          notes?: string | null
+          opponent?: string | null
+          package: string
+          status?: string
+          submitted_at?: string
+          submitter_email: string
+          submitter_name: string
+          video_url: string
+        }
+        Update: {
+          analyst_notes?: string | null
+          club_name?: string
+          competition?: string | null
+          id?: string
+          invoice_amount?: number | null
+          match_date?: string | null
+          notes?: string | null
+          opponent?: string | null
+          package?: string
+          status?: string
+          submitted_at?: string
+          submitter_email?: string
+          submitter_name?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
       matches: {
         Row: {
           away_score: number

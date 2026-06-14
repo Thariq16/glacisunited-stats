@@ -42,6 +42,7 @@ const AdminSettings = lazy(() => import("@/features/admin/pages/AdminSettings"))
 const AdminSignups = lazy(() => import("@/features/admin/pages/AdminSignups"));
 const DemoLanding = lazy(() => import("@/pages/demo/Landing"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
+const Submit = lazy(() => import("@/marketing/pages/Submit"));
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/" element={<OrgSelector />} />
               <Route path="/demo" element={<Suspense fallback={<PageLoader />}><DemoLanding /></Suspense>} />
               <Route path="/pricing" element={<Suspense fallback={<PageLoader />}><Pricing /></Suspense>} />
+              <Route path="/submit" element={<Suspense fallback={<PageLoader />}><Submit /></Suspense>} />
 
               {/* Org-scoped routes */}
               <Route path="/org/:orgSlug" element={<OrgLayout />}>
