@@ -52,8 +52,8 @@ const submitSchema = z.object({
   match_date: z.date().optional(),
   opponent: z.string().trim().max(150, "Opponent name too long").optional().or(z.literal("")),
   competition: z.string().trim().max(150, "Competition name too long").optional().or(z.literal("")),
-  package: z.enum(["essentials", "pro"], {
-    required_error: "Please select a package",
+  package: z.enum({ essentials: "essentials", pro: "pro" }, {
+    message: "Please select a package",
   }),
   notes: z.string().trim().max(2000, "Notes must be less than 2000 characters").optional().or(z.literal("")),
 });
