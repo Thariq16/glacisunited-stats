@@ -8,7 +8,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isCoach: boolean;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: any }>;
   signUp: (email: string, password: string, username?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -25,6 +25,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Configure the correct storage based on where the auth token exists
+    if (typeof window !== 'undefined') {
+      const hasSessionInSessionStorage = Object.keys(sessionStorage).some(
+        key => key.startsWith('sb-') && key.endsWith('-auth-token')
+      );
+      if (hasSessionInSessionStorage) {
+        (supabase.auth as any).storage = sessionStorage;
+      } else {
+        (supabase.auth as any).storage = localStorage;
+      }
+    }
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -77,7 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
+    if (typeof window !== 'undefined') {
+      (supabase.auth as any).persistSession = true;
+      (supabase.auth as any).storage = rememberMe ? localStorage : sessionStorage;
+    }
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
